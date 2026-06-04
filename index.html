@@ -5,16 +5,56 @@
   <title>Live</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; width: 100vw; height: 100vh; }
-    iframe { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    body { 
+      background: #000; 
+      width: 100vw; 
+      height: 100vh; 
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    iframe {
+      position: absolute;
+      /* offset per nascondere i controlli YouTube */
+      top: -60px;
+      left: -60px;
+      width: calc(100% + 120px);
+      height: calc(100% + 120px);
+      pointer-events: none;
+      border: none;
+    }
+
+    /* verticale: il quadrato riempie la larghezza */
+    @media (orientation: portrait) {
+      .container {
+        width: 100vw;
+        height: 100vw; /* quadrato */
+      }
+    }
+
+    /* orizzontale: riempie tutto */
+    @media (orientation: landscape) {
+      .container {
+        width: 100vw;
+        height: 100vh;
+      }
+    }
   </style>
 </head>
 <body>
-  <iframe
-    src="https://www.youtube.com/embed/rHjPFe-3I1E?autoplay=1&mute=1&controls=0"
-    frameborder="0"
-    allow="autoplay; fullscreen"
-    allowfullscreen>
-  </iframe>
+  <div class="container">
+    <iframe
+      src="https://www.youtube.com/embed/rHjPFe-3I1E?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3"
+      frameborder="0"
+      allow="autoplay; fullscreen"
+      allowfullscreen>
+    </iframe>
+  </div>
 </body>
 </html>
