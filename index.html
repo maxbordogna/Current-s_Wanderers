@@ -5,56 +5,78 @@
   <title>Live</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      background: #000; 
-      width: 100vw; 
-      height: 100vh; 
+    
+    body {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .container {
+
+    .wrapper {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-    iframe {
-      position: absolute;
-      /* offset per nascondere i controlli YouTube */
-      top: -60px;
-      left: -60px;
-      width: calc(100% + 120px);
-      height: calc(100% + 120px);
-      pointer-events: none;
-      border: none;
+      overflow: hidden;
     }
 
-    /* verticale: il quadrato riempie la larghezza */
-    @media (orientation: portrait) {
-      .container {
-        width: 100vw;
-        height: 100vw; /* quadrato */
-      }
-    }
-
-    /* orizzontale: riempie tutto */
+    /* orizzontale: riempie tutto lo schermo */
     @media (orientation: landscape) {
-      .container {
+      .wrapper {
         width: 100vw;
         height: 100vh;
       }
     }
+
+    /* verticale: il quadrato riempie la larghezza */
+    @media (orientation: portrait) {
+      .wrapper {
+        width: 100vw;
+        height: 100vw;
+      }
+    }
+
+    .iframe-container {
+      position: absolute;
+      /* ingrandiamo per nascondere overlay e bordi */
+      top: -9999px;
+      left: -9999px;
+      right: -9999px;
+      bottom: -9999px;
+      width: calc(100% + 200px);
+      height: calc(100% + 200px);
+      margin: -100px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+
+    /* blocca tutti i click */
+    .blocker {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background: transparent;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <iframe
-      src="https://www.youtube.com/embed/rHjPFe-3I1E?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3"
-      frameborder="0"
-      allow="autoplay; fullscreen"
-      allowfullscreen>
-    </iframe>
+  <div class="wrapper">
+    <div class="iframe-container">
+      <iframe
+        src="https://www.youtube.com/embed/rHjPFe-3I1E?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&fs=0"
+        allow="autoplay; fullscreen"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="blocker"></div>
   </div>
 </body>
 </html>
