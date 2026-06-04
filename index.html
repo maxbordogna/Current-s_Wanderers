@@ -12,7 +12,7 @@
 <body>
   <video id="stream" autoplay muted playsinline></video>
   <script>
-    const url = "https://ranking-census-goal.ngrok-free.dev/live/whep";
+    const url = "https://ranking-census-goal.ngrok-free.dev/td/whep";
     const pc = new RTCPeerConnection();
     pc.addTransceiver("video", { direction: "recvonly" });
     pc.addTransceiver("audio", { direction: "recvonly" });
