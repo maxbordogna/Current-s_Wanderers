@@ -24,29 +24,28 @@
 
     @media (orientation: landscape) {
       .wrapper {
-        width: 100vw;
+        width: 100vh;
         height: 100vh;
       }
     }
 
-    /* in verticale: l'iframe 16:9 deve essere largo 
-       abbastanza che il quadrato centrale = 100vw
-       il quadrato è 9/16 della larghezza dell'iframe
-       quindi larghezza iframe = 100vw * 16/9 */
     @media (orientation: portrait) {
       .wrapper {
-        width: 177.78vw; /* 100 * 16/9 */
-        height: 100vw;   /* quadrato = 100vw di larghezza */
-        margin-left: -38.89vw; /* centra: (177.78 - 100) / 2 */
+        width: 100vw;
+        height: 100vw;
       }
     }
 
+    /* l'iframe 16:9 deve riempire un quadrato
+       quindi lo allarghiamo: 16/9 = 1.778
+       e lo centriamo */
     iframe {
       position: absolute;
-      top: -60px;
-      left: -60px;
-      width: calc(100% + 120px);
-      height: calc(100% + 120px);
+      width: 177.78%;
+      height: 100%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
       border: none;
       pointer-events: none;
     }
