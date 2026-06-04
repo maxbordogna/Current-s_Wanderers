@@ -20,11 +20,25 @@
     .wrapper {
       position: relative;
       overflow: hidden;
-      /* forziamo sempre un 16:9 che copre tutto */
-      width: 100vw;
-      height: 56.25vw; /* 16:9 */
-      min-height: 100vh;
-      min-width: 177.78vh; /* 16:9 inverso */
+    }
+
+    @media (orientation: landscape) {
+      .wrapper {
+        width: 100vw;
+        height: 100vh;
+      }
+    }
+
+    /* in verticale: l'iframe 16:9 deve essere largo 
+       abbastanza che il quadrato centrale = 100vw
+       il quadrato è 9/16 della larghezza dell'iframe
+       quindi larghezza iframe = 100vw * 16/9 */
+    @media (orientation: portrait) {
+      .wrapper {
+        width: 177.78vw; /* 100 * 16/9 */
+        height: 100vw;   /* quadrato = 100vw di larghezza */
+        margin-left: -38.89vw; /* centra: (177.78 - 100) / 2 */
+      }
     }
 
     iframe {
