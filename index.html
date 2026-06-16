@@ -3,36 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live</title>
+  <title>Current's Wanderers</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
     body {
       background: #000;
       width: 100vw;
       height: 100vh;
       overflow: hidden;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
     }
 
     .wrapper {
       position: relative;
       overflow: hidden;
+      border: 2px solid #fff;
+    }
+
+    .curtain {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      z-index: 20;
+      transition: opacity 1s ease;
+    }
+
+    .plankton {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 6px 2px rgba(255,255,255,0.5);
+      z-index: 21;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-text {
+      position: absolute;
+      bottom: 10px;
+      left: 14px;
+      z-index: 22;
+      font-family: 'Courier New', Courier, monospace;
+      color: #fff;
+      font-size: 14px;
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      font-weight: bold;
+    }
+
+    .sidebar {
+      color: #fff;
+      font-family: monospace;
+      max-width: 600px;
+      font-size: 14px;
+      font-weight: 500;
     }
 
     @media (orientation: landscape) {
+      body {
+        justify-content: flex-start;
+      }
       .wrapper {
-        width: 100vh;
-        height: 100vh;
+        width: 85vh;
+        height: 85vh;
+        margin-left: 2rem;
+        margin-top: 2rem;
+      }
+      .sidebar {
+        margin-left: 2rem;
+        margin-top: 2rem;
       }
     }
 
     @media (orientation: portrait) {
+      body {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+      }
       .wrapper {
-        width: 100vw;
-        height: 100vw;
+        width: 93vw;
+        height: 93vw;
+        margin-top: 1.5rem;
+      }
+      .sidebar {
+        margin: 1rem;
       }
     }
 
@@ -60,12 +130,183 @@
   </style>
 </head>
 <body>
-  <div class="wrapper">
+  <div class="wrapper" id="wrapper">
     <iframe
-      src="https://www.youtube.com/embed/C7XnB5GidBM?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3"
+      src="https://www.youtube.com/embed/_ysGku5QX7k?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3"
       allow="autoplay; fullscreen">
     </iframe>
     <div class="blocker"></div>
+    <div class="curtain" id="curtain"></div>
+    <div class="loading-text" id="loadingText">Loading...</div>
+    <!-- i plankton vengono generati via JS -->
   </div>
+
+  <div class="sidebar">
+    <p>Current’s Wanderers ⋅ A Real Time Bridge to Plankton Life</p>
+    <p>Data Source [datalakes-eawag.ch]</p>
+    <br>
+    <p>Massimo Bordogna ⋅ Master Thesis Project Interaction Design ZHdK</p>
+    <p>Collaboration ⋅ Marta Reyes & Stefanie Eyring, Aquascope Eawag</p>
+    <p>Mentors ⋅ Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+    <p></p>
+    <p></p>
+  </div>
+
+  <script>
+    const PLANKTON_COUNT = 1; // <-- numero di plankton, modifica qui
+
+    const curtain = document.getElementById('curtain');
+    const loadingText = document.getElementById('loadingText');
+    const wrapper = document.getElementById('wrapper');
+
+    let planktons = []; // array di { el, x, y, angle, targetAngle, speed, targetSpeed, nextTurnTime, nextSpeedChangeTime }
+    let rafId = null;
+    let lastFrameTime = 0;
+
+    function createPlanktonElements() {
+      for (let i = 0; i < PLANKTON_COUNT; i++) {
+        const el = document.createElement('div');
+        el.className = 'plankton';
+        wrapper.appendChild(el);
+        planktons.push({
+          el: el,
+          x: 0.5,
+          y: 0.5,
+          angle: 0,
+          targetAngle: 0,
+          speed: 0.05,
+          targetSpeed: 0.05,
+          nextTurnTime: 0,
+          nextSpeedChangeTime: 0
+        });
+      }
+    }
+
+    function applyPlanktonPosition(p) {
+      const rect = wrapper.getBoundingClientRect();
+      const px = p.x * rect.width;
+      const py = p.y * rect.height;
+      p.el.style.left = px + 'px';
+      p.el.style.top = py + 'px';
+    }
+
+    function stepPlankton(p, now, dt) {
+      if (now >= p.nextTurnTime) {
+        const maxTurn = Math.PI / 4;
+        p.targetAngle = p.angle + (Math.random() - 0.5) * 2 * maxTurn;
+        p.nextTurnTime = now + 800 + Math.random() * 1200;
+      }
+
+      if (now >= p.nextSpeedChangeTime) {
+        p.targetSpeed = 0.03 + Math.random() * 0.06;
+        p.nextSpeedChangeTime = now + 1500 + Math.random() * 2000;
+      }
+
+      const safeMargin = 0.22;
+      const cx = 0.5, cy = 0.5;
+
+      const distToEdgeX = Math.min(p.x, 1 - p.x);
+      const distToEdgeY = Math.min(p.y, 1 - p.y);
+      const distToEdge = Math.min(distToEdgeX, distToEdgeY);
+
+      if (distToEdge < safeMargin) {
+        const angleToCenter = Math.atan2(cy - p.y, cx - p.x);
+        const pull = 1 - (distToEdge / safeMargin);
+        let diff = angleToCenter - p.targetAngle;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        p.targetAngle += diff * pull * 0.6;
+      }
+
+      p.angle += (p.targetAngle - p.angle) * Math.min(1, dt * 0.6);
+      p.speed += (p.targetSpeed - p.speed) * Math.min(1, dt * 0.5);
+
+      let nextX = p.x + Math.cos(p.angle) * p.speed * dt;
+      let nextY = p.y + Math.sin(p.angle) * p.speed * dt;
+
+      nextX = Math.min(0.95, Math.max(0.05, nextX));
+      nextY = Math.min(0.95, Math.max(0.05, nextY));
+
+      p.x = nextX;
+      p.y = nextY;
+
+      applyPlanktonPosition(p);
+    }
+
+    function animateAll(now) {
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+
+      for (const p of planktons) {
+        stepPlankton(p, now, dt);
+      }
+
+      rafId = requestAnimationFrame(animateAll);
+    }
+
+    function startPlankton() {
+      const now = performance.now();
+      lastFrameTime = now;
+
+      for (const p of planktons) {
+        p.x = 0.3 + Math.random() * 0.4;
+        p.y = 0.3 + Math.random() * 0.4;
+        p.angle = Math.random() * Math.PI * 2;
+        p.targetAngle = p.angle;
+        p.speed = 0.05;
+        p.targetSpeed = 0.05;
+        p.nextTurnTime = now + 800 + Math.random() * 800;
+        p.nextSpeedChangeTime = now + 1500 + Math.random() * 1500;
+        p.el.style.opacity = '1';
+        applyPlanktonPosition(p);
+      }
+
+      rafId = requestAnimationFrame(animateAll);
+    }
+
+    function stopPlankton() {
+      for (const p of planktons) {
+        p.el.style.opacity = '0';
+      }
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+
+    function showCurtain() {
+      curtain.style.transition = 'none';
+      curtain.style.opacity = '1';
+      curtain.style.pointerEvents = 'auto';
+      loadingText.style.opacity = '1';
+    }
+
+    function hideCurtain() {
+      curtain.style.transition = 'opacity 1s ease';
+      curtain.style.opacity = '0';
+      curtain.style.pointerEvents = 'none';
+      loadingText.style.opacity = '0';
+    }
+
+    function runCurtain(delay) {
+      showCurtain();
+      startPlankton();
+      setTimeout(() => {
+        hideCurtain();
+        stopPlankton();
+      }, delay);
+    }
+
+    createPlanktonElements();
+
+    // al primo caricamento
+    runCurtain(6000);
+
+    // ogni volta che la tab/finestra torna visibile
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        runCurtain(6000);
+      }
+    });
+  </script>
 </body>
 </html>
