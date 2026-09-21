@@ -6,6 +6,28 @@
   <link rel="icon" type="image/png" href="favicon1.png?v=2">
   <title>Current's Wanderers</title>
   <style>
+    @font-face {
+      font-family: 'PP Kyoto';
+      src: url('Fonts/PPKyoto-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'PP Kyoto';
+      src: url('Fonts/PPKyoto-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'PP Kyoto';
+      src: url('Fonts/PPKyoto-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
@@ -16,28 +38,108 @@
       justify-content: center;
     }
 
-    .sidebar {
+    .page {
       color: #000;
-      font-family: monospace;
+      font-family: 'PP Kyoto', sans-serif;
       max-width: 700px;
-      font-size: 14px;
-      font-weight: 500;
+      width: 100%;
       min-width: 0;
       overflow-wrap: break-word;
-      margin: 2rem 3.5vw;
+      margin: 3rem 3.5vw 4rem;
     }
-    .sidebar a,
-    .sidebar a:visited,
-    .sidebar a:hover,
-    .sidebar a:active {
-      color: #000;
+
+    a, a:visited, a:hover, a:active {
+      color: inherit;
     }
+
+    /* ---- hierarchy ---- */
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8a8a8a;
+      margin-bottom: 0.4rem;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.6rem;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      color: #444;
+      margin-bottom: 2rem;
+    }
+
+    .author {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+
+    .role {
+      font-size: 14px;
+      font-weight: 400;
+      color: #444;
+      margin-bottom: 2.2rem;
+    }
+
+    section + section {
+      margin-top: 1.6rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8a8a8a;
+      margin-bottom: 0.35rem;
+    }
+
+    .section-body {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .section-body a {
+      text-decoration-color: #aaa;
+    }
+    .section-body a:hover {
+      text-decoration-color: #000;
+    }
+
+    .about {
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: #222;
+      max-width: 62ch;
+    }
+    .about p + p {
+      margin-top: 1rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ---- video ---- */
 
     .teaser-wrap {
       position: relative;
       width: 100%;
-      max-width: 700px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
     }
 
     .teaser {
@@ -50,7 +152,7 @@
       position: absolute;
       bottom: 10px;
       right: 10px;
-      font-family: monospace;
+      font-family: 'PP Kyoto', sans-serif;
       font-size: 12px;
       font-weight: 500;
       color: #000;
@@ -66,23 +168,44 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <p>Current’s Wanderers ⋅ A Real Time Bridge to Plankton Life</p>
+  <div class="page">
+
+    <h1>Current’s Wanderers</h1>
+    <p class="subtitle">A Real Time Bridge to Plankton Life</p>
+
     <div class="teaser-wrap">
       <video class="teaser" id="teaser" src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
       <button class="mute-toggle" id="muteToggle" type="button" aria-label="Unmute video">🔇 Unmute</button>
     </div>
-    <p>Massimo Bordogna</p>
-    <br>
-    <p>Master Thesis Project ⋅ Interaction Design ZHdK</p>
-    <br>
-    <p>Scientific Collaboration ⋅ Marta Reyes & Stefanie Eyring,<i> Aquascope</i> Eawag</p>
-    <br>
-    <p>Mentors ⋅ Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
-    <br>
-    <p><a href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer" style="color:#555; text-decoration-color:#555;">Data Source [datalakes-eawag.ch]</a></p>
-    <p></p>
-    <p></p>
+
+    <p class="author">Massimo Bordogna</p>
+    <p class="role">Master Thesis Project ⋅ Interaction Design ZHdK</p>
+
+    <section>
+      <p class="section-label">Abstract</p>
+      <div class="about">
+        <p>Although unable to resist the water currents that transport them, and therefore seemingly relegated to wandering passengers within aquatic ecosystems, planktonic microorganisms constitute an essential component for the health and stability of global ecological balances, both aquatic and terrestrial. Despite the crucial role they play, the knowledge and awareness that human society possesses regarding this reality remain limited, hindering the development of approaches to environmental conservation that are less anthropocentric and more sensitive to ecological interdependencies. The ways in which humans and planktonic microorganisms perceive and interact with the surrounding world, defined through the concept of Umwelt, differ profoundly due to factors such as differences in scale, anatomical structures, and the ecosystems in which they live. This perceptual separation makes a mutual awareness of each other’s existence and of the impact each exerts on the shared environment particularly complex.</p>
+        <p>Starting from water as a primary element of both physical and conceptual connection, the theoretical framework draws upon the posthuman and feminist ecological philosophy of Astrida Neimanis, integrating it with research demonstrating how an emotional and rational connection can strengthen proactive behaviors oriented toward the conservation of natural environments. Within this context, the theory of Compassion Fade is taken into consideration, describing the progressive decline of empathy as the number of beings involved increases. In response to this phenomenon, the project builds upon the findings of Pimentel and Kalyanaraman, who highlight how highly immersive embodied experiences may mitigate, or even reverse, this effect toward non-human organisms.</p>
+        <p>Thanks to a close collaboration with scientists Marta Reyes and Stefanie Eyring from the Aquascope research group at Eawag, the project is grounded in the emotional and knowledge-based connections that have developed over time between the researchers and their object of study.</p>
+        <p>This collaboration, applied to the theoretical foundations together with the collected scientific knowledge and data, shape the communication model that takes form within several artifacts. The rational compassion is built through two videos realized with the aim of setting a reliable scientific knowledge base combined with an emotional connection thanks to the first-hand experience of the scientists. On top of that an interactive installation that updates itself in real time through data acquired from an underwater microscope in the Greifensee, allows visitors to enter in direct relation with the planktonic microorganisms inhabiting the lake. The experience re-presents a microscopic portion of the lake in a perceptually accessible form for human beings, artificially expanding their possibilities of perceiving and interacting with the aquatic environment. Shaped on water physical properties, the interaction offers the possibility to intervene with the currents that transport planktonic organisms through their continuous wandering across the lake waters. To mitigate the phenomenon of compassion fade, the embodied experience allows visitors to observe, listen to, and tactilely perceive the presence and behavior of the microorganisms in the lake. The project aims to offer a point of access to planktonic ecosystems capable of fostering forms of understanding and connection that can endure over time, while encouraging the adoption of ecological perspectives able to transcend a strictly anthropocentric vision of the natural world.</p>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Scientific Collaboration</p>
+      <p class="section-body">Marta Reyes &amp; Stefanie Eyring, <i>Aquascope</i> Eawag</p>
+    </section>
+
+    <section>
+      <p class="section-label">Mentors</p>
+      <p class="section-body">Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+    </section>
+
+    <section>
+      <p class="section-label">Data</p>
+      <p class="section-body"><a href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer">Data Source ⋅ datalakes-eawag.ch</a></p>
+    </section>
+
   </div>
 
   <script>
