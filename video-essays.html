@@ -29,16 +29,18 @@
       min-width: 0;
     }
     .essay-video {
+      position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
       background: var(--media-bg);
       overflow: hidden;
     }
-    .essay-video video {
+    .essay-video iframe {
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      border: none;
+      pointer-events: none;
     }
     .essay-caption {
       margin-top: 12px;
@@ -46,6 +48,91 @@
       font-size: var(--mono);
       line-height: 1.2;
       color: var(--fg-dim);
+    }
+
+    /* ---- on-video overlay controls, shown on hover ---- */
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+    .essay-video:hover .video-overlay,
+    .essay-video:focus-within .video-overlay,
+    .essay-video.show-controls .video-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-play {
+      background: rgba(0, 0, 0, 0.55);
+      border: none;
+      color: #fff;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0.5em 0.9em;
+    }
+    .video-play:hover {
+      background: rgba(0, 0, 0, 0.75);
+    }
+
+    .video-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      padding: 10px 12px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+    }
+    .video-mute,
+    .video-fullscreen {
+      flex: 0 0 auto;
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0;
+    }
+    .video-mute:hover,
+    .video-fullscreen:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .video-seek {
+      flex: 1 1 auto;
+      min-width: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+    }
+    .video-seek::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .video-seek::-moz-range-thumb {
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
     }
 
     .essay-desc {
@@ -122,7 +209,15 @@
       <div class="essay-entry">
         <div class="essay-media">
           <div class="essay-video">
-            <video src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+            <div class="yt-player" data-video-id="RJfNlYhdRxA"></div>
+            <div class="video-overlay">
+              <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
+              <div class="video-bar">
+                <button class="video-mute" type="button" aria-label="Unmute">[Unmute]</button>
+                <input class="video-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+                <button class="video-fullscreen" type="button" aria-label="Fullscreen">[Fullscreen]</button>
+              </div>
+            </div>
           </div>
           <p class="essay-caption">Current’s Wanderers</p>
         </div>
@@ -132,7 +227,15 @@
       <div class="essay-entry">
         <div class="essay-media">
           <div class="essay-video">
-            <video src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+            <div class="yt-player" data-video-id="bnudlB9M76g"></div>
+            <div class="video-overlay">
+              <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
+              <div class="video-bar">
+                <button class="video-mute" type="button" aria-label="Unmute">[Unmute]</button>
+                <input class="video-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+                <button class="video-fullscreen" type="button" aria-label="Fullscreen">[Fullscreen]</button>
+              </div>
+            </div>
           </div>
           <p class="essay-caption">Current’s Wanderers</p>
         </div>
@@ -150,5 +253,110 @@
   </div>
 
   <script src="script.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    function onYouTubeIframeAPIReady() {
+      document.querySelectorAll('.essay-media').forEach((media) => {
+        const target = media.querySelector('.yt-player');
+        const videoId = target.dataset.videoId;
+
+        new YT.Player(target, {
+          videoId: videoId,
+          width: '640',
+          height: '360',
+          playerVars: {
+            autoplay: 1,
+            mute: 1,
+            loop: 1,
+            playlist: videoId,
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            iv_load_policy: 3,
+            playsinline: 1
+          },
+          events: {
+            onReady: (e) => setupControls(media, e.target),
+            onStateChange: (e) => {
+              const playBtn = media.querySelector('.video-play');
+              if (e.data === YT.PlayerState.PLAYING) {
+                playBtn.textContent = '[Pause]';
+              } else if (e.data === YT.PlayerState.PAUSED) {
+                playBtn.textContent = '[Play]';
+              }
+            }
+          }
+        });
+      });
+    }
+
+    function setupControls(media, player) {
+      const container = media.querySelector('.essay-video');
+      const playBtn = media.querySelector('.video-play');
+      const muteBtn = media.querySelector('.video-mute');
+      const fsBtn = media.querySelector('.video-fullscreen');
+      const seek = media.querySelector('.video-seek');
+
+      player.mute();
+
+      let hideTimer = null;
+      container.addEventListener('click', () => {
+        container.classList.add('show-controls');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          container.classList.remove('show-controls');
+        }, 3000);
+      });
+
+      playBtn.addEventListener('click', () => {
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+        } else {
+          player.playVideo();
+        }
+      });
+
+      muteBtn.addEventListener('click', () => {
+        if (player.isMuted()) {
+          player.unMute();
+          muteBtn.textContent = '[Mute]';
+        } else {
+          player.mute();
+          muteBtn.textContent = '[Unmute]';
+        }
+      });
+
+      fsBtn.addEventListener('click', () => {
+        const iframe = player.getIframe();
+        if (document.fullscreenElement === iframe) {
+          document.exitFullscreen();
+        } else {
+          iframe.requestFullscreen();
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        const iframe = player.getIframe();
+        fsBtn.textContent = document.fullscreenElement === iframe ? '[Exit Fullscreen]' : '[Fullscreen]';
+      });
+
+      let seeking = false;
+      seek.addEventListener('input', () => {
+        seeking = true;
+        const duration = player.getDuration();
+        if (duration) {
+          player.seekTo((seek.value / 100) * duration, true);
+        }
+      });
+      seek.addEventListener('change', () => { seeking = false; });
+
+      setInterval(() => {
+        if (seeking) return;
+        const duration = player.getDuration();
+        if (duration) {
+          seek.value = (player.getCurrentTime() / duration) * 100;
+        }
+      }, 250);
+    }
+  </script>
 </body>
 </html>
