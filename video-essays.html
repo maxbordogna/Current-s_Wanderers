@@ -35,11 +35,11 @@
       background: var(--media-bg);
       overflow: hidden;
     }
-    .essay-video iframe {
+    .essay-video video {
       display: block;
       width: 100%;
       height: 100%;
-      border: none;
+      object-fit: cover;
       pointer-events: none;
     }
     .essay-caption {
@@ -48,6 +48,18 @@
       font-size: var(--mono);
       line-height: 1.2;
       color: var(--fg-dim);
+    }
+
+    .essay-yt-link {
+      display: inline-block;
+      margin-top: 4px;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      line-height: 1.2;
+      color: var(--fg-dim);
+    }
+    .essay-yt-link:hover {
+      color: var(--fg);
     }
 
     /* ---- on-video overlay controls, shown on hover ---- */
@@ -209,7 +221,7 @@
       <div class="essay-entry">
         <div class="essay-media">
           <div class="essay-video">
-            <div class="yt-player" data-video-id="RJfNlYhdRxA"></div>
+            <video src="Media/currents-wanderers-essay.mp4" autoplay muted loop playsinline preload="auto"></video>
             <div class="video-overlay">
               <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
               <div class="video-bar">
@@ -220,6 +232,7 @@
             </div>
           </div>
           <p class="essay-caption">Current’s Wanderers</p>
+          <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
         </div>
         <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
       </div>
@@ -227,7 +240,7 @@
       <div class="essay-entry">
         <div class="essay-media">
           <div class="essay-video">
-            <div class="yt-player" data-video-id="bnudlB9M76g"></div>
+            <video src="Media/reading-the-sample.mp4" autoplay muted loop playsinline preload="auto"></video>
             <div class="video-overlay">
               <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
               <div class="video-bar">
@@ -237,7 +250,8 @@
               </div>
             </div>
           </div>
-          <p class="essay-caption">Current’s Wanderers</p>
+          <p class="essay-caption">Reading the Sample</p>
+          <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
         </div>
         <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
       </div>
@@ -253,51 +267,14 @@
   </div>
 
   <script src="script.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    function onYouTubeIframeAPIReady() {
-      document.querySelectorAll('.essay-media').forEach((media) => {
-        const target = media.querySelector('.yt-player');
-        const videoId = target.dataset.videoId;
-
-        new YT.Player(target, {
-          videoId: videoId,
-          width: '640',
-          height: '360',
-          playerVars: {
-            autoplay: 1,
-            mute: 1,
-            loop: 1,
-            playlist: videoId,
-            controls: 0,
-            modestbranding: 1,
-            rel: 0,
-            iv_load_policy: 3,
-            playsinline: 1
-          },
-          events: {
-            onReady: (e) => setupControls(media, e.target),
-            onStateChange: (e) => {
-              const playBtn = media.querySelector('.video-play');
-              if (e.data === YT.PlayerState.PLAYING) {
-                playBtn.textContent = '[Pause]';
-              } else if (e.data === YT.PlayerState.PAUSED) {
-                playBtn.textContent = '[Play]';
-              }
-            }
-          }
-        });
-      });
-    }
-
-    function setupControls(media, player) {
+    document.querySelectorAll('.essay-media').forEach((media) => {
       const container = media.querySelector('.essay-video');
+      const video = media.querySelector('video');
       const playBtn = media.querySelector('.video-play');
       const muteBtn = media.querySelector('.video-mute');
       const fsBtn = media.querySelector('.video-fullscreen');
       const seek = media.querySelector('.video-seek');
-
-      player.mute();
 
       let hideTimer = null;
       container.addEventListener('click', () => {
@@ -309,54 +286,44 @@
       });
 
       playBtn.addEventListener('click', () => {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-          player.pauseVideo();
+        if (video.paused) {
+          video.play();
         } else {
-          player.playVideo();
+          video.pause();
         }
       });
+      video.addEventListener('play', () => { playBtn.textContent = '[Pause]'; });
+      video.addEventListener('pause', () => { playBtn.textContent = '[Play]'; });
 
       muteBtn.addEventListener('click', () => {
-        if (player.isMuted()) {
-          player.unMute();
-          muteBtn.textContent = '[Mute]';
-        } else {
-          player.mute();
-          muteBtn.textContent = '[Unmute]';
-        }
+        video.muted = !video.muted;
+        muteBtn.textContent = video.muted ? '[Unmute]' : '[Mute]';
       });
 
       fsBtn.addEventListener('click', () => {
-        const iframe = player.getIframe();
-        if (document.fullscreenElement === iframe) {
+        if (document.fullscreenElement === video) {
           document.exitFullscreen();
         } else {
-          iframe.requestFullscreen();
+          video.requestFullscreen();
         }
       });
       document.addEventListener('fullscreenchange', () => {
-        const iframe = player.getIframe();
-        fsBtn.textContent = document.fullscreenElement === iframe ? '[Exit Fullscreen]' : '[Fullscreen]';
+        fsBtn.textContent = document.fullscreenElement === video ? '[Exit Fullscreen]' : '[Fullscreen]';
       });
 
       let seeking = false;
+      video.addEventListener('timeupdate', () => {
+        if (seeking || !video.duration) return;
+        seek.value = (video.currentTime / video.duration) * 100;
+      });
       seek.addEventListener('input', () => {
         seeking = true;
-        const duration = player.getDuration();
-        if (duration) {
-          player.seekTo((seek.value / 100) * duration, true);
+        if (video.duration) {
+          video.currentTime = (seek.value / 100) * video.duration;
         }
       });
       seek.addEventListener('change', () => { seeking = false; });
-
-      setInterval(() => {
-        if (seeking) return;
-        const duration = player.getDuration();
-        if (duration) {
-          seek.value = (player.getCurrentTime() / duration) * 100;
-        }
-      }, 250);
-    }
+    });
   </script>
 </body>
 </html>
