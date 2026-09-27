@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon1.png?v=2">
+  <title>Written Thesis · Current's Wanderers</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+  <style>
+    /* ---- written thesis page specific: page-flip book viewer ---- */
+    .thesis-viewer {
+      position: absolute;
+      left: calc(25% + 15px);
+      right: var(--margin);
+      top: 22.47vh;
+      bottom: var(--margin);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+
+    .thesis-book-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 920px;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thesis-book {
+      width: 100%;
+      height: 100%;
+    }
+
+    .thesis-book img {
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+
+    .thesis-loading {
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      color: var(--fg-dim);
+    }
+
+    .thesis-controls {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1.5em;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      color: var(--fg-dim);
+    }
+    .thesis-controls button {
+      background: none;
+      border: none;
+      color: var(--fg-dim);
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0;
+    }
+    .thesis-controls button:hover:not(:disabled) {
+      color: var(--fg);
+    }
+    .thesis-controls button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .thesis-page-count {
+      white-space: nowrap;
+    }
+
+    @media (orientation: portrait) {
+      .thesis-viewer {
+        position: static;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        height: auto;
+      }
+      .thesis-book-wrap {
+        flex: none;
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 499 / 708;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <h1 class="title"><span class="prefix">04 · </span><span class="rest">Written Thesis · Current’s Wanderers</span></h1>
+
+    <div class="credits">
+      <p>Massimo Bordogna / Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+      <p>Mentors / Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+      <p>Teaching Assistant / Duy Bui</p>
+      <p>External collaborators / Marta Reyes and Stefanie Eyring · Eawag · Aquascope</p>
+    </div>
+
+    <nav class="site-nav">
+      <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <div class="nav-list" id="navList">
+        <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
+        <a href="#"><span class="nav-num">[02]·</span>[Project Overview]</a>
+        <a href="video-essays.html"><span class="nav-num">[03]·</span>[Video Essays]</a>
+        <a href="written-thesis.html" class="active"><span class="nav-num">[04]·</span>[Written Thesis]</a>
+        <a href="#"><span class="nav-num">[05]·</span>[Exhibitions]</a>
+        <a href="#"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
+        <a href="#"><span class="nav-num">[07]·</span>[Documentation]</a>
+      </div>
+    </nav>
+
+    <div class="thesis-viewer stack-item">
+      <div class="thesis-book-wrap">
+        <p class="thesis-loading" id="thesisLoading">Loading thesis…</p>
+        <div class="thesis-book" id="thesisBook" style="display:none;"></div>
+      </div>
+      <div class="thesis-controls" id="thesisControls" style="display:none;">
+        <button id="thesisPrev" type="button" aria-label="Previous page">[← Previous]</button>
+        <span class="thesis-page-count" id="thesisPageCount">1 / 244</span>
+        <button id="thesisNext" type="button" aria-label="Next page">[Next →]</button>
+        <a href="Media/MAIAD_Thesis_Dossier_Bordogna.pdf" target="_blank" rel="noopener noreferrer">[Download PDF]</a>
+      </div>
+    </div>
+
+    <div class="utility-nav">
+      <a href="#">[Portfolio]</a>
+      <a href="#">[Contacts]</a>
+      <button id="themeToggle" type="button">[Light Mode]</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const PAGE_COUNT = 244;
+    const pageUrls = [];
+    for (let i = 1; i <= PAGE_COUNT; i++) {
+      pageUrls.push('Media/thesis-pages/page-' + String(i).padStart(3, '0') + '.jpg');
+    }
+
+    const loading = document.getElementById('thesisLoading');
+    const bookEl = document.getElementById('thesisBook');
+    const controls = document.getElementById('thesisControls');
+    const prevBtn = document.getElementById('thesisPrev');
+    const nextBtn = document.getElementById('thesisNext');
+    const pageCount = document.getElementById('thesisPageCount');
+
+    const pageFlip = new St.PageFlip(bookEl, {
+      width: 499,
+      height: 708,
+      size: 'stretch',
+      minWidth: 260,
+      maxWidth: 1200,
+      minHeight: 360,
+      maxHeight: 1600,
+      maxShadowOpacity: 0.4,
+      showCover: true,
+      mobileScrollSupport: false,
+      usePortrait: true
+    });
+
+    pageFlip.loadFromImages(pageUrls);
+
+    pageFlip.on('init', () => {
+      loading.style.display = 'none';
+      bookEl.style.display = 'block';
+      controls.style.display = 'flex';
+      updateControls();
+    });
+
+    pageFlip.on('flip', () => {
+      updateControls();
+    });
+
+    function updateControls() {
+      const current = pageFlip.getCurrentPageIndex() + 1;
+      pageCount.textContent = current + ' / ' + PAGE_COUNT;
+      prevBtn.disabled = current <= 1;
+      nextBtn.disabled = current >= PAGE_COUNT;
+    }
+
+    prevBtn.addEventListener('click', () => pageFlip.flipPrev());
+    nextBtn.addEventListener('click', () => pageFlip.flipNext());
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') pageFlip.flipNext();
+      if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+    });
+  </script>
+</body>
+</html>
