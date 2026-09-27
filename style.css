@@ -1,0 +1,237 @@
+@font-face {
+  font-family: 'PP Kyoto';
+  src: url('Fonts/PPKyoto-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Necto Mono';
+  src: url('Fonts/NectoMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --margin: 20px;
+  --gutter: 20px;
+  --mono: clamp(13px, 1.157vw, 20px);
+  --serif-title: clamp(28px, 3.183vw, 55px);
+  --serif-body: clamp(14px, 1.302vw, 22.5px);
+}
+
+html[data-theme="dark"] {
+  --bg: #0f0f0f;
+  --fg: #fff;
+  --fg-dim: rgba(255, 255, 255, 0.5);
+  --media-bg: #7a7a7a;
+}
+html[data-theme="light"] {
+  --bg: #efefef;
+  --fg: #000;
+  --fg-dim: rgba(0, 0, 0, 0.5);
+  --media-bg: #d6d6d6;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'PP Kyoto', serif;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+a, a:visited, a:hover, a:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+/* masthead title */
+.title {
+  position: absolute;
+  left: var(--margin);
+  right: var(--margin);
+  top: 11.28vh;
+  display: flex;
+  align-items: baseline;
+  font-family: 'PP Kyoto', serif;
+  font-weight: 500;
+  font-size: var(--serif-title);
+  line-height: 1.2;
+}
+.title .prefix {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.title .rest {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.title .seg1,
+.title .seg2 {
+  white-space: nowrap;
+}
+
+/* credits, top right area */
+.credits {
+  position: absolute;
+  left: calc(25% + 15px);
+  right: var(--margin);
+  top: var(--margin);
+  font-family: 'Necto Mono', monospace;
+  font-size: var(--mono);
+  line-height: 1.2;
+  color: var(--fg-dim);
+}
+.credits p + p {
+  margin-top: 0.2em;
+}
+
+/* left sidebar nav */
+.site-nav {
+  position: absolute;
+  left: var(--margin);
+  top: 22.47vh;
+  font-family: 'Necto Mono', monospace;
+  font-size: var(--mono);
+  line-height: 2.4;
+  white-space: nowrap;
+}
+.site-nav a {
+  display: block;
+  color: var(--fg-dim);
+}
+.site-nav a.active {
+  color: var(--fg);
+}
+.nav-toggle {
+  display: none;
+}
+
+/* bottom left utility nav */
+.utility-nav {
+  position: absolute;
+  left: var(--margin);
+  bottom: var(--margin);
+  font-family: 'Necto Mono', monospace;
+  font-size: var(--mono);
+  line-height: 2.4;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+.utility-nav a,
+.utility-nav button {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.site-nav a:hover,
+.utility-nav a:hover,
+.utility-nav button:hover {
+  color: var(--fg);
+}
+
+/* ---- portrait: single column, no absolute grid ---- */
+@media (orientation: portrait) {
+  html, body {
+    height: auto;
+    overflow: auto;
+  }
+
+  .page {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: var(--margin);
+  }
+
+  .title,
+  .credits,
+  .site-nav,
+  .utility-nav,
+  .stack-item {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: auto;
+  }
+
+  .credits {
+    order: -2;
+  }
+  .title {
+    order: -1;
+    display: block;
+  }
+  .title .prefix,
+  .title .dot {
+    display: none;
+  }
+  .title .rest {
+    display: inline;
+  }
+  .title .seg1 {
+    white-space: normal;
+  }
+  .title .seg2 {
+    display: block;
+    white-space: normal;
+  }
+
+  .site-nav .nav-num {
+    display: none;
+  }
+
+  .site-nav a,
+  .utility-nav a,
+  .utility-nav button {
+    display: block;
+  }
+
+  .nav-toggle {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--fg-dim);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+  }
+  .nav-toggle:hover {
+    color: var(--fg);
+  }
+
+  .nav-list {
+    display: none;
+    margin-top: 0.5rem;
+  }
+  .nav-list.open {
+    display: block;
+  }
+}

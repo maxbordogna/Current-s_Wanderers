@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon1.png?v=2">
+  <title>Video Essays · Current's Wanderers</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- video essays page specific: scrolling list of entries ---- */
+    .essay-list {
+      position: absolute;
+      left: calc(25% + 15px);
+      right: var(--margin);
+      top: 22.47vh;
+      bottom: 0;
+      overflow-y: auto;
+      padding-bottom: 8rem;
+    }
+
+    .essay-entry {
+      display: flex;
+      gap: var(--gutter);
+      margin-bottom: 4rem;
+    }
+
+    .essay-media {
+      flex: 2 1 0;
+      min-width: 0;
+    }
+    .essay-video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--media-bg);
+      overflow: hidden;
+    }
+    .essay-video video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .essay-caption {
+      margin-top: 12px;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      line-height: 1.2;
+      color: var(--fg-dim);
+    }
+
+    .essay-desc {
+      flex: 1 1 0;
+      min-width: 0;
+      font-family: 'PP Kyoto', serif;
+      font-weight: 500;
+      font-size: var(--serif-body);
+      line-height: 1.2;
+    }
+
+    .utility-nav {
+      background: var(--bg);
+      padding-top: 0.5rem;
+      padding-right: var(--margin);
+    }
+
+    @media (orientation: portrait) {
+      .utility-nav {
+        background: none;
+        padding-top: 0;
+        padding-right: 0;
+      }
+      .essay-list {
+        position: static;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        overflow: visible;
+        height: auto;
+        padding-bottom: 0;
+      }
+      .essay-entry {
+        flex-direction: column;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 2.5rem;
+      }
+      .essay-desc {
+        margin-top: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <h1 class="title"><span class="prefix">03 · </span><span class="rest">Video Essays · Current’s Wanderers · Sample Observation</span></h1>
+
+    <div class="credits">
+      <p>Massimo Bordogna / Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+      <p>Mentors / Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+      <p>Teaching Assistant / Duy Bui</p>
+      <p>External collaborators / Marta Reyes and Stefanie Eyring · Eawag · Aquascope</p>
+    </div>
+
+    <nav class="site-nav">
+      <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <div class="nav-list" id="navList">
+        <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
+        <a href="#"><span class="nav-num">[02]·</span>[Project Overview]</a>
+        <a href="video-essays.html" class="active"><span class="nav-num">[03]·</span>[Video Essays]</a>
+        <a href="#"><span class="nav-num">[04]·</span>[Written Thesis]</a>
+        <a href="#"><span class="nav-num">[05]·</span>[Exhibitions]</a>
+        <a href="#"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
+        <a href="#"><span class="nav-num">[07]·</span>[Documentation]</a>
+      </div>
+    </nav>
+
+    <div class="essay-list stack-item">
+
+      <div class="essay-entry">
+        <div class="essay-media">
+          <div class="essay-video">
+            <video src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+          </div>
+          <p class="essay-caption">Current’s Wanderers</p>
+        </div>
+        <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
+      </div>
+
+      <div class="essay-entry">
+        <div class="essay-media">
+          <div class="essay-video">
+            <video src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+          </div>
+          <p class="essay-caption">Current’s Wanderers</p>
+        </div>
+        <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
+      </div>
+
+    </div>
+
+    <div class="utility-nav">
+      <a href="#">[Portfolio]</a>
+      <a href="#">[Contacts]</a>
+      <button id="themeToggle" type="button">[Light Mode]</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
