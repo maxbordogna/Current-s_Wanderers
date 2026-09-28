@@ -45,3 +45,29 @@ window.addEventListener('orientationchange', schedulePositionTitle);
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(schedulePositionTitle);
 }
+
+// custom dot cursor, mouse/trackpad only
+if (window.matchMedia('(pointer: fine)').matches) {
+  const cursorDot = document.createElement('div');
+  cursorDot.className = 'cursor-dot';
+  document.body.appendChild(cursorDot);
+
+  let hoverCheckPending = false;
+
+  document.addEventListener('mousemove', (e) => {
+    cursorDot.style.left = e.clientX + 'px';
+    cursorDot.style.top = e.clientY + 'px';
+
+    if (hoverCheckPending) return;
+    hoverCheckPending = true;
+    requestAnimationFrame(() => {
+      hoverCheckPending = false;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (!el) return;
+      const cursorStyle = getComputedStyle(el).cursor;
+      const isClickable = !!el.closest('a, button, input, label, [role="button"]') ||
+        (cursorStyle !== 'auto' && cursorStyle !== 'default' && cursorStyle !== 'text' && cursorStyle !== 'none');
+      cursorDot.classList.toggle('is-hover', isClickable);
+    });
+  });
+}
