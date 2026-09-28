@@ -33,6 +33,12 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      /* Safari fails to clip 3D-transformed descendants (the page-flip
+         curl) inside overflow:hidden unless this box has its own
+         compositing layer. */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      isolation: isolate;
     }
 
     .thesis-book {
@@ -228,7 +234,12 @@
         showCover: true,
         showPageCorners: false,
         mobileScrollSupport: false,
-        usePortrait: true
+        usePortrait: true,
+        // Dragging/clicking the page directly drives the same buggy
+        // corner-fold animation as the cover's programmatic flip did.
+        // Navigation stays fully usable via the Previous/Next buttons
+        // and arrow keys, so turn off direct mouse/touch interaction.
+        useMouseEvents: false
       });
 
       pageFlip.loadFromHTML(elements);
@@ -246,13 +257,36 @@
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
       });
 
-      prevBtn.addEventListener('click', () => pageFlip.flipPrev());
-      nextBtn.addEventListener('click', () => pageFlip.flipNext());
+      prevBtn.addEventListener('click', goPrev);
+      nextBtn.addEventListener('click', goNext);
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') pageFlip.flipNext();
-        if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+        if (e.key === 'ArrowRight') goNext();
+        if (e.key === 'ArrowLeft') goPrev();
       });
+    }
+
+    // The lone cover page animates as an isolated "hard" page, and
+    // StPageFlip's corner-fold math misbehaves for it (visible jump).
+    // Skip the animation for that one transition with an instant jump.
+    function goNext() {
+      if (pageFlip.getCurrentPageIndex() === 0) {
+        pageFlip.turnToPage(1);
+        updateControls();
+        ensureRenderedAround(pageFlip.getCurrentPageIndex());
+      } else {
+        pageFlip.flipNext();
+      }
+    }
+
+    function goPrev() {
+      if (pageFlip.getCurrentPageIndex() === 1) {
+        pageFlip.turnToPage(0);
+        updateControls();
+        ensureRenderedAround(pageFlip.getCurrentPageIndex());
+      } else {
+        pageFlip.flipPrev();
+      }
     }
 
     function updateControls() {
