@@ -17,11 +17,65 @@
       background: var(--media-bg);
       overflow: hidden;
     }
-    .media-square video {
-      display: block;
-      width: 100%;
+
+    /* the source video is a square subject framed inside YouTube's 16:9
+       canvas, so we widen the embed to 16:9 relative to our square box
+       and center it, cropping away the left/right margins */
+    .media-square iframe {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 177.78%;
       height: 100%;
-      object-fit: cover;
+      transform: translateX(-50%);
+      border: none;
+      pointer-events: none;
+    }
+
+    .media-blocker {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .media-curtain {
+      position: absolute;
+      inset: 0;
+      background: var(--media-bg);
+      z-index: 2;
+    }
+
+    html[data-theme="dark"] .media-curtain {
+      background: #000;
+    }
+
+    .media-loading-text {
+      position: absolute;
+      bottom: 12px;
+      left: 14px;
+      z-index: 4;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      color: var(--fg-dim);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .media-plankton {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--fg);
+      border-radius: 50%;
+      box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.35);
+      z-index: 3;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
     }
 
     .media-caption {
@@ -46,7 +100,6 @@
     }
 
     @media (orientation: portrait) {
-      .media-square,
       .media-caption,
       .description {
         position: static;
@@ -58,6 +111,13 @@
       }
 
       .media-square {
+        /* stays position:relative (not static) so the iframe/curtain/
+           plankton children keep it as their positioning context */
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
         width: 100%;
         height: auto;
         aspect-ratio: 1 / 1;
@@ -96,8 +156,14 @@
     </nav>
 
     <div class="media-block stack-item">
-      <div class="media-square">
-        <video id="teaser" src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <div class="media-square" id="mediaSquare">
+        <iframe
+          src="https://www.youtube.com/embed/vkPRvcNT_sA?autoplay=1&mute=1&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&loop=1&playlist=vkPRvcNT_sA"
+          allow="autoplay">
+        </iframe>
+        <div class="media-blocker"></div>
+        <div class="media-curtain" id="mediaCurtain"></div>
+        <p class="media-loading-text" id="mediaLoadingText">[Loading]</p>
       </div>
       <p class="media-caption">Recording of the installation</p>
     </div>
@@ -113,5 +179,136 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Loading curtain over the YouTube embed: hides the brief flash of
+    // YouTube's own branding/overlay while the player spins up, with a
+    // small "plankton" dot animating on top while it waits.
+    const PLANKTON_COUNT = 1;
+
+    const mediaCurtain = document.getElementById('mediaCurtain');
+    const mediaLoadingText = document.getElementById('mediaLoadingText');
+    const mediaWrapper = document.getElementById('mediaSquare');
+
+    let planktons = [];
+    let planktonRafId = null;
+    let planktonLastFrame = 0;
+
+    function createPlanktonElements() {
+      for (let i = 0; i < PLANKTON_COUNT; i++) {
+        const el = document.createElement('div');
+        el.className = 'media-plankton';
+        mediaWrapper.appendChild(el);
+        planktons.push({
+          el, x: 0.5, y: 0.5, angle: 0, targetAngle: 0,
+          speed: 0.05, targetSpeed: 0.05,
+          nextTurnTime: 0, nextSpeedChangeTime: 0
+        });
+      }
+    }
+
+    function applyPlanktonPosition(p) {
+      const rect = mediaWrapper.getBoundingClientRect();
+      p.el.style.left = (p.x * rect.width) + 'px';
+      p.el.style.top = (p.y * rect.height) + 'px';
+    }
+
+    function stepPlankton(p, now, dt) {
+      if (now >= p.nextTurnTime) {
+        const maxTurn = Math.PI / 4;
+        p.targetAngle = p.angle + (Math.random() - 0.5) * 2 * maxTurn;
+        p.nextTurnTime = now + 800 + Math.random() * 1200;
+      }
+      if (now >= p.nextSpeedChangeTime) {
+        p.targetSpeed = 0.03 + Math.random() * 0.06;
+        p.nextSpeedChangeTime = now + 1500 + Math.random() * 2000;
+      }
+
+      const safeMargin = 0.22;
+      const distToEdgeX = Math.min(p.x, 1 - p.x);
+      const distToEdgeY = Math.min(p.y, 1 - p.y);
+      const distToEdge = Math.min(distToEdgeX, distToEdgeY);
+
+      if (distToEdge < safeMargin) {
+        const angleToCenter = Math.atan2(0.5 - p.y, 0.5 - p.x);
+        const pull = 1 - (distToEdge / safeMargin);
+        let diff = angleToCenter - p.targetAngle;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        p.targetAngle += diff * pull * 0.6;
+      }
+
+      p.angle += (p.targetAngle - p.angle) * Math.min(1, dt * 0.6);
+      p.speed += (p.targetSpeed - p.speed) * Math.min(1, dt * 0.5);
+
+      let nextX = p.x + Math.cos(p.angle) * p.speed * dt;
+      let nextY = p.y + Math.sin(p.angle) * p.speed * dt;
+      p.x = Math.min(0.95, Math.max(0.05, nextX));
+      p.y = Math.min(0.95, Math.max(0.05, nextY));
+
+      applyPlanktonPosition(p);
+    }
+
+    function animateAll(now) {
+      const dt = (now - planktonLastFrame) / 1000;
+      planktonLastFrame = now;
+      for (const p of planktons) stepPlankton(p, now, dt);
+      planktonRafId = requestAnimationFrame(animateAll);
+    }
+
+    function startPlankton() {
+      const now = performance.now();
+      planktonLastFrame = now;
+      for (const p of planktons) {
+        p.x = 0.3 + Math.random() * 0.4;
+        p.y = 0.3 + Math.random() * 0.4;
+        p.angle = Math.random() * Math.PI * 2;
+        p.targetAngle = p.angle;
+        p.speed = 0.05;
+        p.targetSpeed = 0.05;
+        p.nextTurnTime = now + 800 + Math.random() * 800;
+        p.nextSpeedChangeTime = now + 1500 + Math.random() * 1500;
+        p.el.style.opacity = '1';
+        applyPlanktonPosition(p);
+      }
+      planktonRafId = requestAnimationFrame(animateAll);
+    }
+
+    function stopPlankton() {
+      for (const p of planktons) p.el.style.opacity = '0';
+      if (planktonRafId) {
+        cancelAnimationFrame(planktonRafId);
+        planktonRafId = null;
+      }
+    }
+
+    function showMediaCurtain() {
+      mediaCurtain.style.transition = 'none';
+      mediaCurtain.style.opacity = '1';
+      mediaLoadingText.style.opacity = '1';
+    }
+
+    function hideMediaCurtain() {
+      mediaCurtain.style.transition = 'opacity 1s ease';
+      mediaCurtain.style.opacity = '0';
+      mediaLoadingText.style.opacity = '0';
+    }
+
+    function runMediaCurtain(delay) {
+      showMediaCurtain();
+      startPlankton();
+      setTimeout(() => {
+        hideMediaCurtain();
+        stopPlankton();
+      }, delay);
+    }
+
+    createPlanktonElements();
+    runMediaCurtain(6000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        runMediaCurtain(6000);
+      }
+    });
+  </script>
 </body>
 </html>
