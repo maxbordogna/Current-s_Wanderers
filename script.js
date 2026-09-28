@@ -1,9 +1,15 @@
 const html = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
 
+if (html.getAttribute('data-theme') === 'light') {
+  themeToggle.textContent = '[Dark Mode]';
+}
+
 themeToggle.addEventListener('click', () => {
   const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
   themeToggle.textContent = isDark ? '[Dark Mode]' : '[Light Mode]';
 });
 
