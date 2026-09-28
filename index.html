@@ -2,6 +2,14 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon1.png?v=2">
   <title>Current's Wanderers</title>
@@ -150,7 +158,7 @@
         <a href="video-essays.html"><span class="nav-num">[03]·</span>[Video Essays]</a>
         <a href="written-thesis.html"><span class="nav-num">[04]·</span>[Written Thesis]</a>
         <a href="#"><span class="nav-num">[05]·</span>[Exhibitions]</a>
-        <a href="#"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
+        <a href="cultural-probes.html"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
         <a href="#"><span class="nav-num">[07]·</span>[Documentation]</a>
       </div>
     </nav>
