@@ -7,6 +7,7 @@
   <title>Written Thesis · Current's Wanderers</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <style>
     /* ---- written thesis page specific: page-flip book viewer ---- */
     .thesis-viewer {
@@ -38,9 +39,24 @@
       height: 100%;
     }
 
-    .thesis-book img {
+    .thesis-page-el {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .thesis-page-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
       -webkit-user-drag: none;
       user-select: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .thesis-page-canvas.is-rendered {
+      opacity: 1;
     }
 
     .thesis-loading {
@@ -146,59 +162,178 @@
 
   <script src="script.js"></script>
   <script>
-    const PAGE_COUNT = 244;
-    const pageUrls = [];
-    for (let i = 1; i <= PAGE_COUNT; i++) {
-      pageUrls.push('Media/thesis-pages/page-' + String(i).padStart(3, '0') + '.jpg');
-    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+    const PDF_URL = 'Media/MAIAD_Thesis_Dossier_Bordogna.pdf';
+    const TARGET_PAGE_PX = 1400; // rendered pixel width of one logical (half) page
+    const RENDER_AHEAD = 3; // logical pages to pre-render past the current one
 
     const loading = document.getElementById('thesisLoading');
     const bookEl = document.getElementById('thesisBook');
     const controls = document.getElementById('thesisControls');
     const prevBtn = document.getElementById('thesisPrev');
     const nextBtn = document.getElementById('thesisNext');
-    const pageCount = document.getElementById('thesisPageCount');
+    const pageCountEl = document.getElementById('thesisPageCount');
 
-    const pageFlip = new St.PageFlip(bookEl, {
-      width: 499,
-      height: 708,
-      size: 'stretch',
-      minWidth: 260,
-      maxWidth: 1200,
-      minHeight: 360,
-      maxHeight: 1600,
-      maxShadowOpacity: 0.4,
-      showCover: true,
-      mobileScrollSupport: false,
-      usePortrait: true
-    });
+    let pdfDoc = null;
+    let pageFlip = null;
+    const logicalPages = []; // { physical, half: null|'left'|'right', canvas, rendered }
+    const physicalToLogical = new Map(); // physical page number -> [{ index, half }]
+    const physicalRendered = new Set();
+    const renderQueue = [];
+    let renderingQueue = false;
 
-    pageFlip.loadFromImages(pageUrls);
+    async function init() {
+      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+      const numPages = pdfDoc.numPages;
 
-    pageFlip.on('init', () => {
-      loading.style.display = 'none';
-      bookEl.style.display = 'block';
-      controls.style.display = 'flex';
-      updateControls();
-    });
+      for (let p = 1; p <= numPages; p++) {
+        const page = await pdfDoc.getPage(p);
+        const view = page.view;
+        const w = view[2] - view[0];
+        const h = view[3] - view[1];
+        const isDouble = w > h * 1.3;
+        const halves = isDouble ? ['left', 'right'] : [null];
+        const entries = [];
+        halves.forEach((half) => {
+          const index = logicalPages.length;
+          const canvas = document.createElement('canvas');
+          canvas.className = 'thesis-page-canvas';
+          logicalPages.push({ physical: p, half, canvas, rendered: false });
+          entries.push({ index, half });
+        });
+        physicalToLogical.set(p, entries);
+      }
 
-    pageFlip.on('flip', () => {
-      updateControls();
-    });
+      const elements = logicalPages.map((lp, i) => {
+        const el = document.createElement('div');
+        el.className = 'thesis-page-el';
+        if (i === 0 || i === logicalPages.length - 1) {
+          el.dataset.density = 'hard';
+        }
+        el.appendChild(lp.canvas);
+        return el;
+      });
+
+      pageFlip = new St.PageFlip(bookEl, {
+        width: 499,
+        height: 708,
+        size: 'stretch',
+        minWidth: 260,
+        maxWidth: 1200,
+        minHeight: 360,
+        maxHeight: 1600,
+        maxShadowOpacity: 0.4,
+        showCover: true,
+        mobileScrollSupport: false,
+        usePortrait: true
+      });
+
+      pageFlip.loadFromHTML(elements);
+
+      pageFlip.on('init', () => {
+        loading.style.display = 'none';
+        bookEl.style.display = 'block';
+        controls.style.display = 'flex';
+        updateControls();
+        ensureRenderedAround(pageFlip.getCurrentPageIndex());
+      });
+
+      pageFlip.on('flip', () => {
+        updateControls();
+        ensureRenderedAround(pageFlip.getCurrentPageIndex());
+      });
+
+      prevBtn.addEventListener('click', () => pageFlip.flipPrev());
+      nextBtn.addEventListener('click', () => pageFlip.flipNext());
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') pageFlip.flipNext();
+        if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+      });
+    }
 
     function updateControls() {
       const current = pageFlip.getCurrentPageIndex() + 1;
-      pageCount.textContent = current + ' / ' + PAGE_COUNT;
+      pageCountEl.textContent = current + ' / ' + logicalPages.length;
       prevBtn.disabled = current <= 1;
-      nextBtn.disabled = current >= PAGE_COUNT;
+      nextBtn.disabled = current >= logicalPages.length;
     }
 
-    prevBtn.addEventListener('click', () => pageFlip.flipPrev());
-    nextBtn.addEventListener('click', () => pageFlip.flipNext());
+    function ensureRenderedAround(index) {
+      const start = Math.max(0, index - 1);
+      const end = Math.min(logicalPages.length - 1, index + RENDER_AHEAD);
+      const physicalNeeded = new Set();
+      for (let i = start; i <= end; i++) {
+        physicalNeeded.add(logicalPages[i].physical);
+      }
+      physicalNeeded.forEach((p) => queueRender(p));
+      processQueue();
+    }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') pageFlip.flipNext();
-      if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+    function queueRender(physical) {
+      if (physicalRendered.has(physical) || renderQueue.includes(physical)) return;
+      renderQueue.push(physical);
+    }
+
+    async function processQueue() {
+      if (renderingQueue) return;
+      renderingQueue = true;
+      while (renderQueue.length) {
+        const physical = renderQueue.shift();
+        if (physicalRendered.has(physical)) continue;
+        try {
+          await renderPhysicalPage(physical);
+        } catch (err) {
+          console.error('thesis page render failed', physical, err);
+        }
+      }
+      renderingQueue = false;
+    }
+
+    async function renderPhysicalPage(physical) {
+      const page = await pdfDoc.getPage(physical);
+      const view = page.view;
+      const widthPt = view[2] - view[0];
+      const heightPt = view[3] - view[1];
+      const isDouble = widthPt > heightPt * 1.3;
+      const halfWidthPt = isDouble ? widthPt / 2 : widthPt;
+      const scale = TARGET_PAGE_PX / halfWidthPt;
+      const viewport = page.getViewport({ scale });
+
+      const fullCanvas = document.createElement('canvas');
+      fullCanvas.width = Math.round(viewport.width);
+      fullCanvas.height = Math.round(viewport.height);
+      const ctx = fullCanvas.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      const entries = physicalToLogical.get(physical) || [];
+      entries.forEach(({ index, half }) => {
+        const lp = logicalPages[index];
+        const target = lp.canvas;
+        if (!isDouble) {
+          target.width = fullCanvas.width;
+          target.height = fullCanvas.height;
+          target.getContext('2d').drawImage(fullCanvas, 0, 0);
+        } else {
+          const halfW = fullCanvas.width / 2;
+          const sx = half === 'right' ? halfW : 0;
+          target.width = halfW;
+          target.height = fullCanvas.height;
+          target.getContext('2d').drawImage(
+            fullCanvas, sx, 0, halfW, fullCanvas.height, 0, 0, halfW, fullCanvas.height
+          );
+        }
+        target.classList.add('is-rendered');
+        lp.rendered = true;
+      });
+
+      physicalRendered.add(physical);
+    }
+
+    init().catch((err) => {
+      console.error('failed to load thesis PDF', err);
+      loading.textContent = 'Unable to load thesis preview — use the download link below.';
     });
   </script>
 </body>
