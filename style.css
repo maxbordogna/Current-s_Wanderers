@@ -53,6 +53,37 @@ a, a:visited, a:hover, a:active {
   text-decoration: none;
 }
 
+/* custom dot cursor (desktop/mouse only, native cursor stays on touch) */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
+.cursor-dot {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--fg);
+  box-shadow: 0 0 8px 3px var(--fg-dim);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease;
+}
+@media (pointer: fine) {
+  .cursor-dot {
+    display: block;
+  }
+}
+.cursor-dot.is-hover {
+  transform: translate(-50%, -50%) scale(1.25);
+}
+
 .page {
   position: relative;
   width: 100%;
