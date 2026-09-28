@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon1.png?v=2">
+  <title>Cultural Probes · Current's Wanderers</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- cultural probes page specific: description + photo gallery ---- */
+    .probes-content {
+      position: absolute;
+      left: calc(25% + 15px);
+      right: var(--margin);
+      top: 22.47vh;
+      bottom: 0;
+      overflow-y: auto;
+      padding-bottom: 8rem;
+    }
+
+    .probes-description {
+      max-width: 62%;
+      font-family: 'PP Kyoto', serif;
+      font-weight: 500;
+      font-size: var(--serif-body);
+      line-height: 1.2;
+      margin-bottom: calc(var(--margin) * 1.5);
+    }
+
+    .probes-gallery {
+      column-count: 3;
+      column-gap: var(--gutter);
+    }
+
+    .probes-gallery figure {
+      position: relative;
+      break-inside: avoid;
+      margin: 0 0 var(--gutter) 0;
+      cursor: pointer;
+    }
+
+    .probes-gallery figure:hover {
+      z-index: 2;
+    }
+
+    .probes-gallery img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: var(--bg);
+      transition: transform 0.3s ease;
+    }
+
+    .probes-gallery figure:hover img {
+      transform: scale(1.02);
+    }
+
+    .probes-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      cursor: zoom-out;
+    }
+
+    .probes-lightbox.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .probes-lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .utility-nav {
+      background: var(--bg);
+      padding-top: 0.5rem;
+      padding-right: var(--margin);
+    }
+
+    @media (orientation: portrait) {
+      .utility-nav {
+        background: none;
+        padding-top: 0;
+        padding-right: 0;
+      }
+      .probes-content {
+        position: static;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        overflow: visible;
+        height: auto;
+        padding-bottom: 0;
+      }
+      .probes-description {
+        max-width: 100%;
+      }
+      .probes-gallery {
+        column-count: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <h1 class="title"><span class="prefix">06 · </span><span class="rest">Cultural Probes · Current’s Wanderers</span></h1>
+
+    <div class="credits">
+      <p>Massimo Bordogna / Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+      <p>Mentors / Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+      <p>Teaching Assistant / Duy Bui</p>
+      <p>External collaborators / Marta Reyes and Stefanie Eyring · Eawag · Aquascope</p>
+    </div>
+
+    <nav class="site-nav">
+      <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <div class="nav-list" id="navList">
+        <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
+        <a href="#"><span class="nav-num">[02]·</span>[Project Overview]</a>
+        <a href="video-essays.html"><span class="nav-num">[03]·</span>[Video Essays]</a>
+        <a href="written-thesis.html"><span class="nav-num">[04]·</span>[Written Thesis]</a>
+        <a href="#"><span class="nav-num">[05]·</span>[Exhibitions]</a>
+        <a href="cultural-probes.html" class="active"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
+        <a href="#"><span class="nav-num">[07]·</span>[Documentation]</a>
+      </div>
+    </nav>
+
+    <div class="probes-content stack-item">
+      <p class="probes-description">During the final fieldwork session on Lake Greifensee, Eawag scientists Marta Reyes and Stefanie Eyring were given a disposable analog camera to use as a cultural probe — a way to involve them more directly in the design process and surface their own perspective. The instruction was simple: capture whatever moments, objects, or places felt meaningful in communicating their work and the subject of their research to a wider public. The resulting photographs, taken between the lake’s monitoring station and the Eawag laboratory, offer a personal, unscripted glimpse into the everyday practice of studying plankton.</p>
+
+      <div class="probes-gallery">
+        <figure><img src="Media/cultural-probes/07.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/08.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/09.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/10.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/11.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/12.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/13.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/14.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/15.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/16.jpg" alt="" loading="lazy"></figure>
+        <figure><img src="Media/cultural-probes/17.jpg" alt="" loading="lazy"></figure>
+      </div>
+    </div>
+
+    <div class="utility-nav">
+      <a href="#">[Portfolio]</a>
+      <a href="#">[Contacts]</a>
+      <button id="themeToggle" type="button">[Light Mode]</button>
+    </div>
+
+  </div>
+
+  <div class="probes-lightbox" id="probesLightbox">
+    <img id="probesLightboxImg" src="" alt="">
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const probesLightbox = document.getElementById('probesLightbox');
+    const probesLightboxImg = document.getElementById('probesLightboxImg');
+
+    document.querySelectorAll('.probes-gallery img').forEach((img) => {
+      img.addEventListener('click', () => {
+        probesLightboxImg.src = img.src;
+        probesLightbox.classList.add('is-open');
+      });
+    });
+
+    probesLightbox.addEventListener('click', () => {
+      probesLightbox.classList.remove('is-open');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') probesLightbox.classList.remove('is-open');
+    });
+  </script>
+</body>
+</html>
