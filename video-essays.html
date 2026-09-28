@@ -69,6 +69,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: rgba(0, 0, 0, 0.18);
       opacity: 0;
       transition: opacity 0.15s ease;
       pointer-events: none;
@@ -81,7 +82,7 @@
     }
 
     .video-play {
-      background: rgba(0, 0, 0, 0.55);
+      background: none;
       border: none;
       color: #fff;
       font-family: 'Necto Mono', monospace;
@@ -89,9 +90,6 @@
       line-height: 1.2;
       cursor: pointer;
       padding: 0.5em 0.9em;
-    }
-    .video-play:hover {
-      background: rgba(0, 0, 0, 0.75);
     }
 
     .video-bar {
@@ -103,7 +101,6 @@
       align-items: center;
       gap: 0.75em;
       padding: 10px 12px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
     }
     .video-mute,
     .video-fullscreen {

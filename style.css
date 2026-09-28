@@ -143,6 +143,7 @@ a, a:visited, a:hover, a:active {
 }
 .site-nav a {
   display: block;
+  width: fit-content;
   color: var(--fg-dim);
 }
 .site-nav a.active {
@@ -166,6 +167,7 @@ a, a:visited, a:hover, a:active {
 .utility-nav a,
 .utility-nav button {
   display: block;
+  width: fit-content;
   background: none;
   border: none;
   color: var(--fg-dim);
