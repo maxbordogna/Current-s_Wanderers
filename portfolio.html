@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon1.png?v=2">
+  <title>Portfolio · Massimo Bordogna</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- portfolio page specific: single centered message ---- */
+    .portfolio-message {
+      position: absolute;
+      left: calc(25% + 15px);
+      right: var(--margin);
+      top: 22.47vh;
+      font-family: 'PP Kyoto', serif;
+      font-weight: 500;
+      font-size: var(--serif-title);
+      line-height: 1.3;
+    }
+
+    @media (orientation: portrait) {
+      .portfolio-message {
+        position: static;
+        left: auto;
+        right: auto;
+        top: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <h1 class="title"><span class="rest">Portfolio · Massimo Bordogna</span></h1>
+
+    <div class="credits">
+      <p>Massimo Bordogna / Interaction Design ZHdK</p>
+    </div>
+
+    <nav class="site-nav">
+      <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <div class="nav-list" id="navList">
+        <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
+        <a href="#"><span class="nav-num">[02]·</span>[Project Overview]</a>
+        <a href="video-essays.html"><span class="nav-num">[03]·</span>[Video Essays]</a>
+        <a href="written-thesis.html"><span class="nav-num">[04]·</span>[Written Thesis]</a>
+        <a href="#"><span class="nav-num">[05]·</span>[Exhibitions]</a>
+        <a href="cultural-probes.html"><span class="nav-num">[06]·</span>[Cultural Probes]</a>
+        <a href="#"><span class="nav-num">[07]·</span>[Documentation]</a>
+      </div>
+    </nav>
+
+    <p class="portfolio-message stack-item">Massimo Bordogna’s portfolio is still under construction.<br>Check back soon.</p>
+
+    <div class="utility-nav">
+      <a href="portfolio.html" class="active">[Portfolio]</a>
+      <a href="#">[Contacts]</a>
+      <button id="themeToggle" type="button">[Light Mode]</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
