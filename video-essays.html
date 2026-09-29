@@ -50,6 +50,22 @@
       object-fit: cover;
       pointer-events: none;
     }
+    .essay-loading-text {
+      position: absolute;
+      bottom: 12px;
+      left: 14px;
+      z-index: 2;
+      font-family: 'Necto Mono', monospace;
+      font-size: var(--mono);
+      color: var(--fg-dim);
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    .essay-loading-text.is-hidden {
+      opacity: 0;
+    }
+
     .essay-caption {
       margin-top: 12px;
       font-family: 'Necto Mono', monospace;
@@ -227,6 +243,7 @@
         <div class="essay-media">
           <div class="essay-video">
             <video src="Media/currents-wanderers-essay.mp4" autoplay muted loop playsinline preload="auto"></video>
+            <p class="essay-loading-text">[Loading]</p>
             <div class="video-overlay">
               <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
               <div class="video-bar">
@@ -239,13 +256,14 @@
           <p class="essay-caption">Current’s Wanderers</p>
           <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
         </div>
-        <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
+        <p class="essay-desc">Built through the voices of Eawag scientists Marta Reyes and Stefanie Eyring, this 18-minute video essay blends their scientific knowledge with personal reflections on their research practice. Structured in five chapters — from the ecological relevance of plankton, to fieldwork on Lake Greifensee, laboratory observation, real-time data collection, and the ecosystem’s broader importance — it traces the lake, the laboratory, and the data as three interconnected dimensions of the same story, preparing viewers for the immersive experience that follows.</p>
       </div>
 
       <div class="essay-entry">
         <div class="essay-media">
           <div class="essay-video">
             <video src="Media/reading-the-sample.mp4" autoplay muted loop playsinline preload="auto"></video>
+            <p class="essay-loading-text">[Loading]</p>
             <div class="video-overlay">
               <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
               <div class="video-bar">
@@ -258,7 +276,7 @@
           <p class="essay-caption">Reading the Sample</p>
           <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
         </div>
-        <p class="essay-desc">Description of the video with more or less 2/3 paragraphs.</p>
+        <p class="essay-desc">Reading the Sample documents a live microscope observation session recorded on 16 April 2026, using a water sample collected from Lake Greifensee that same day. Combining real-time microscope imagery with the scientists’ spontaneous commentary and reactions, it captures the moment of discovery as it happens — offering both the scientific and emotional dimensions of a practice that emerged, throughout the research, as the one most capable of generating genuine engagement with plankton life.</p>
       </div>
 
     </div>
@@ -276,10 +294,19 @@
     document.querySelectorAll('.essay-media').forEach((media) => {
       const container = media.querySelector('.essay-video');
       const video = media.querySelector('video');
+      const loadingText = media.querySelector('.essay-loading-text');
       const playBtn = media.querySelector('.video-play');
       const muteBtn = media.querySelector('.video-mute');
       const fsBtn = media.querySelector('.video-fullscreen');
       const seek = media.querySelector('.video-seek');
+
+      if (video.readyState >= 3) {
+        loadingText.classList.add('is-hidden');
+      } else {
+        video.addEventListener('playing', () => {
+          loadingText.classList.add('is-hidden');
+        }, { once: true });
+      }
 
       let hideTimer = null;
       container.addEventListener('click', () => {
