@@ -41,6 +41,11 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      /* the book rarely fills this box exactly (it keeps the PDF
+         page's own aspect ratio), so match the page background here
+         to make any leftover margin blend in instead of showing as
+         a stray sliver */
+      background: var(--bg);
       /* Safari fails to clip 3D-transformed descendants (the page-flip
          curl) inside overflow:hidden unless this box has its own
          compositing layer. */
