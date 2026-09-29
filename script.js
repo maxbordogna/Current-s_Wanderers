@@ -1,31 +1,36 @@
 const html = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
 
-if (html.getAttribute('data-theme') === 'light') {
-  themeToggle.textContent = '[Dark Mode]';
-}
+if (themeToggle) {
+  if (html.getAttribute('data-theme') === 'light') {
+    themeToggle.textContent = '[Dark Mode]';
+  }
 
-themeToggle.addEventListener('click', () => {
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  const newTheme = isDark ? 'light' : 'dark';
-  html.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  themeToggle.textContent = isDark ? '[Dark Mode]' : '[Light Mode]';
-});
+  themeToggle.addEventListener('click', () => {
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    themeToggle.textContent = isDark ? '[Dark Mode]' : '[Light Mode]';
+  });
+}
 
 const navToggle = document.getElementById('navToggle');
 const navList = document.getElementById('navList');
 
-navToggle.addEventListener('click', () => {
-  const isOpen = navList.classList.toggle('open');
-  navToggle.textContent = isOpen ? '[Close]' : '[Menu]';
-});
+if (navToggle && navList) {
+  navToggle.addEventListener('click', () => {
+    const isOpen = navList.classList.toggle('open');
+    navToggle.textContent = isOpen ? '[Close]' : '[Menu]';
+  });
+}
 
 const credits = document.querySelector('.credits');
 const title = document.querySelector('.title');
 const GAP = 20;
 
 function positionTitle() {
+  if (!credits || !title) return;
   const isLandscape = window.matchMedia('(orientation: landscape)').matches;
   if (!isLandscape) {
     title.style.top = '';
