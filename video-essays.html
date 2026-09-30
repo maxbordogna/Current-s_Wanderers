@@ -223,6 +223,8 @@
       }
 
       .page {
+        display: flex;
+        flex-direction: column;
         height: auto;
         min-height: 100vh;
       }
@@ -237,6 +239,7 @@
       }
 
       .credits {
+        order: -1;
         position: static;
         margin: 1.25rem 0 0 calc(25% + 15px);
         width: calc(75% - 15px - var(--margin));
