@@ -188,7 +188,12 @@ a, a:visited, a:hover, a:active {
 @media (orientation: portrait) {
   html, body {
     height: auto;
-    overflow: auto;
+  }
+  html {
+    overflow-y: auto;
+  }
+  body {
+    overflow: visible;
   }
 
   .page {
@@ -199,7 +204,6 @@ a, a:visited, a:hover, a:active {
     padding: var(--margin);
   }
 
-  .title,
   .credits,
   .site-nav,
   .utility-nav,
@@ -218,6 +222,18 @@ a, a:visited, a:hover, a:active {
   .title {
     order: -1;
     display: block;
+    /* pins to the top edge on scroll, covering the credits (which
+       sit above it in flow) as they scroll out of view */
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    top: 0;
+    z-index: 10;
+    width: auto;
+    margin: 0 calc(-1 * var(--margin));
+    padding: 0.75rem var(--margin);
+    background: var(--bg);
   }
   .title .prefix,
   .title .dot {
