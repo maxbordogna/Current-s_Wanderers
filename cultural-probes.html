@@ -16,13 +16,14 @@
   <link rel="stylesheet" href="style.css">
   <style>
     /* ---- cultural probes page specific: description + photo gallery ---- */
+    .content-row {
+      display: flex;
+      align-items: flex-start;
+    }
+
     .probes-content {
-      position: absolute;
-      left: calc(25% + 15px);
-      right: var(--margin);
-      top: 22.47vh;
-      bottom: 0;
-      overflow-y: auto;
+      flex: 1 1 auto;
+      min-width: 0;
       padding-bottom: 8rem;
     }
 
@@ -102,14 +103,10 @@
         padding-top: 0;
         padding-right: 0;
       }
+      .content-row {
+        display: contents;
+      }
       .probes-content {
-        position: static;
-        left: auto;
-        right: auto;
-        top: auto;
-        bottom: auto;
-        overflow: visible;
-        height: auto;
         padding-bottom: 0;
       }
       .probes-description {
@@ -117,6 +114,56 @@
       }
       .probes-gallery {
         column-count: 1;
+      }
+    }
+
+    /* ---- landscape: whole page scrolls, title + nav lock to the top ---- */
+    @media (orientation: landscape) {
+      html, body {
+        height: auto;
+      }
+      html {
+        overflow-y: auto;
+      }
+      body {
+        overflow: visible;
+      }
+
+      .page {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .title {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--bg);
+        margin: 0;
+        padding: 2.5vh var(--margin) 0.75rem;
+      }
+
+      .credits {
+        position: static;
+        margin: 1.25rem 0 0 calc(25% + 15px);
+        width: calc(75% - 15px - var(--margin));
+      }
+
+      .content-row {
+        align-items: flex-start;
+        padding: 1.25rem var(--margin) 0;
+      }
+
+      .site-nav {
+        position: sticky;
+        left: auto;
+        top: 0;
+        flex: 0 0 calc(25% + 15px - var(--margin));
+      }
+
+      .utility-nav {
+        position: static;
+        margin: 2rem var(--margin) 0;
       }
     }
   </style>
@@ -134,6 +181,7 @@
       <p>External collaborators / Marta Reyes and Stefanie Eyring · Eawag · Aquascope</p>
     </div>
 
+    <div class="content-row">
     <nav class="site-nav">
       <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
       <div class="nav-list" id="navList">
@@ -164,6 +212,7 @@
         <figure><img src="Media/cultural-probes/17.jpg" alt="" loading="lazy"></figure>
       </div>
     </div>
+    </div>
 
     <div class="utility-nav">
       <a href="portfolio.html?from=cultural-probes.html">[Portfolio]</a>
@@ -179,6 +228,37 @@
 
   <script src="script.js"></script>
   <script>
+    // keep the sticky site-nav positioned right below the sticky title
+    (function () {
+      const stickyTitle = document.querySelector('.title');
+      const stickyNav = document.querySelector('.site-nav');
+
+      function positionStickyNav() {
+        if (!window.matchMedia('(orientation: landscape)').matches) {
+          stickyNav.style.top = '';
+          return;
+        }
+        stickyNav.style.top = stickyTitle.getBoundingClientRect().height + 'px';
+      }
+
+      let pendingNav = false;
+      function scheduleNav() {
+        if (pendingNav) return;
+        pendingNav = true;
+        requestAnimationFrame(() => {
+          pendingNav = false;
+          positionStickyNav();
+        });
+      }
+
+      scheduleNav();
+      window.addEventListener('resize', scheduleNav);
+      window.addEventListener('orientationchange', scheduleNav);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(scheduleNav);
+      }
+    })();
+
     const probesLightbox = document.getElementById('probesLightbox');
     const probesLightboxImg = document.getElementById('probesLightboxImg');
 

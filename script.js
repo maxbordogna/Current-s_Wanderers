@@ -31,6 +31,7 @@ const GAP = 20;
 
 function positionTitle() {
   if (!credits || !title) return;
+  if (getComputedStyle(title).position === 'sticky') return;
   const isLandscape = window.matchMedia('(orientation: landscape)').matches;
   if (!isLandscape) {
     title.style.top = '';
