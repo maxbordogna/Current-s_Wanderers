@@ -2,9 +2,7 @@ const html = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
 
 if (themeToggle) {
-  if (html.getAttribute('data-theme') === 'light') {
-    themeToggle.textContent = '[Dark Mode]';
-  }
+  themeToggle.textContent = html.getAttribute('data-theme') === 'light' ? '[Dark Mode]' : '[Light Mode]';
 
   themeToggle.addEventListener('click', () => {
     const isDark = html.getAttribute('data-theme') === 'dark';
