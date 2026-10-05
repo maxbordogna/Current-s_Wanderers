@@ -6,6 +6,20 @@
   font-display: swap;
 }
 @font-face {
+  font-family: 'Apfel Grotezk';
+  src: url('Fonts/ApfelGrotezk-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Apfel Grotezk';
+  src: url('Fonts/ApfelGrotezk-Mittel.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
   font-family: 'PP Neue Montreal Mono';
   src: url('Fonts/PPNeueMontrealMono-Thin.woff2') format('woff2');
   font-weight: 100;
@@ -32,8 +46,13 @@
   --mono-weight-strong: 400;
   /* distance between any video/image and its caption */
   --caption-gap: 6px;
-  --serif-title: clamp(28px, 3.183vw, 55px);
-  --serif-body: clamp(14px, 1.302vw, 22.5px);
+  --serif-title: clamp(32px, 3.66vw, 63px);
+  --serif-body: calc(var(--mono) * 1.5);
+  /* body copy + title: swap family/weight here to try other fonts */
+  --body-font: 'Apfel Grotezk', sans-serif;
+  --body-weight: 400;
+  --title-font: 'Apfel Grotezk', sans-serif;
+  --title-weight: 500;
 }
 
 html[data-theme="dark"] {
@@ -117,8 +136,8 @@ a, a:visited, a:hover, a:active {
   top: 11.28vh;
   display: flex;
   align-items: baseline;
-  font-family: 'PP Kyoto', serif;
-  font-weight: 500;
+  font-family: var(--title-font);
+  font-weight: var(--title-weight);
   font-size: var(--serif-title);
   line-height: 1.2;
 }

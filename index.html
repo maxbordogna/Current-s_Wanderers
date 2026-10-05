@@ -90,7 +90,7 @@
     .media-caption {
       position: absolute;
       left: calc(33.33% + 14px);
-      top: calc(22.47vh + 49vh + var(--caption-gap));
+      top: calc(22.47vh + 49vh + var(--caption-gap, 6px));
       font-family: 'PP Neue Montreal Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
@@ -103,10 +103,10 @@
       left: calc(25% + 15px);
       bottom: var(--margin);
       width: 56%;
-      font-family: 'PP Kyoto', serif;
-      font-weight: 500;
+      font-family: var(--body-font, 'PP Kyoto', serif);
+      font-weight: var(--body-weight, 500);
       font-size: var(--serif-body);
-      line-height: 1.2;
+      line-height: 1.1;
     }
 
     @media (orientation: portrait) {
@@ -134,7 +134,7 @@
       }
 
       .media-caption {
-        margin-top: var(--caption-gap);
+        margin-top: var(--caption-gap, 6px);
       }
     }
   </style>

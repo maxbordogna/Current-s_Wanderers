@@ -29,10 +29,10 @@
 
     .probes-description {
       max-width: 62%;
-      font-family: 'PP Kyoto', serif;
-      font-weight: 500;
+      font-family: var(--body-font, 'PP Kyoto', serif);
+      font-weight: var(--body-weight, 500);
       font-size: var(--serif-body);
-      line-height: 1.2;
+      line-height: 1.1;
       margin-bottom: calc(var(--margin) * 1.5);
     }
 
@@ -148,7 +148,7 @@
       .credits {
         order: -1;
         position: static;
-        margin: var(--credits-top) 0 0 calc(25% + 15px);
+        margin: var(--credits-top, 2px) 0 0 calc(25% + 15px);
         width: calc(75% - 15px - var(--margin));
       }
 
