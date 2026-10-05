@@ -71,8 +71,17 @@
       opacity: 0;
     }
 
+    /* caption left, YouTube link right; the link drops below the caption
+       (left-aligned) when the two don't fit on one line */
+    .essay-captions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      column-gap: 1.5em;
+      margin-top: var(--caption-gap);
+    }
+
     .essay-caption {
-      margin-top: 12px;
       font-family: 'PP Neue Montreal Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
@@ -81,8 +90,6 @@
     }
 
     .essay-yt-link {
-      display: inline-block;
-      margin-top: 4px;
       font-family: 'PP Neue Montreal Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
@@ -321,8 +328,10 @@
               </div>
             </div>
           </div>
-          <p class="essay-caption">Current’s Wanderers</p>
-          <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
+          <div class="essay-captions">
+            <p class="essay-caption">Current’s Wanderers</p>
+            <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
+          </div>
         </div>
         <p class="essay-desc">Built through the voices of Eawag scientists Marta Reyes and Stefanie Eyring, this 18-minute video essay blends their scientific knowledge with personal reflections on their research practice. Structured in five chapters — from the ecological relevance of plankton, to fieldwork on Lake Greifensee, laboratory observation, real-time data collection, and the ecosystem’s broader importance — it traces the lake, the laboratory, and the data as three interconnected dimensions of the same story, preparing viewers for the immersive experience that follows.</p>
       </div>
@@ -341,8 +350,10 @@
               </div>
             </div>
           </div>
-          <p class="essay-caption">Reading the Sample</p>
-          <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
+          <div class="essay-captions">
+            <p class="essay-caption">Reading the Sample</p>
+            <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
+          </div>
         </div>
         <p class="essay-desc">Reading the Sample documents a live microscope observation session recorded on 16 April 2026, using a water sample collected from Lake Greifensee that same day. Combining real-time microscope imagery with the scientists’ spontaneous commentary and reactions, it captures the moment of discovery as it happens — offering both the scientific and emotional dimensions of a practice that emerged, throughout the research, as the one most capable of generating genuine engagement with plankton life.</p>
       </div>

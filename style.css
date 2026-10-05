@@ -28,6 +28,8 @@
   --mono: clamp(11px, 0.9vw, 15px);
   --mono-weight: 100;
   --mono-weight-strong: 400;
+  /* distance between any video/image and its caption */
+  --caption-gap: 6px;
   --serif-title: clamp(28px, 3.183vw, 55px);
   --serif-body: clamp(14px, 1.302vw, 22.5px);
 }

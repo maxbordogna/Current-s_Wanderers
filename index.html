@@ -90,7 +90,7 @@
     .media-caption {
       position: absolute;
       left: calc(33.33% + 14px);
-      top: calc(22.47vh + 49vh + 20px);
+      top: calc(22.47vh + 49vh + var(--caption-gap));
       font-family: 'PP Neue Montreal Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
@@ -134,7 +134,7 @@
       }
 
       .media-caption {
-        margin-top: calc(var(--margin) / 3);
+        margin-top: var(--caption-gap);
       }
     }
   </style>
