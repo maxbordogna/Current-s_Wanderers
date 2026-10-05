@@ -19,7 +19,7 @@
     .media-square {
       position: absolute;
       left: calc(33.33% + 14px);
-      top: 22.47vh;
+      top: calc(22.47vh + var(--nav-text-offset, 10px));
       width: 49vh;
       height: 49vh;
       background: var(--media-bg);
@@ -90,7 +90,7 @@
     .media-caption {
       position: absolute;
       left: calc(33.33% + 14px);
-      top: calc(22.47vh + 49vh + var(--caption-gap, 6px));
+      top: calc(22.47vh + var(--nav-text-offset, 10px) + 49vh + var(--caption-gap, 6px));
       font-family: 'PP Neue Montreal Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);

@@ -22,7 +22,7 @@
       position: absolute;
       left: calc(25% + 15px);
       right: var(--margin);
-      top: 22.47vh;
+      top: calc(22.47vh + var(--nav-text-offset, 10px));
       bottom: var(--margin);
       display: flex;
       flex-direction: column;
@@ -58,6 +58,10 @@
       width: 100%;
       height: 100%;
     }
+    /* stays invisible until alignBook() has put it in its final spot */
+    .thesis-book.is-unplaced {
+      visibility: hidden;
+    }
 
     .thesis-page-el {
       width: 100%;
@@ -77,6 +81,21 @@
     }
     .thesis-page-canvas.is-rendered {
       opacity: 1;
+    }
+
+    /* desktop: the book hugs the content column's left edge and the top
+       line instead of floating centered in the box; alignBook() in the
+       script cancels StPageFlip's own centering offsets */
+    @media (orientation: landscape) {
+      .thesis-viewer {
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      /* the slide is only for page turns (opening/closing the cover);
+         the first placement and resizes must jump, never glide */
+      .thesis-book.is-animated {
+        transition: transform 0.35s ease;
+      }
     }
 
     .thesis-loading {
@@ -165,7 +184,7 @@
     <div class="thesis-viewer stack-item">
       <div class="thesis-book-wrap">
         <p class="thesis-loading" id="thesisLoading">Loading thesis…</p>
-        <div class="thesis-book" id="thesisBook" style="display:none;"></div>
+        <div class="thesis-book is-unplaced" id="thesisBook" style="display:none;"></div>
       </div>
       <div class="thesis-controls" id="thesisControls" style="display:none;">
         <button id="thesisPrev" type="button" aria-label="Previous page">[← Previous]</button>
@@ -266,12 +285,17 @@
         controls.style.display = 'flex';
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
+        placeBookFirstTime();
       });
 
       pageFlip.on('flip', () => {
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
+        scheduleAlignBook(true);
       });
+
+      window.addEventListener('resize', () => scheduleAlignBook(false));
+      window.addEventListener('orientationchange', () => scheduleAlignBook(false));
 
       prevBtn.addEventListener('click', goPrev);
       nextBtn.addEventListener('click', goNext);
@@ -290,6 +314,7 @@
         pageFlip.turnToPage(1);
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
+        scheduleAlignBook(true);
       } else {
         pageFlip.flipNext();
       }
@@ -300,9 +325,56 @@
         pageFlip.turnToPage(0);
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
+        scheduleAlignBook(true);
       } else {
         pageFlip.flipPrev();
       }
+    }
+
+    // Desktop only: StPageFlip centers the visible page(s) inside its box
+    // (and shows the cover in the right half of the spread). Measure where
+    // the visible page(s) actually sit and translate the book so they start
+    // at the box's top-left, in line with the rest of the page's content.
+    // Returns false when the pages aren't laid out yet.
+    function alignBook(animate) {
+      if (!window.matchMedia('(orientation: landscape)').matches) {
+        bookEl.style.transform = '';
+        return true;
+      }
+      const canvases = [...bookEl.querySelectorAll('.thesis-page-canvas')]
+        .filter((c) => c.getBoundingClientRect().width > 0);
+      if (!canvases.length) return false;
+      const bookRect = bookEl.getBoundingClientRect();
+      // measured against the book's own box, so whatever transform is
+      // currently applied doesn't matter (both move together)
+      const left = Math.min(...canvases.map((c) => c.getBoundingClientRect().left));
+      const top = Math.min(...canvases.map((c) => c.getBoundingClientRect().top));
+      const dx = Math.round(left - bookRect.left);
+      const dy = Math.round(top - bookRect.top);
+      bookEl.classList.toggle('is-animated', !!animate);
+      bookEl.style.transform = 'translate(' + (-dx) + 'px, ' + (-dy) + 'px)';
+      return true;
+    }
+
+    let alignPending = null;
+    function scheduleAlignBook(animate) {
+      // wait for StPageFlip to finish laying out / resizing before measuring
+      clearTimeout(alignPending);
+      alignPending = setTimeout(() => alignBook(animate), 250);
+    }
+
+    // First placement: jump straight to the final spot (no glide) and only
+    // then reveal the book, so it never shows up in StPageFlip's own position.
+    function placeBookFirstTime(tries = 0) {
+      const placed = alignBook(false);
+      if (placed || tries > 40) {
+        // let the un-animated transform commit before the reveal
+        requestAnimationFrame(() => bookEl.classList.remove('is-unplaced'));
+        // re-check once StPageFlip has settled (jump, don't glide)
+        scheduleAlignBook(false);
+        return;
+      }
+      setTimeout(() => placeBookFirstTime(tries + 1), 50);
     }
 
     function updateControls() {

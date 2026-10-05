@@ -42,6 +42,9 @@
   /* distance from the top edge to the credits (a tenth of --margin) */
   --credits-top: 2px;
   --mono: clamp(11px, 0.9vw, 15px);
+  /* gap between the top of the first menu item's box and its visible text:
+     desktop content starts here so it lines up with that text */
+  --nav-text-offset: calc(var(--mono) * 0.82);
   --mono-weight: 100;
   --mono-weight-strong: 400;
   /* distance between any video/image and its caption */
@@ -228,7 +231,7 @@ a, a:visited, a:hover, a:active {
 .construction-note {
   position: absolute;
   left: calc(25% + 15px);
-  top: 22.47vh;
+  top: calc(22.47vh + var(--nav-text-offset));
   font-family: var(--body-font);
   font-weight: var(--body-weight);
   font-size: var(--serif-body);
