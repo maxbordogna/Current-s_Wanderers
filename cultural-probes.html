@@ -165,8 +165,12 @@
       }
 
       .utility-nav {
-        position: static;
-        margin: 2rem var(--margin) 0;
+        position: fixed;
+        left: var(--margin);
+        right: auto;
+        bottom: var(--margin);
+        margin: 0;
+        z-index: 30;
       }
     }
   </style>

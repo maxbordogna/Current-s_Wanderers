@@ -124,7 +124,7 @@ a, a:visited, a:hover, a:active {
   top: var(--margin);
   font-family: 'Necto Mono', monospace;
   font-size: var(--mono);
-  line-height: 1.2;
+  line-height: 1.1;
   color: var(--fg-dim);
 }
 .credits p + p {
