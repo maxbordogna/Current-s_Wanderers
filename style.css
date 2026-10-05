@@ -224,6 +224,17 @@ a, a:visited, a:hover, a:active {
   color: var(--fg);
 }
 
+/* "under construction" note for pages that don't have content yet */
+.construction-note {
+  position: absolute;
+  left: calc(25% + 15px);
+  top: 22.47vh;
+  font-family: var(--body-font);
+  font-weight: var(--body-weight);
+  font-size: var(--serif-body);
+  line-height: 1.1;
+}
+
 /* ---- portrait: single column, no absolute grid ---- */
 @media (orientation: portrait) {
   html, body {
