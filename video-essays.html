@@ -235,7 +235,7 @@
         z-index: 20;
         background: var(--bg);
         margin: 0;
-        padding: 2.5vh var(--margin) 0.75rem;
+        padding: 20px var(--margin) 0.75rem;
       }
 
       .credits {
@@ -247,14 +247,19 @@
 
       .content-row {
         align-items: flex-start;
-        padding: 1.25rem var(--margin) 0;
+        padding: 0;
+      }
+
+      .essay-list {
+        margin-right: var(--margin);
       }
 
       .site-nav {
         position: sticky;
         left: auto;
         top: 0;
-        flex: 0 0 calc(25% + 15px - var(--margin));
+        flex: 0 0 calc(25% + 15px);
+        padding-left: var(--margin);
       }
 
       .utility-nav {
@@ -361,6 +366,13 @@
           return;
         }
         stickyNav.style.top = stickyTitle.getBoundingClientRect().height + 'px';
+
+        // match the fixed-layout pages: the nav/content row starts at 22.47vh
+        const creditsEl = document.querySelector('.credits');
+        const titleBottom = creditsEl.getBoundingClientRect().bottom + window.scrollY +
+          stickyTitle.getBoundingClientRect().height;
+        document.querySelector('.content-row').style.paddingTop =
+          Math.max(0, window.innerHeight * 0.2247 - titleBottom) + 'px';
       }
 
       let pendingNav = false;

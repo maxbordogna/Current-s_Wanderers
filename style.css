@@ -41,6 +41,12 @@ html, body {
   overflow: hidden;
 }
 
+/* reserve the scrollbar's width on every page so switching between
+   fixed and scrolling pages doesn't shift the layout sideways */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
