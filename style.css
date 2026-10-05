@@ -6,8 +6,15 @@
   font-display: swap;
 }
 @font-face {
-  font-family: 'Necto Mono';
-  src: url('Fonts/NectoMono-Regular.woff2') format('woff2');
+  font-family: 'PP Neue Montreal Mono';
+  src: url('Fonts/PPNeueMontrealMono-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal Mono';
+  src: url('Fonts/PPNeueMontrealMono-Book.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -18,7 +25,9 @@
 :root {
   --margin: 20px;
   --gutter: 20px;
-  --mono: clamp(13px, 1.157vw, 20px);
+  --mono: clamp(11px, 0.9vw, 15px);
+  --mono-weight: 100;
+  --mono-weight-strong: 400;
   --serif-title: clamp(28px, 3.183vw, 55px);
   --serif-body: clamp(14px, 1.302vw, 22.5px);
 }
@@ -128,7 +137,8 @@ a, a:visited, a:hover, a:active {
   left: calc(25% + 15px);
   right: var(--margin);
   top: var(--margin);
-  font-family: 'Necto Mono', monospace;
+  font-family: 'PP Neue Montreal Mono', monospace;
+  font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 1.1;
   color: var(--fg-dim);
@@ -142,7 +152,8 @@ a, a:visited, a:hover, a:active {
   position: absolute;
   left: var(--margin);
   top: 22.47vh;
-  font-family: 'Necto Mono', monospace;
+  font-family: 'PP Neue Montreal Mono', monospace;
+  font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 2.4;
   white-space: nowrap;
@@ -154,6 +165,7 @@ a, a:visited, a:hover, a:active {
 }
 .site-nav a.active {
   color: var(--fg);
+  font-weight: var(--mono-weight-strong);
 }
 .nav-toggle {
   display: none;
@@ -164,7 +176,8 @@ a, a:visited, a:hover, a:active {
   position: absolute;
   left: var(--margin);
   bottom: var(--margin);
-  font-family: 'Necto Mono', monospace;
+  font-family: 'PP Neue Montreal Mono', monospace;
+  font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 2.4;
   color: var(--fg-dim);
@@ -178,6 +191,7 @@ a, a:visited, a:hover, a:active {
   border: none;
   color: var(--fg-dim);
   font-family: inherit;
+  font-weight: inherit;
   font-size: inherit;
   line-height: inherit;
   cursor: pointer;
@@ -272,6 +286,7 @@ a, a:visited, a:hover, a:active {
     border: none;
     color: var(--fg-dim);
     font-family: inherit;
+    font-weight: inherit;
     font-size: inherit;
     line-height: inherit;
     cursor: pointer;
