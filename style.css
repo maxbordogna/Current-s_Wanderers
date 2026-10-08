@@ -1,34 +1,31 @@
 @font-face {
-  font-family: 'PP Kyoto';
-  src: url('Fonts/PPKyoto-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Apfel Grotezk';
-  src: url('Fonts/ApfelGrotezk-Regular.woff2') format('woff2');
+  font-family: 'BDO Grotesk';
+  src: url('Fonts/BDOGrotesk-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+  /* BDO's x-height is tall: scale it down so the sizes below stay balanced */
+  size-adjust: 90%;
 }
 @font-face {
-  font-family: 'Apfel Grotezk';
-  src: url('Fonts/ApfelGrotezk-Mittel.woff2') format('woff2');
+  font-family: 'BDO Grotesk';
+  src: url('Fonts/BDOGrotesk-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
+  /* BDO's x-height is tall: scale it down so the sizes below stay balanced */
+  size-adjust: 90%;
 }
 @font-face {
-  font-family: 'PP Neue Montreal Mono';
-  src: url('Fonts/PPNeueMontrealMono-Thin.woff2') format('woff2');
+  font-family: 'Paper Mono';
+  src: url('Fonts/PaperMono-Thin.woff2') format('woff2');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'PP Neue Montreal Mono';
-  src: url('Fonts/PPNeueMontrealMono-Book.woff2') format('woff2');
+  font-family: 'Paper Mono';
+  src: url('Fonts/PaperMono-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -52,9 +49,9 @@
   --serif-title: clamp(32px, 3.66vw, 63px);
   --serif-body: calc(var(--mono) * 1.5);
   /* body copy + title: swap family/weight here to try other fonts */
-  --body-font: 'Apfel Grotezk', sans-serif;
+  --body-font: 'BDO Grotesk', sans-serif;
   --body-weight: 400;
-  --title-font: 'Apfel Grotezk', sans-serif;
+  --title-font: 'BDO Grotesk', sans-serif;
   --title-weight: 500;
 }
 
@@ -85,7 +82,7 @@ html {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'PP Kyoto', serif;
+  font-family: var(--body-font);
   transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -162,7 +159,7 @@ a, a:visited, a:hover, a:active {
   left: calc(25% + 15px);
   right: var(--margin);
   top: var(--credits-top);
-  font-family: 'PP Neue Montreal Mono', monospace;
+  font-family: 'Paper Mono', monospace;
   font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 1.1;
@@ -174,7 +171,7 @@ a, a:visited, a:hover, a:active {
   position: absolute;
   left: var(--margin);
   top: 22.47vh;
-  font-family: 'PP Neue Montreal Mono', monospace;
+  font-family: 'Paper Mono', monospace;
   font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 2.4;
@@ -198,7 +195,7 @@ a, a:visited, a:hover, a:active {
   position: absolute;
   left: var(--margin);
   bottom: var(--margin);
-  font-family: 'PP Neue Montreal Mono', monospace;
+  font-family: 'Paper Mono', monospace;
   font-weight: var(--mono-weight);
   font-size: var(--mono);
   line-height: 2.4;
