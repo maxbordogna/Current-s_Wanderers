@@ -138,7 +138,7 @@ a, a:visited, a:hover, a:active {
   font-family: var(--title-font);
   font-weight: var(--title-weight);
   font-size: var(--serif-title);
-  line-height: 1.2;
+  line-height: 1.1;
 }
 .title .prefix {
   flex: 0 0 auto;
@@ -164,6 +164,12 @@ a, a:visited, a:hover, a:active {
   font-size: var(--mono);
   line-height: 1.1;
   color: var(--fg-dim);
+}
+
+/* credits read as one continuous line of text, entries separated by slashes
+   (on every screen size; it wraps like normal text when it doesn't fit) */
+.credits p {
+  display: inline;
 }
 
 /* left sidebar nav */
@@ -269,6 +275,8 @@ a, a:visited, a:hover, a:active {
 
   .credits {
     order: -2;
+    /* halves the credits -> title distance (flex gap 20px + title padding) */
+    margin-bottom: -1rem;
   }
   .title {
     order: -1;

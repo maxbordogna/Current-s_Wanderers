@@ -31,7 +31,7 @@ if (navToggle && navList) {
 
 const credits = document.querySelector('.credits');
 const title = document.querySelector('.title');
-const GAP = 20;
+const GAP = 10; // credits -> title distance
 
 function positionTitle() {
   if (!credits || !title) return;
