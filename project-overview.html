@@ -14,6 +14,255 @@
   <link rel="icon" type="image/png" href="favicon1.png?v=2">
   <title>Project Overview · Current's Wanderers</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- project overview page specific: the teaser video, same player as the video essays ---- */
+    .content-row {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .essay-list {
+      flex: 1 1 auto;
+      min-width: 0;
+      /* a single video: no room needed below it, so the page only scrolls
+         when the window is too short to show it */
+      padding-bottom: var(--margin);
+    }
+
+    .essay-entry {
+      display: flex;
+      gap: var(--gutter);
+    }
+
+    .essay-media {
+      flex: 2 1 0;
+      min-width: 0;
+    }
+    .essay-video {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--media-bg);
+      overflow: hidden;
+    }
+    html[data-theme="dark"] .essay-video {
+      background: #000;
+    }
+    .essay-video video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .essay-loading-text {
+      position: absolute;
+      bottom: 12px;
+      left: 14px;
+      z-index: 2;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      color: var(--fg-dim);
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    .essay-loading-text.is-hidden {
+      opacity: 0;
+    }
+
+    /* caption left, YouTube link right; the link drops below the caption
+       (left-aligned) when the two don't fit on one line */
+    .essay-captions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      column-gap: 1.5em;
+      margin-top: var(--caption-gap, 6px);
+    }
+
+    .essay-caption {
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: 1.2;
+      color: var(--fg-dim);
+    }
+
+    /* ---- on-video overlay controls, shown on hover ---- */
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+    .essay-video:hover .video-overlay,
+    .essay-video:focus-within .video-overlay,
+    .essay-video.show-controls .video-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-play {
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0.5em 0.9em;
+    }
+
+    .video-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      padding: 10px 12px;
+    }
+    .video-mute,
+    .video-fullscreen {
+      flex: 0 0 auto;
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0;
+    }
+    .video-mute:hover,
+    .video-fullscreen:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .video-seek {
+      flex: 1 1 auto;
+      min-width: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+    }
+    .video-seek::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .video-seek::-moz-range-thumb {
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .utility-nav {
+      background: var(--bg);
+      padding-top: 0.5rem;
+      padding-right: var(--margin);
+    }
+
+    @media (orientation: portrait) {
+      .utility-nav {
+        background: none;
+        padding-top: 0;
+        padding-right: 0;
+      }
+      .content-row {
+        display: contents;
+      }
+      .essay-list {
+        padding-bottom: 0;
+      }
+      .essay-entry {
+        flex-direction: column;
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+
+    /* ---- landscape: whole page scrolls, title + nav lock to the top ---- */
+    @media (orientation: landscape) {
+      html, body {
+        height: auto;
+      }
+      html {
+        overflow-y: auto;
+      }
+      body {
+        overflow: visible;
+      }
+
+      .page {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .title {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--bg);
+        margin: 0;
+        padding: 20px var(--margin) 0.75rem;
+      }
+
+      .credits {
+        order: -1;
+        position: static;
+        margin: var(--credits-top, 2px) 0 0 calc(25% + 15px);
+        width: calc(75% - 15px - var(--margin));
+      }
+
+      .content-row {
+        align-items: flex-start;
+        padding: 0;
+      }
+
+      /* start level with the first menu item's text */
+      .essay-list {
+        margin-right: var(--margin);
+        padding-top: var(--nav-text-offset, 10px);
+      }
+
+      .site-nav {
+        position: sticky;
+        left: auto;
+        top: 0;
+        flex: 0 0 calc(25% + 15px);
+        padding-left: var(--margin);
+      }
+
+      .utility-nav {
+        position: fixed;
+        left: var(--margin);
+        right: auto;
+        bottom: var(--margin);
+        margin: 0;
+        z-index: 30;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -28,6 +277,7 @@
       <p>External collaborators / Marta Reyes and Stefanie Eyring · Eawag · Aquascope</p>
     </div>
 
+    <div class="content-row">
     <nav class="site-nav">
       <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
       <div class="nav-list" id="navList">
@@ -41,7 +291,30 @@
       </div>
     </nav>
 
-    <p class="construction-note stack-item">This page is still under construction.<br>Check back soon.</p>
+    <div class="essay-list stack-item">
+
+      <div class="essay-entry">
+        <div class="essay-media">
+          <div class="essay-video">
+            <video src="Media/teaser.mp4" autoplay muted loop playsinline preload="auto"></video>
+            <p class="essay-loading-text">[Loading]</p>
+            <div class="video-overlay">
+              <button class="video-play" type="button" aria-label="Pause">[Pause]</button>
+              <div class="video-bar">
+                <button class="video-mute" type="button" aria-label="Unmute">[Unmute]</button>
+                <input class="video-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+                <button class="video-fullscreen" type="button" aria-label="Fullscreen">[Fullscreen]</button>
+              </div>
+            </div>
+          </div>
+          <div class="essay-captions">
+            <p class="essay-caption">Teaser</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div>
 
     <div class="utility-nav">
       <a href="portfolio.html?from=project-overview.html">[Portfolio]</a>
@@ -52,5 +325,110 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // keep the sticky site-nav positioned right below the sticky title
+    (function () {
+      const stickyTitle = document.querySelector('.title');
+      const stickyNav = document.querySelector('.site-nav');
+
+      function positionStickyNav() {
+        if (!window.matchMedia('(orientation: landscape)').matches) {
+          stickyNav.style.top = '';
+          return;
+        }
+        stickyNav.style.top = stickyTitle.getBoundingClientRect().height + 'px';
+
+        // match the fixed-layout pages: the nav/content row starts at 22.47vh
+        const creditsEl = document.querySelector('.credits');
+        const titleBottom = creditsEl.getBoundingClientRect().bottom + window.scrollY +
+          stickyTitle.getBoundingClientRect().height;
+        document.querySelector('.content-row').style.paddingTop =
+          Math.max(0, window.innerHeight * 0.2247 - titleBottom) + 'px';
+      }
+
+      let pendingNav = false;
+      function scheduleNav() {
+        if (pendingNav) return;
+        pendingNav = true;
+        requestAnimationFrame(() => {
+          pendingNav = false;
+          positionStickyNav();
+        });
+      }
+
+      scheduleNav();
+      window.addEventListener('resize', scheduleNav);
+      window.addEventListener('orientationchange', scheduleNav);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(scheduleNav);
+      }
+    })();
+
+    document.querySelectorAll('.essay-media').forEach((media) => {
+      const container = media.querySelector('.essay-video');
+      const video = media.querySelector('video');
+      const loadingText = media.querySelector('.essay-loading-text');
+      const playBtn = media.querySelector('.video-play');
+      const muteBtn = media.querySelector('.video-mute');
+      const fsBtn = media.querySelector('.video-fullscreen');
+      const seek = media.querySelector('.video-seek');
+
+      if (video.readyState >= 3) {
+        loadingText.classList.add('is-hidden');
+      } else {
+        video.addEventListener('playing', () => {
+          loadingText.classList.add('is-hidden');
+        }, { once: true });
+      }
+
+      let hideTimer = null;
+      container.addEventListener('click', () => {
+        container.classList.add('show-controls');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          container.classList.remove('show-controls');
+        }, 3000);
+      });
+
+      playBtn.addEventListener('click', () => {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+      video.addEventListener('play', () => { playBtn.textContent = '[Pause]'; });
+      video.addEventListener('pause', () => { playBtn.textContent = '[Play]'; });
+
+      muteBtn.addEventListener('click', () => {
+        video.muted = !video.muted;
+        muteBtn.textContent = video.muted ? '[Unmute]' : '[Mute]';
+      });
+
+      fsBtn.addEventListener('click', () => {
+        if (document.fullscreenElement === video) {
+          document.exitFullscreen();
+        } else {
+          video.requestFullscreen();
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        fsBtn.textContent = document.fullscreenElement === video ? '[Exit Fullscreen]' : '[Fullscreen]';
+      });
+
+      let seeking = false;
+      video.addEventListener('timeupdate', () => {
+        if (seeking || !video.duration) return;
+        seek.value = (video.currentTime / video.duration) * 100;
+      });
+      seek.addEventListener('input', () => {
+        seeking = true;
+        if (video.duration) {
+          video.currentTime = (seek.value / 100) * video.duration;
+        }
+      });
+      seek.addEventListener('change', () => { seeking = false; });
+    });
+  </script>
 </body>
 </html>

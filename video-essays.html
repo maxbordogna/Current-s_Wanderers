@@ -27,14 +27,14 @@
       padding-bottom: 8rem;
     }
 
+    /* each entry: the video spans the whole column, its description sits below */
     .essay-entry {
       display: flex;
-      gap: var(--gutter);
+      flex-direction: column;
       margin-bottom: 4rem;
     }
 
     .essay-media {
-      flex: 2 1 0;
       min-width: 0;
     }
     .essay-video {
@@ -81,12 +81,26 @@
       margin-top: var(--caption-gap, 6px);
     }
 
+    /* the caption is a button: it opens and closes the description below */
     .essay-caption {
+      background: none;
+      border: none;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
       font-family: 'Paper Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
       line-height: 1.2;
       color: var(--fg-dim);
+    }
+    .essay-caption:hover,
+    .essay-caption[aria-expanded="true"] {
+      color: var(--fg);
+    }
+    .essay-caption:focus-visible {
+      outline: 1px solid var(--fg-dim);
+      outline-offset: 3px;
     }
 
     .essay-yt-link {
@@ -184,9 +198,32 @@
       background: #fff;
     }
 
+    /* folded away until the caption is clicked; opening pushes everything
+       below it further down (grid row 0fr -> 1fr animates the height) */
+    .essay-desc-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      visibility: hidden;
+      transition: grid-template-rows 0.45s ease, visibility 0s linear 0.45s;
+    }
+    .essay-entry.is-open .essay-desc-wrap {
+      grid-template-rows: 1fr;
+      visibility: visible;
+      transition: grid-template-rows 0.45s ease, visibility 0s;
+    }
+    .essay-desc-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .essay-desc-wrap,
+      .essay-entry.is-open .essay-desc-wrap {
+        transition: none;
+      }
+    }
+
     .essay-desc {
-      flex: 1 1 0;
-      min-width: 0;
+      margin-top: var(--gutter);
       font-family: var(--body-font, 'BDO Grotesk', sans-serif);
       font-weight: var(--body-weight, 400);
       font-size: var(--serif-body);
@@ -212,7 +249,6 @@
         padding-bottom: 0;
       }
       .essay-entry {
-        flex-direction: column;
         margin-left: 0;
         margin-right: 0;
         margin-bottom: 2.5rem;
@@ -291,7 +327,7 @@
 
   <div class="page">
 
-    <h1 class="title"><span class="prefix">03&nbsp;·&nbsp;</span><span class="rest">Video Essays · Current’s Wanderers · Sample Observation</span></h1>
+    <h1 class="title"><span class="prefix">03&nbsp;·&nbsp;</span><span class="rest">Video Essays · Current’s Wanderers · Reading the Sample</span></h1>
 
     <div class="credits">
       <p>Massimo Bordogna / Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
@@ -331,11 +367,11 @@
             </div>
           </div>
           <div class="essay-captions">
-            <p class="essay-caption">Current’s Wanderers</p>
+            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc1">Current’s Wanderers <span class="essay-toggle">[+]</span></button>
             <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
           </div>
         </div>
-        <p class="essay-desc">Built through the voices of Eawag scientists Marta Reyes and Stefanie Eyring, this 18-minute video essay blends their scientific knowledge with personal reflections on their research practice. Structured in five chapters — from the ecological relevance of plankton, to fieldwork on Lake Greifensee, laboratory observation, real-time data collection, and the ecosystem’s broader importance — it traces the lake, the laboratory, and the data as three interconnected dimensions of the same story, preparing viewers for the immersive experience that follows.</p>
+        <div class="essay-desc-wrap" id="essayDesc1"><div class="essay-desc-inner"><p class="essay-desc">Built through the voices of Eawag scientists Marta Reyes and Stefanie Eyring, this 18-minute video essay blends their scientific knowledge with personal reflections on their research practice. Structured in five chapters — from the ecological relevance of plankton, to fieldwork on Lake Greifensee, laboratory observation, real-time data collection, and the ecosystem’s broader importance — it traces the lake, the laboratory, and the data as three interconnected dimensions of the same story, preparing viewers for the immersive experience that follows.</p></div></div>
       </div>
 
       <div class="essay-entry">
@@ -353,11 +389,11 @@
             </div>
           </div>
           <div class="essay-captions">
-            <p class="essay-caption">Reading the Sample</p>
+            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc2">Reading the Sample <span class="essay-toggle">[+]</span></button>
             <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
           </div>
         </div>
-        <p class="essay-desc">Reading the Sample documents a live microscope observation session recorded on 16 April 2026, using a water sample collected from Lake Greifensee that same day. Combining real-time microscope imagery with the scientists’ spontaneous commentary and reactions, it captures the moment of discovery as it happens — offering both the scientific and emotional dimensions of a practice that emerged, throughout the research, as the one most capable of generating genuine engagement with plankton life.</p>
+        <div class="essay-desc-wrap" id="essayDesc2"><div class="essay-desc-inner"><p class="essay-desc">Reading the Sample documents a live microscope observation session recorded on 16 April 2026, using a water sample collected from Lake Greifensee that same day. Combining real-time microscope imagery with the scientists’ spontaneous commentary and reactions, it captures the moment of discovery as it happens — offering both the scientific and emotional dimensions of a practice that emerged, throughout the research, as the one most capable of generating genuine engagement with plankton life.</p></div></div>
       </div>
 
     </div>
@@ -410,6 +446,17 @@
         document.fonts.ready.then(scheduleNav);
       }
     })();
+
+    // clicking a video's title opens/closes its description
+    document.querySelectorAll('.essay-entry').forEach((entry) => {
+      const toggle = entry.querySelector('.essay-caption');
+      const mark = entry.querySelector('.essay-toggle');
+      toggle.addEventListener('click', () => {
+        const open = entry.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        mark.textContent = open ? '[−]' : '[+]';
+      });
+    });
 
     document.querySelectorAll('.essay-media').forEach((media) => {
       const container = media.querySelector('.essay-video');
