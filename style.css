@@ -110,7 +110,6 @@ a, a:visited, a:hover, a:active {
   height: 10px;
   border-radius: 50%;
   background: var(--fg);
-  box-shadow: 0 0 8px 3px var(--fg-dim);
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);

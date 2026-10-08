@@ -1,4 +1,10 @@
 const html = document.documentElement;
+
+// the first-visit intro only plays when Home is the entry page: landing on
+// any other page first counts as having "entered" the site for this session
+try {
+  if (!document.body.hasAttribute('data-intro')) sessionStorage.setItem('introSeen', '1');
+} catch (e) {}
 const themeToggle = document.getElementById('themeToggle');
 
 if (themeToggle) {

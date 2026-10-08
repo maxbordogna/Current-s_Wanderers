@@ -10,6 +10,28 @@
       }
     })();
   </script>
+  <script>
+    // First-visit intro (see intro.js): mouse/trackpad only, once per session, and
+    // only when Home is the entry page (other pages mark the session as seen).
+    (function () {
+      try {
+        var d = document.documentElement;
+        // any window shape on a desktop (mouse/trackpad); never touch devices
+        var eligible = matchMedia('(pointer: fine)').matches &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (eligible && !sessionStorage.getItem('introSeen')) {
+          d.classList.add('intro-pending');
+          // failsafe: never leave the page hidden if intro.js doesn't start
+          setTimeout(function () {
+            if (!window.__introReady) {
+              d.classList.remove('intro-pending');
+              window.dispatchEvent(new Event('intro:revealed'));
+            }
+          }, 3000);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon1.png?v=2">
   <title>Current's Wanderers</title>
@@ -109,6 +131,47 @@
       line-height: 1.1;
     }
 
+    /* ---- first-visit intro (intro.js): page hidden, native arrow, flow field ---- */
+    html.intro-pending .page {
+      visibility: hidden;
+    }
+    /* the video keeps loading underneath and fades in once revealed */
+    html.intro-pending .media-square {
+      visibility: visible;
+      opacity: 0;
+    }
+    .media-square {
+      transition: opacity 1s ease 0.7s;
+    }
+    html.intro-pending,
+    html.intro-pending * {
+      cursor: auto !important;
+    }
+    html.intro-pending .cursor-dot {
+      display: none;
+    }
+    .intro-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9000;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    /* the wandering dot looks exactly like the site's cursor dot */
+    .intro-particle {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border-radius: 50%;
+      background: var(--fg);
+      pointer-events: none;
+      z-index: 9999;
+      will-change: transform;
+    }
     @media (orientation: portrait) {
       .media-caption,
       .description {
@@ -139,7 +202,7 @@
     }
   </style>
 </head>
-<body>
+<body data-intro>
 
   <div class="page">
 
@@ -312,13 +375,20 @@
     }
 
     createPlanktonElements();
-    runMediaCurtain(6000);
+    const introPending = () => document.documentElement.classList.contains('intro-pending');
+    if (introPending()) {
+      // first-visit intro: start the loading curtain once the page is revealed
+      window.addEventListener('intro:revealed', () => runMediaCurtain(6000), { once: true });
+    } else {
+      runMediaCurtain(6000);
+    }
 
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !introPending()) {
         runMediaCurtain(6000);
       }
     });
   </script>
+  <script src="intro.js"></script>
 </body>
 </html>
