@@ -24,6 +24,22 @@
   const MOUSE_DAMP = 3;      // slow-down strength inside that radius (1/s)
   const MOUSE_PULL = 260;    // attraction inside that radius (px/s^2)
   const HIT_RADIUS = 32;     // click tolerance around the dot (px)
+  const LABEL_TEXT = '[Enter]';
+  // the label is a quiet hint, not a sign: it stays invisible until the pointer
+  // comes close to the dot, and only shows by itself if nobody finds the dot for a while
+  const LABEL_REACH = 280;   // pointer this close (px): the label starts to appear
+  const LABEL_FULL = 90;     // pointer this close (px): fully visible
+  const LABEL_HINT_AFTER = 15; // seconds before it shows up on its own...
+  const LABEL_HINT_LEVEL = 0.7; // ...at this opacity
+  const LABEL_GAP = 10;      // space between the dot and the label (px)
+  // the label swings round the dot like a weight on a soft spring: it eases in,
+  // eases out, and can never whip round faster than LABEL_MAX_TURN
+  const LABEL_STIFFNESS = 6;   // spring stiffness (lower = lazier)
+  const LABEL_MAX_TURN = 2.6;  // top swing speed (rad/s, about 150 degrees per second)
+  const LABEL_MAX_ACCEL = 7;   // how abruptly it may start or stop swinging (rad/s^2)
+  const LABEL_HEADING_TAU = 0.3;  // seconds over which a sudden turn of the dot is smoothed out
+  const LABEL_MIN_SPEED = 12; // below this speed (px/s) the dot has no direction: the label stays put
+  const LABEL_EDGE = 8;      // the label never gets closer than this to the window edge (px)
   const LINE_ALPHA = 0.07;   // field line opacity
   // the pointer leaves a wake: only the field BEHIND its direction of travel is
   // swept along (nothing ahead of it), narrow near the pointer and spreading out
@@ -92,6 +108,17 @@
   particleEl.className = 'intro-particle';
   document.body.appendChild(particleEl);
 
+  // a small "[Click me]" that keeps close to the dot, trailing behind it
+  const labelEl = document.createElement('div');
+  labelEl.className = 'intro-label';
+  labelEl.textContent = LABEL_TEXT;
+  document.body.appendChild(labelEl);
+  let labelW = 0, labelH = 0;
+  function measureLabel() {
+    labelW = labelEl.offsetWidth;
+    labelH = labelEl.offsetHeight;
+  }
+
   const rgb = (getComputedStyle(document.body).color.match(/\d+/g) || [0, 0, 0]).slice(0, 3).join(',');
 
   let W = 0, H = 0, cols = 0, rows = 0;
@@ -114,6 +141,7 @@
     p.x = Math.min(Math.max(p.x, DOT_R), W - DOT_R);
     p.y = Math.min(Math.max(p.y, DOT_R), H - DOT_R);
     buildRepelGrid();
+    measureLabel();
   }
 
   // ---- state ------------------------------------------------------------
@@ -132,6 +160,13 @@
   const a0 = Math.random() * Math.PI * 2;
   p.vx = Math.cos(a0) * MAX_SPEED * 0.5;
   p.vy = Math.sin(a0) * MAX_SPEED * 0.5;
+  let labelHeading = a0;            // last direction the dot travelled in
+  let labelOmega = 0;               // how fast the label is swinging round (rad/s)
+  let hx = Math.cos(a0), hy = Math.sin(a0); // low-passed velocity of the dot
+  let labelAngle = a0 + Math.PI;    // where the label sits around the dot (starts behind it)
+  let labelOpacity = 0;             // eased towards labelWanted() every frame
+  let labelFading = false;          // set once the dot is caught
+  const introStart = performance.now();
 
   // ---- small particles + the spatial grid that keeps them apart ---------
   let repelCols = 1, repelRows = 1;
@@ -164,6 +199,8 @@
 
   resize();
   flock.forEach(respawn);
+  measureLabel();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureLabel);
 
   const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
@@ -184,6 +221,70 @@
     sideways *= sideways;
     const front = along > 0 ? 1 - along / WAKE_FRONT : 1;
     return lengthwise * sideways * front;
+  }
+
+  // ---- the "[Click me]" label -------------------------------------------
+  // Centre of the label when it sits at angle `a` around the dot: pushed out
+  // along that direction until the nearest point of its box is exactly
+  // DOT_R + LABEL_GAP away from the dot's centre (so a wide box never grazes it).
+  function labelCentre(a) {
+    const ux = Math.cos(a), uy = Math.sin(a);
+    const want = DOT_R + LABEL_GAP;
+    let lo = 0, hi = want + Math.hypot(labelW, labelH);
+    for (let i = 0; i < 14; i++) {
+      const mid = (lo + hi) / 2;
+      const gx = Math.max(Math.abs(ux * mid) - labelW / 2, 0);
+      const gy = Math.max(Math.abs(uy * mid) - labelH / 2, 0);
+      if (Math.hypot(gx, gy) < want) lo = mid; else hi = mid;
+    }
+    return [p.x + ux * hi, p.y + uy * hi];
+  }
+  function labelFits(a) {
+    const [cx, cy] = labelCentre(a);
+    return cx - labelW / 2 >= LABEL_EDGE && cx + labelW / 2 <= W - LABEL_EDGE &&
+           cy - labelH / 2 >= LABEL_EDGE && cy + labelH / 2 <= H - LABEL_EDGE;
+  }
+  // the preferred angle if the label fits there, otherwise the closest one that does
+  function labelPick(preferred) {
+    if (labelFits(preferred)) return preferred;
+    for (let k = 1; k <= 12; k++) {
+      for (const side of [1, -1]) {
+        const a = preferred + side * k * (Math.PI / 12);
+        if (labelFits(a)) return a;
+      }
+    }
+    return preferred;
+  }
+  function updateLabel(dt) {
+    // direction of travel, softened so an abrupt turn reaches the label gradually
+    const soften = 1 - Math.exp(-dt / LABEL_HEADING_TAU);
+    hx += (p.vx - hx) * soften;
+    hy += (p.vy - hy) * soften;
+    if (Math.hypot(hx, hy) > LABEL_MIN_SPEED) labelHeading = Math.atan2(hy, hx);
+
+    // trail behind the dot: a critically damped spring pulls the label's angle
+    // towards "behind", so it starts and stops gently and has a speed limit
+    const target = labelPick(labelHeading + Math.PI);
+    const err = wrapAngle(target - labelAngle);
+    let accel = LABEL_STIFFNESS * err - 2 * Math.sqrt(LABEL_STIFFNESS) * labelOmega;
+    accel = Math.max(-LABEL_MAX_ACCEL, Math.min(LABEL_MAX_ACCEL, accel));
+    labelOmega += accel * dt;
+    labelOmega = Math.max(-LABEL_MAX_TURN, Math.min(LABEL_MAX_TURN, labelOmega));
+    labelAngle += labelOmega * dt;
+    const c = labelCentre(labelAngle);
+    labelEl.style.transform = 'translate(' + (c[0] - labelW / 2).toFixed(1) + 'px,' + (c[1] - labelH / 2).toFixed(1) + 'px)';
+
+    // how visible it wants to be: closer pointer -> clearer; plus a late nudge
+    let want = 0;
+    if (!labelFading) {
+      if (mouse.known) {
+        const dist = Math.hypot(mouse.x - p.x, mouse.y - p.y);
+        want = Math.min(1, Math.max(0, (LABEL_REACH - dist) / (LABEL_REACH - LABEL_FULL)));
+      }
+      if ((performance.now() - introStart) / 1000 > LABEL_HINT_AFTER) want = Math.max(want, LABEL_HINT_LEVEL);
+    }
+    labelOpacity += (want - labelOpacity) * (1 - Math.exp(-(want > labelOpacity ? 2.5 : 4) * dt));
+    labelEl.style.opacity = labelOpacity.toFixed(3);
   }
 
   // ---- one simulation + draw step ---------------------------------------
@@ -292,6 +393,7 @@
     }
 
     particleEl.style.transform = 'translate(' + p.x.toFixed(2) + 'px,' + p.y.toFixed(2) + 'px)';
+    updateLabel(dt);
 
     // -- draw --
     ctx.clearRect(0, 0, W, H);
@@ -440,6 +542,11 @@
     }
   }
 
+  // the page underneath is hidden: nothing there should be selectable
+  function onSelectStart(e) { e.preventDefault(); }
+  document.addEventListener('selectstart', onSelectStart);
+  if (window.getSelection) window.getSelection().removeAllRanges();
+
   document.addEventListener('mousemove', onMove);
   document.documentElement.addEventListener('mouseleave', onLeave);
   document.addEventListener('click', onClick);
@@ -451,6 +558,7 @@
 
   function catchDot(tx, ty) {
     state = 'catching';
+    labelFading = true;
     const sx = p.x, sy = p.y;
     const t0 = performance.now();
     (function step(now) {
@@ -467,6 +575,7 @@
   }
 
   function detachInput() {
+    document.removeEventListener('selectstart', onSelectStart);
     document.removeEventListener('mousemove', onMove);
     document.documentElement.removeEventListener('mouseleave', onLeave);
     document.removeEventListener('click', onClick);
@@ -481,6 +590,7 @@
       canvas.remove();
     }, 700);
     particleEl.remove();
+    setTimeout(() => labelEl.remove(), 700);
   }
 
   function reveal() {
@@ -501,6 +611,7 @@
     cancelAnimationFrame(raf);
     canvas.remove();
     particleEl.remove();
+    labelEl.remove();
     html.classList.remove('intro-pending');
     window.dispatchEvent(new Event('intro:revealed'));
   }

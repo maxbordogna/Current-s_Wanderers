@@ -150,6 +150,31 @@
     html.intro-pending .cursor-dot {
       display: none;
     }
+    /* nothing underneath the intro can be selected */
+    html.intro-pending,
+    html.intro-pending * {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    html.intro-pending ::selection {
+      background: transparent;
+    }
+    /* small "[Click me]" that follows the wandering dot */
+    .intro-label {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      pointer-events: none;
+      white-space: nowrap;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight, 100);
+      font-size: var(--mono, 13px);
+      line-height: 1.2;
+      color: var(--fg-dim);
+      opacity: 0;   /* driven by intro.js: invisible until the pointer is near */
+      will-change: transform, opacity;
+    }
     .intro-canvas {
       position: fixed;
       top: 0;
