@@ -94,7 +94,12 @@ a, a:visited, a:hover, a:active {
 /* custom dot cursor (desktop/mouse only, native cursor stays on touch) */
 @media (pointer: fine) {
   * {
-    cursor: none !important;
+    /* An invisible 16px image, with "none" as the fallback. A plain "none"
+       makes Safari hide the cursor only "until the mouse moves", so the arrow
+       comes back after a scroll, a key press, a window switch or a click that
+       changes what is under the pointer, and stays until the mouse moves.
+       An image cursor is never "re-shown" like that. */
+    cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAEklEQVR42mNgGAWjYBSMAggAAAQQAAGvRYgsAAAAAElFTkSuQmCC") 8 8, none !important;
   }
 }
 

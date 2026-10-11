@@ -80,9 +80,9 @@ if (window.matchMedia('(pointer: fine)').matches) {
       hoverCheckPending = false;
       const el = document.elementFromPoint(e.clientX, e.clientY);
       if (!el) return;
-      const cursorStyle = getComputedStyle(el).cursor;
-      const isClickable = !!el.closest('a, button, input, label, [role="button"]') ||
-        (cursorStyle !== 'auto' && cursorStyle !== 'default' && cursorStyle !== 'text' && cursorStyle !== 'none');
+      // (the native cursor is hidden on every element, so the computed cursor
+      // can't tell us what's clickable: look at the element itself)
+      const isClickable = !!el.closest('a, button, input, label, [role="button"]');
       cursorDot.classList.toggle('is-hover', isClickable);
     });
   });
