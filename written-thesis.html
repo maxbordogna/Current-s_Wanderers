@@ -40,15 +40,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      /* Clip to the sides only. The cover/back-cover turns are drawn in
+         perspective and swell ~90px above and below the book mid-turn; with
+         overflow:hidden they were cut off at the top and bottom edges. The
+         vertical clip margin below lets them show, while the sides (where
+         pages swing out past the column edge) are still clipped. */
+      overflow: visible;
+      clip-path: inset(-110px 0);
       /* the book rarely fills this box exactly (it keeps the PDF
          page's own aspect ratio), so match the page background here
          to make any leftover margin blend in instead of showing as
          a stray sliver */
       background: var(--bg);
       /* Safari fails to clip 3D-transformed descendants (the page-flip
-         curl) inside overflow:hidden unless this box has its own
-         compositing layer. */
+         curl) unless this box has its own compositing layer. */
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
       isolation: isolate;
@@ -61,6 +66,15 @@
     /* stays invisible until alignBook() has put it in its final spot */
     .thesis-book.is-unplaced {
       visibility: hidden;
+    }
+
+    /* StPageFlip casts a shadow beside a "hard" page (cover, back cover) while
+       it turns, which fell on the empty background next to it. Switch off the
+       hard-page shadows; ordinary pages keep theirs. !important: StPageFlip
+       shows/hides these elements with inline styles. */
+    .thesis-book .stf__hardShadow,
+    .thesis-book .stf__hardInnerShadow {
+      display: none !important;
     }
 
     .thesis-page-el {
@@ -307,14 +321,15 @@
         placeBookFirstTime();
       });
 
+      // when a turn has finished, line the book up again (this is the slide
+      // to the left after the cover has closed)
       pageFlip.on('changeState', (e) => {
-        if (e.data === 'read' && coverPending && pageFlip.getCurrentPageIndex() === 1) jumpToPage(0);
+        if (e.data === 'read') alignBook(true, true);
       });
 
       pageFlip.on('flip', () => {
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
-        alignBook(true);
       });
 
       window.addEventListener('resize', () => scheduleAlignBook(false));
@@ -329,42 +344,33 @@
       });
     }
 
-    // The lone cover page animates as an isolated "hard" page, and
-    // StPageFlip's corner-fold math misbehaves for it (visible jump).
-    // Skip the animation for that one transition with an instant jump.
-    //
-    // That instant jump only stays instant when no page is mid-turn. If
-    // "back" is clicked again while the previous turn (spread -> first
-    // spread) is still running, StPageFlip plays the cover's hard-page
-    // animation instead, drawing it ~44px too high until it snaps into place.
-    // So in that case the jump waits for the running turn to finish.
-    let coverPending = false;
-
-    function jumpToPage(index) {
-      coverPending = false;
-      pageFlip.turnToPage(index);
-      updateControls();
-      ensureRenderedAround(pageFlip.getCurrentPageIndex());
-      alignBook(true);
-    }
+    // One rule for the cover, in both directions: it always turns with its own
+    // page-turn animation, and on desktop the book slides sideways around it
+    // (the closed book hugs the column's left edge, the open one sits in the
+    // middle of its box).
+    //   opening: the book slides right first, then the cover opens
+    //   closing: the cover closes first, then the book slides left
+    // (the closing slide happens in alignBook, once the turn has finished).
+    const SLIDE_MS = 350;   // keep in sync with .thesis-book.is-animated
+    let openingCover = false;
 
     function goNext() {
-      coverPending = false;
-      if (pageFlip.getCurrentPageIndex() === 0) {
-        jumpToPage(1);
+      if (openingCover) return;
+      if (pageFlip.getCurrentPageIndex() === 0 && window.matchMedia('(orientation: landscape)').matches) {
+        openingCover = true;
+        alignBook(true, true, 0);
+        setTimeout(() => {
+          openingCover = false;
+          pageFlip.flipNext();
+        }, SLIDE_MS + 20);
       } else {
         pageFlip.flipNext();
       }
     }
 
     function goPrev() {
-      if (pageFlip.getCurrentPageIndex() === 1) {
-        if (pageFlip.getState() === 'read') jumpToPage(0);
-        else coverPending = true;   // jump as soon as the running turn ends
-      } else {
-        coverPending = false;
-        pageFlip.flipPrev();
-      }
+      if (openingCover) return;
+      pageFlip.flipPrev();
     }
 
     // Desktop only: StPageFlip centers the visible page(s) inside its box
@@ -377,7 +383,7 @@
     // canvas is transformed in 3D, and measuring it then gave a wrong offset
     // that made the whole book jump when pages were turned quickly.
     let alignedX = null;
-    function alignBook(animate) {
+    function alignBook(animate, settled, forceX) {
       if (!window.matchMedia('(orientation: landscape)').matches) {
         bookEl.style.transform = '';
         alignedX = null;
@@ -386,9 +392,13 @@
       if (typeof pageFlip === 'undefined' || !pageFlip) return false;
       const rect = pageFlip.getBoundsRect();
       if (!rect || !(rect.pageWidth > 0)) return false;   // not laid out yet
+      // while a page is turning the book stays where it is: it is re-aligned
+      // when the turn ends (the closing slide happens right then)
+      if (!settled && forceX === undefined && pageFlip.getState() !== 'read') return true;
       const loneCover = pageFlip.getOrientation() === 'landscape' &&
         pageFlip.getCurrentPageIndex() === 0;
-      const x = Math.round((rect.left + (loneCover ? rect.pageWidth : 0)) * 100) / 100;
+      const x = forceX !== undefined ? forceX
+        : Math.round((rect.left + (loneCover ? rect.pageWidth : 0)) * 100) / 100;
       const y = Math.round(rect.top * 100) / 100;
       // only the cover opening/closing slides; everything else just snaps
       bookEl.classList.toggle('is-animated', !!animate && alignedX !== null && x !== alignedX);
