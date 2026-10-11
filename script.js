@@ -68,6 +68,15 @@ if (window.matchMedia('(pointer: fine)').matches) {
   cursorDot.className = 'cursor-dot';
   document.body.appendChild(cursorDot);
 
+  // Only the fullscreen element (and its contents) is drawn while something is
+  // fullscreen, so the dot has to live inside it for the duration.
+  const moveDotForFullscreen = () => {
+    const host = document.fullscreenElement || document.webkitFullscreenElement || document.body;
+    if (cursorDot.parentNode !== host) host.appendChild(cursorDot);
+  };
+  document.addEventListener('fullscreenchange', moveDotForFullscreen);
+  document.addEventListener('webkitfullscreenchange', moveDotForFullscreen);
+
   let hoverCheckPending = false;
 
   document.addEventListener('mousemove', (e) => {

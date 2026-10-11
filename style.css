@@ -245,6 +245,23 @@ a, a:visited, a:hover, a:active {
   line-height: 1.1;
 }
 
+/* Fullscreen video player: the whole player goes fullscreen (so the controls and
+   the cursor dot come with it) and the video is letterboxed, never cropped.
+   The two selectors are separate rules on purpose: an unknown one would
+   invalidate a combined rule in older browsers. */
+.essay-video:fullscreen {
+  background: #000;
+}
+.essay-video:fullscreen video {
+  object-fit: contain;
+}
+.essay-video:-webkit-full-screen {
+  background: #000;
+}
+.essay-video:-webkit-full-screen video {
+  object-fit: contain;
+}
+
 /* The Portfolio link lives in two places: next to the credits, top-left, in the
    horizontal layout, and at the top of the bottom-left stack everywhere else. */
 .portfolio-top {

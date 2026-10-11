@@ -769,16 +769,25 @@
         muteBtn.textContent = video.muted ? '[Unmute]' : '[Mute]';
       });
 
+      // Fullscreen the whole player, not the bare <video>: only the fullscreen
+      // element (and what's inside it) is shown, so going fullscreen with just
+      // the video lost the controls and the cursor dot. The CSS letterboxes the
+      // video in fullscreen instead of cropping it.
+      const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
       fsBtn.addEventListener('click', () => {
-        if (document.fullscreenElement === video) {
-          document.exitFullscreen();
-        } else {
-          video.requestFullscreen();
+        if (fsElement() === container) {
+          (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else if (container.requestFullscreen || container.webkitRequestFullscreen) {
+          (container.requestFullscreen || container.webkitRequestFullscreen).call(container);
+        } else if (video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen();   // iPhone: only the native player can go fullscreen
         }
       });
-      document.addEventListener('fullscreenchange', () => {
-        fsBtn.textContent = document.fullscreenElement === video ? '[Exit Fullscreen]' : '[Fullscreen]';
-      });
+      const syncFsLabel = () => {
+        fsBtn.textContent = fsElement() === container ? '[Exit Fullscreen]' : '[Fullscreen]';
+      };
+      document.addEventListener('fullscreenchange', syncFsLabel);
+      document.addEventListener('webkitfullscreenchange', syncFsLabel);
 
       let seeking = false;
       video.addEventListener('timeupdate', () => {
