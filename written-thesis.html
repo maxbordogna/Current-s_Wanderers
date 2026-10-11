@@ -96,6 +96,22 @@
       .thesis-book.is-animated {
         transition: transform 0.35s ease;
       }
+      /* The book box is cut to exactly the shape of an open book (two pages,
+         499 x 708 each), the largest one that fits. StPageFlip then has
+         nothing to centre, so its offset is 0. With a looser box it centred the
+         pages ~44px down but drew the "hard" cover/back-cover turns at the
+         top, so those turns ended with a visible jump downwards. */
+      .thesis-book-wrap {
+        container-type: size;
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      .thesis-book {
+        /* !important: StPageFlip writes width:100% inline */
+        width: min(100cqw, calc(100cqh * 998 / 708)) !important;
+        height: auto;
+        aspect-ratio: 998 / 708;
+      }
     }
 
     .thesis-loading {
@@ -283,15 +299,22 @@
         loading.style.display = 'none';
         bookEl.style.display = 'block';
         controls.style.display = 'flex';
+        // StPageFlip sized itself while the box was still hidden; have it
+        // measure the real box now, so the book starts at its final size
+        pageFlip.update();
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
         placeBookFirstTime();
       });
 
+      pageFlip.on('changeState', (e) => {
+        if (e.data === 'read' && coverPending && pageFlip.getCurrentPageIndex() === 1) jumpToPage(0);
+      });
+
       pageFlip.on('flip', () => {
         updateControls();
         ensureRenderedAround(pageFlip.getCurrentPageIndex());
-        scheduleAlignBook(true);
+        alignBook(true);
       });
 
       window.addEventListener('resize', () => scheduleAlignBook(false));
@@ -309,12 +332,26 @@
     // The lone cover page animates as an isolated "hard" page, and
     // StPageFlip's corner-fold math misbehaves for it (visible jump).
     // Skip the animation for that one transition with an instant jump.
+    //
+    // That instant jump only stays instant when no page is mid-turn. If
+    // "back" is clicked again while the previous turn (spread -> first
+    // spread) is still running, StPageFlip plays the cover's hard-page
+    // animation instead, drawing it ~44px too high until it snaps into place.
+    // So in that case the jump waits for the running turn to finish.
+    let coverPending = false;
+
+    function jumpToPage(index) {
+      coverPending = false;
+      pageFlip.turnToPage(index);
+      updateControls();
+      ensureRenderedAround(pageFlip.getCurrentPageIndex());
+      alignBook(true);
+    }
+
     function goNext() {
+      coverPending = false;
       if (pageFlip.getCurrentPageIndex() === 0) {
-        pageFlip.turnToPage(1);
-        updateControls();
-        ensureRenderedAround(pageFlip.getCurrentPageIndex());
-        scheduleAlignBook(true);
+        jumpToPage(1);
       } else {
         pageFlip.flipNext();
       }
@@ -322,45 +359,53 @@
 
     function goPrev() {
       if (pageFlip.getCurrentPageIndex() === 1) {
-        pageFlip.turnToPage(0);
-        updateControls();
-        ensureRenderedAround(pageFlip.getCurrentPageIndex());
-        scheduleAlignBook(true);
+        if (pageFlip.getState() === 'read') jumpToPage(0);
+        else coverPending = true;   // jump as soon as the running turn ends
       } else {
+        coverPending = false;
         pageFlip.flipPrev();
       }
     }
 
     // Desktop only: StPageFlip centers the visible page(s) inside its box
-    // (and shows the cover in the right half of the spread). Measure where
-    // the visible page(s) actually sit and translate the book so they start
-    // at the box's top-left, in line with the rest of the page's content.
-    // Returns false when the pages aren't laid out yet.
+    // (and shows the lone cover in the right half of the spread). Translate
+    // the book so the visible page(s) start at the box's top-left, in line
+    // with the rest of the page's content.
+    //
+    // The offset comes from StPageFlip's own geometry (getBoundsRect), never
+    // from measuring the pages on screen: while a page is being turned its
+    // canvas is transformed in 3D, and measuring it then gave a wrong offset
+    // that made the whole book jump when pages were turned quickly.
+    let alignedX = null;
     function alignBook(animate) {
       if (!window.matchMedia('(orientation: landscape)').matches) {
         bookEl.style.transform = '';
+        alignedX = null;
         return true;
       }
-      const canvases = [...bookEl.querySelectorAll('.thesis-page-canvas')]
-        .filter((c) => c.getBoundingClientRect().width > 0);
-      if (!canvases.length) return false;
-      const bookRect = bookEl.getBoundingClientRect();
-      // measured against the book's own box, so whatever transform is
-      // currently applied doesn't matter (both move together)
-      const left = Math.min(...canvases.map((c) => c.getBoundingClientRect().left));
-      const top = Math.min(...canvases.map((c) => c.getBoundingClientRect().top));
-      const dx = Math.round(left - bookRect.left);
-      const dy = Math.round(top - bookRect.top);
-      bookEl.classList.toggle('is-animated', !!animate);
-      bookEl.style.transform = 'translate(' + (-dx) + 'px, ' + (-dy) + 'px)';
+      if (typeof pageFlip === 'undefined' || !pageFlip) return false;
+      const rect = pageFlip.getBoundsRect();
+      if (!rect || !(rect.pageWidth > 0)) return false;   // not laid out yet
+      const loneCover = pageFlip.getOrientation() === 'landscape' &&
+        pageFlip.getCurrentPageIndex() === 0;
+      const x = Math.round((rect.left + (loneCover ? rect.pageWidth : 0)) * 100) / 100;
+      const y = Math.round(rect.top * 100) / 100;
+      // only the cover opening/closing slides; everything else just snaps
+      bookEl.classList.toggle('is-animated', !!animate && alignedX !== null && x !== alignedX);
+      alignedX = x;
+      const t = 'translate(' + (-x || 0) + 'px, ' + (-y || 0) + 'px)';
+      if (bookEl.style.transform !== t) bookEl.style.transform = t;
       return true;
     }
 
+    // after a resize StPageFlip needs a moment to lay itself out again
     let alignPending = null;
     function scheduleAlignBook(animate) {
-      // wait for StPageFlip to finish laying out / resizing before measuring
       clearTimeout(alignPending);
-      alignPending = setTimeout(() => alignBook(animate), 250);
+      alignPending = setTimeout(() => {
+        alignBook(animate);
+        alignPending = setTimeout(() => alignBook(false), 350);
+      }, 250);
     }
 
     // First placement: jump straight to the final spot (no glide) and only
