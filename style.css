@@ -245,6 +245,32 @@ a, a:visited, a:hover, a:active {
   line-height: 1.1;
 }
 
+/* The Portfolio link lives in two places: next to the credits, top-left, in the
+   horizontal layout, and at the top of the bottom-left stack everywhere else. */
+.portfolio-top {
+  display: none;
+}
+@media (orientation: landscape) {
+  .portfolio-top {
+    display: block;
+    position: absolute;
+    left: var(--margin);
+    top: var(--credits-top);
+    font-family: 'Paper Mono', monospace;
+    font-weight: var(--mono-weight);
+    font-size: var(--mono);
+    line-height: 1.1;
+    color: var(--fg-dim);
+    white-space: nowrap;
+  }
+  .portfolio-top:hover {
+    color: var(--fg);
+  }
+  .utility-nav .portfolio-bottom {
+    display: none;
+  }
+}
+
 /* ---- portrait: single column, no absolute grid ---- */
 @media (orientation: portrait) {
   html, body {
