@@ -1,15 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <script>
-    (function () {
-      var saved = localStorage.getItem('theme');
-      if (saved === 'light' || saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', saved);
-      }
-    })();
-  </script>
   <script>
     // First-visit intro (see intro.js): mouse/trackpad only, once per session, and
     // only when Home is the entry page (other pages mark the session as seen).
@@ -541,7 +533,6 @@
 
     <div class="utility-nav">
       <a href="contacts.html?from=index.html">[Contacts]</a>
-      <button id="themeToggle" type="button">[Dark Mode]</button>
     </div>
 
   </div>

@@ -1,23 +1,8 @@
-const html = document.documentElement;
-
 // the first-visit intro only plays when Home is the entry page: landing on
 // any other page first counts as having "entered" the site for this session
 try {
   if (!document.body.hasAttribute('data-intro')) sessionStorage.setItem('introSeen', '1');
 } catch (e) {}
-const themeToggle = document.getElementById('themeToggle');
-
-if (themeToggle) {
-  themeToggle.textContent = html.getAttribute('data-theme') === 'light' ? '[Dark Mode]' : '[Light Mode]';
-
-  themeToggle.addEventListener('click', () => {
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    themeToggle.textContent = isDark ? '[Dark Mode]' : '[Light Mode]';
-  });
-}
 
 const navToggle = document.getElementById('navToggle');
 const navList = document.getElementById('navList');

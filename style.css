@@ -53,19 +53,13 @@
   --body-weight: 400;
   --title-font: 'BDO Grotesk', sans-serif;
   --title-weight: 500;
-}
 
-html[data-theme="dark"] {
+  /* the site is dark only */
+  color-scheme: dark;
   --bg: #141414;
   --fg: #fff;
   --fg-dim: rgba(255, 255, 255, 0.5);
   --media-bg: #7a7a7a;
-}
-html[data-theme="light"] {
-  --bg: #f5f5f5;
-  --fg: #000;
-  --fg-dim: rgba(0, 0, 0, 0.5);
-  --media-bg: #d6d6d6;
 }
 
 html, body {
