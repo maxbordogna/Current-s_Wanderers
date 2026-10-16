@@ -270,8 +270,9 @@ a, a:visited, a:hover, a:active {
    credits drawer, which pushes the whole page down ---- */
 @media (orientation: landscape) {
   :root {
-    /* height of the top bar: one line of mono text under half a margin */
-    --bar-h: calc(var(--margin) / 2 + var(--mono) * 1.1);
+    /* height of the top bar: one line of mono text with half a margin above it
+       and a quarter of a margin (half of that) below it */
+    --bar-h: calc(var(--margin) * 0.75 + var(--mono) * 1.1);
     /* where the content starts, under the bar */
     --content-top: calc(var(--bar-h) + var(--margin));
     --drawer-ms: 450ms;
@@ -295,7 +296,7 @@ a, a:visited, a:hover, a:active {
     right: 0;
     z-index: 40;
     height: var(--bar-h);
-    padding: calc(var(--margin) / 2) var(--margin) 0;
+    padding: calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 4);
     background: var(--bg);
     line-height: 1.1;
   }
