@@ -262,13 +262,21 @@
 
 
 
+      /* the entries are flush with the page's left margin */
       .content-row {
         align-items: flex-start;
-        padding: var(--margin) 0 0 calc(25% + 15px);
+        padding: var(--margin) 0 0 var(--margin);
       }
 
       .essay-list {
         margin-right: var(--margin);
+      }
+
+      /* each entry (video, caption, description) is as wide as it can be, up to
+         the right margin, without the 16:9 video growing taller than the window
+         minus the menu bar and a margin above and below */
+      .essay-entry {
+        width: min(100%, calc((100vh - var(--bar-h) - 2 * var(--margin)) * 16 / 9));
       }
 
 
