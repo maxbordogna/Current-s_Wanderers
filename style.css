@@ -149,6 +149,12 @@ a, a:visited, a:hover, a:active {
   flex: 0 0 auto;
   white-space: nowrap;
 }
+/* Chapter numbers (menu entries and page titles) are not shown: just names.
+   They stay in the markup so they can come back. */
+.nav-num,
+.title .prefix {
+  display: none;
+}
 .title .rest {
   flex: 1 1 auto;
   min-width: 0;
