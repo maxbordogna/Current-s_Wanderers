@@ -125,6 +125,10 @@
       align-items: center;
       justify-content: center;
       background: rgba(0, 0, 0, 0.18);
+      /* the buttons and the seek bar are white blended by difference, like the
+         cursor dot: they read as the inverse of whatever the video shows behind
+         them (dark on a bright frame, white on a dark one) */
+      mix-blend-mode: difference;
       opacity: 0;
       transition: opacity 0.15s ease;
       pointer-events: none;
@@ -581,7 +585,11 @@
       });
 
       let hideTimer = null;
-      container.addEventListener('click', () => {
+      container.addEventListener('click', (e) => {
+        // a click anywhere on the (big) video, not on its own buttons, stops / restarts it
+        if (!e.target.closest('button, input')) {
+          if (video.paused) video.play(); else video.pause();
+        }
         container.classList.add('show-controls');
         clearTimeout(hideTimer);
         hideTimer = setTimeout(() => {
