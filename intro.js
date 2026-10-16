@@ -29,7 +29,7 @@
   // comes close to the dot, and only shows by itself if nobody finds the dot for a while
   const LABEL_REACH = 280;   // pointer this close (px): the label starts to appear
   const LABEL_FULL = 90;     // pointer this close (px): fully visible
-  const LABEL_HINT_AFTER = 15; // seconds before it shows up on its own...
+  const LABEL_HINT_AFTER = 10; // seconds before it shows up on its own...
   const LABEL_HINT_LEVEL = 0.7; // ...at this opacity
   const LABEL_GAP = 10;      // space between the dot and the label (px)
   // the label swings round the dot like a weight on a soft spring: it eases in,
