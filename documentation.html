@@ -18,6 +18,15 @@
       min-width: 0;
       padding-bottom: 0;
     }
+    .probes-content[hidden] {
+      display: none;
+    }
+
+    /* the note is centred, horizontally and vertically (style.css makes it absolute) */
+    .construction-note {
+      position: static;
+      text-align: center;
+    }
 
     .probes-description {
       max-width: 62%;
@@ -88,6 +97,10 @@
       .content-row {
         display: contents;
       }
+      /* roughly the middle of the screen on a phone */
+      .construction-note {
+        margin: 18vh 0;
+      }
       .probes-content {
         padding-bottom: 0;
       }
@@ -101,6 +114,15 @@
 
     /* ---- landscape: whole page scrolls, title + nav lock to the top ---- */
     @media (orientation: landscape) {
+      /* the note is in the exact middle of the window */
+      .content-row.is-construction {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
       html, body {
         height: auto;
       }
@@ -150,7 +172,7 @@
     </div>
     <div class="credits-backdrop" id="creditsBackdrop"></div>
 
-    <div class="content-row">
+    <div class="content-row is-construction">
     <nav class="site-nav">
       <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
       <div class="nav-list" id="navList">
@@ -162,7 +184,12 @@
       </div>
     </nav>
 
-    <div class="probes-content stack-item">
+    <!-- The page is being built: the cultural probes content below is kept but
+         hidden. To show it again, delete the note, the "hidden" attribute and the
+         "is-construction" class on the content row. -->
+    <p class="construction-note stack-item">This page is still under construction.<br>Check back soon.</p>
+
+    <div class="probes-content stack-item" hidden>
       <p class="probes-description">During the final fieldwork session on Lake Greifensee, Eawag scientists Marta Reyes and Stefanie Eyring were given a disposable analog camera to use as a cultural probe — a way to involve them more directly in the design process and surface their own perspective. The instruction was simple: capture whatever moments, objects, or places felt meaningful in communicating their work and the subject of their research to a wider public. The resulting photographs, taken between the lake’s monitoring station and the Eawag laboratory, offer a personal, unscripted glimpse into the everyday practice of studying plankton.</p>
 
       <div class="probes-gallery">
@@ -182,6 +209,7 @@
     </div>
 
     <footer class="site-footer">
+      <p>Massimo Bordogna</p>
       <p>Project concluded in June 2026</p>
       <p>@Zurich University of the Arts · Department Design, Interaction Design</p>
     </footer>

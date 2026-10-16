@@ -212,7 +212,8 @@ a, a:visited, a:hover, a:active {
   color: var(--fg);
 }
 
-/* footer at the very end of every page: two centred mono lines */
+/* footer at the very end of every page: mono text, centred lines on a phone,
+   one line on the six-column grid in the horizontal layout (see below) */
 .site-footer {
   margin-top: auto;
   padding: calc(var(--margin) * 3) var(--margin) calc(var(--margin) / 2);
@@ -319,7 +320,7 @@ a, a:visited, a:hover, a:active {
      Credits sits at the right margin */
   .nav-list {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     column-gap: var(--gutter);
   }
 
@@ -393,6 +394,21 @@ a, a:visited, a:hover, a:active {
   :root {
     --drawer-ms: 1ms;
   }
+}
+
+/* ---- landscape footer: one line on the grid: name in column 1, "Project
+   concluded" in column 2, the school in column 4 ---- */
+@media (orientation: landscape) {
+  .site-footer {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .site-footer p:nth-child(1) { grid-column: 1; }
+  .site-footer p:nth-child(2) { grid-column: 2; }
+  .site-footer p:nth-child(3) { grid-column: 4; }
 }
 
 /* ---- portrait: single column, no absolute grid ---- */
