@@ -349,7 +349,8 @@ a, a:visited, a:hover, a:active {
   }
   /* same distance from the drawer's edges as the menu has from the window's top */
   .credits-inner {
-    padding: calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 2) calc(25% + 15px);
+    /* the text starts at column 2 of the six-column grid */
+    padding: calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 2) calc(16.6667% + (var(--margin) * 4 + var(--gutter)) / 6);
   }
 
   /* invisible: clicking the page under the bar closes the drawer */
