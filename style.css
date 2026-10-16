@@ -104,7 +104,10 @@ a, a:visited, a:hover, a:active {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--fg);
+  /* white, blended by difference: on a dark background it reads white, on a
+     white one black, in between it is the inverse of whatever lies under it */
+  background: #fff;
+  mix-blend-mode: difference;
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
