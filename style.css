@@ -43,7 +43,6 @@
      desktop content starts here so it lines up with that text */
   --nav-text-offset: calc(var(--mono) * 0.82);
   --mono-weight: 100;
-  --mono-weight-strong: 400;
   /* distance between any video/image and its caption */
   --caption-gap: 6px;
   --serif-title: clamp(32px, 3.66vw, 63px);
@@ -177,6 +176,12 @@ a, a:visited, a:hover, a:active {
   display: inline;
 }
 
+/* the credits drawer's pieces only exist in the horizontal layout */
+.credits-toggle,
+.credits-backdrop {
+  display: none;
+}
+
 /* left sidebar nav */
 .site-nav {
   position: absolute;
@@ -195,42 +200,12 @@ a, a:visited, a:hover, a:active {
 }
 .site-nav a.active {
   color: var(--fg);
-  font-weight: var(--mono-weight-strong);
 }
 .nav-toggle {
   display: none;
 }
 
-/* bottom left utility nav */
-.utility-nav {
-  position: absolute;
-  left: var(--margin);
-  bottom: var(--margin);
-  font-family: 'Paper Mono', monospace;
-  font-weight: var(--mono-weight);
-  font-size: var(--mono);
-  line-height: 2.4;
-  color: var(--fg-dim);
-  white-space: nowrap;
-}
-.utility-nav a,
-.utility-nav button {
-  display: block;
-  width: fit-content;
-  background: none;
-  border: none;
-  color: var(--fg-dim);
-  font-family: inherit;
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-.site-nav a:hover,
-.utility-nav a:hover,
-.utility-nav button:hover {
+.site-nav a:hover {
   color: var(--fg);
 }
 
@@ -262,8 +237,7 @@ a, a:visited, a:hover, a:active {
   object-fit: contain;
 }
 
-/* The Portfolio link lives in two places: next to the credits, top-left, in the
-   horizontal layout, and at the top of the bottom-left stack everywhere else. */
+/* The Portfolio link (not in use for now): top-left in the horizontal layout. */
 .portfolio-top {
   display: none;
 }
@@ -283,8 +257,129 @@ a, a:visited, a:hover, a:active {
   .portfolio-top:hover {
     color: var(--fg);
   }
-  .utility-nav .portfolio-bottom {
+}
+
+/* how far the credits drawer has pushed everything down (animated) */
+@property --push {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---- landscape: the menu is a bar across the top; its last column opens the
+   credits drawer, which pushes the whole page down ---- */
+@media (orientation: landscape) {
+  :root {
+    /* height of the top bar: one line of mono text under half a margin */
+    --bar-h: calc(var(--margin) / 2 + var(--mono) * 1.1);
+    /* where the content starts, under the bar */
+    --content-top: calc(var(--bar-h) + var(--margin));
+    --drawer-ms: 450ms;
+    /* mono text is 15% smaller than the base size */
+    --mono: calc(clamp(11px, 0.9vw, 15px) * 0.85);
+    /* body copy (BDO Grotesk) stays at 1.1x the base mono size: it looks
+       smaller than mono at the same size (its size-adjust is 90%) */
+    --serif-body: calc(clamp(11px, 0.9vw, 15px) * 1.1);
+    /* the drawer's natural height is measured by script.js */
+    --drawer-h: 0px;
+    transition: --push var(--drawer-ms) cubic-bezier(0.22, 0.8, 0.26, 1);
+  }
+  :root.credits-open {
+    --push: var(--drawer-h);
+  }
+
+  .site-nav {
+    position: fixed;
+    top: var(--push);
+    left: 0;
+    right: 0;
+    z-index: 40;
+    height: var(--bar-h);
+    padding: calc(var(--margin) / 2) var(--margin) 0;
+    background: var(--bg);
+    line-height: 1.1;
+  }
+  /* six equal columns across the window: the four entries take the first four;
+     Credits sits at the right margin */
+  .nav-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    column-gap: var(--gutter);
+  }
+
+  .credits-toggle {
+    display: block;
+    grid-column: 6;
+    justify-self: end;
+    width: fit-content;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--fg-dim);
+    font: inherit;
+    line-height: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .credits-toggle:hover,
+  .credits-open .credits-toggle {
+    color: var(--fg);
+  }
+
+  /* the drawer: fixed above the bar, as tall as the push */
+  .credits {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    height: var(--push);
+    overflow: hidden;
+    background: #f5f5f5;
+    color: #000;
+    line-height: 1.1;
+    visibility: hidden;
+    transition: visibility 0s linear var(--drawer-ms);
+  }
+  .credits-open .credits {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  /* same distance from the drawer's edges as the menu has from the window's top */
+  .credits-inner {
+    padding: calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 2) calc(25% + 15px);
+  }
+
+  /* invisible: clicking the page under the bar closes the drawer */
+  .credits-backdrop {
+    display: block;
+    position: fixed;
+    top: calc(var(--push) + var(--bar-h));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    pointer-events: none;
+  }
+  .credits-open .credits-backdrop {
+    pointer-events: auto;
+  }
+
+  /* the page behind stays put (no scrollbar jump: the gutter is reserved) */
+  html.credits-open {
+    overflow: hidden;
+  }
+
+  /* the big page titles are not shown here: the menu already names the page */
+  .title {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --drawer-ms: 1ms;
   }
 }
 
@@ -311,7 +406,6 @@ a, a:visited, a:hover, a:active {
 
   .credits,
   .site-nav,
-  .utility-nav,
   .stack-item {
     position: static;
     left: auto;
@@ -361,9 +455,7 @@ a, a:visited, a:hover, a:active {
     display: none;
   }
 
-  .site-nav a,
-  .utility-nav a,
-  .utility-nav button {
+  .site-nav a {
     display: block;
   }
 

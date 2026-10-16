@@ -14,38 +14,42 @@ if (navToggle && navList) {
   });
 }
 
-const credits = document.querySelector('.credits');
-const title = document.querySelector('.title');
-const GAP = 10; // credits -> title distance
+// credits drawer (horizontal layout): opens above the menu bar and pushes the
+// page down by its own height (--drawer-h, measured here).
+(function () {
+  const toggle = document.getElementById('creditsToggle');
+  const inner = document.querySelector('.credits-inner');
+  const backdrop = document.getElementById('creditsBackdrop');
+  if (!toggle || !inner || !backdrop) return;
 
-function positionTitle() {
-  if (!credits || !title) return;
-  if (getComputedStyle(title).position === 'sticky') return;
-  const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-  if (!isLandscape) {
-    title.style.top = '';
-    return;
+  const root = document.documentElement;
+  const landscape = window.matchMedia('(orientation: landscape)');
+
+  function measure() {
+    root.style.setProperty('--drawer-h', inner.offsetHeight + 'px');
   }
-  const creditsBottom = credits.getBoundingClientRect().bottom;
-  title.style.top = (creditsBottom + GAP) + 'px';
-}
 
-let pending = false;
-function schedulePositionTitle() {
-  if (pending) return;
-  pending = true;
-  requestAnimationFrame(() => {
-    pending = false;
-    positionTitle();
+  function setOpen(open) {
+    if (open) measure();
+    root.classList.toggle('credits-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+  }
+
+  toggle.addEventListener('click', () => setOpen(!root.classList.contains('credits-open')));
+  backdrop.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root.classList.contains('credits-open')) setOpen(false);
   });
-}
+  // turning the device to portrait shows the credits as plain text again
+  landscape.addEventListener('change', () => {
+    if (!landscape.matches) setOpen(false);
+    measure();
+  });
 
-schedulePositionTitle();
-window.addEventListener('resize', schedulePositionTitle);
-window.addEventListener('orientationchange', schedulePositionTitle);
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(schedulePositionTitle);
-}
+  measure();
+  window.addEventListener('resize', measure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+})();
 
 // custom dot cursor, mouse/trackpad only
 if (window.matchMedia('(pointer: fine)').matches) {

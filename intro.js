@@ -620,8 +620,8 @@
   // Every piece of text keeps its real layout (the not-yet-typed rest is
   // just visibility:hidden), so nothing reflows while it types.
   const UNITS = [
-    '.title .rest', '.credits p', '.site-nav a',
-    '.media-caption', '.description', '.portfolio-top', '.utility-nav a', '.utility-nav button'
+    '.title .rest', '.credits p', '.credits-toggle', '.site-nav a',
+    '.media-caption', '.description', '.trailer-link', '.portfolio-top', '.utility-nav a', '.utility-nav button'
   ];
 
   function prepareTyping() {

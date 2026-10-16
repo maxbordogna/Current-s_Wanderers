@@ -14,7 +14,7 @@
       position: absolute;
       left: calc(25% + 15px);
       right: var(--margin);
-      top: calc(22.47vh + var(--nav-text-offset, 10px));
+      top: calc(var(--content-top, 22.47vh) + var(--push, 0px));
       bottom: var(--margin);
       display: flex;
       flex-direction: column;
@@ -183,12 +183,15 @@
 
     <h1 class="title"><span class="prefix">03&nbsp;·&nbsp;</span><span class="rest">Written Thesis · Current’s Wanderers</span></h1>
 
-    <div class="credits">
-      <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
-      <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
-      <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
-      <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
+    <div class="credits" id="credits" role="region" aria-label="Credits">
+      <div class="credits-inner">
+        <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+        <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+        <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
+        <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
+      </div>
     </div>
+    <div class="credits-backdrop" id="creditsBackdrop"></div>
 
     <nav class="site-nav">
       <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
@@ -197,6 +200,7 @@
         <a href="video-essays.html"><span class="nav-num">[02]·</span>[Video Essays]</a>
         <a href="written-thesis.html" class="active"><span class="nav-num">[03]·</span>[Written Thesis]</a>
         <a href="documentation.html"><span class="nav-num">[04]·</span>[Documentation]</a>
+        <button class="credits-toggle" id="creditsToggle" type="button" aria-expanded="false" aria-controls="credits">[Credits]</button>
       </div>
     </nav>
 
@@ -213,9 +217,6 @@
       </div>
     </div>
 
-    <div class="utility-nav">
-      <a href="contacts.html?from=written-thesis.html">[Contacts]</a>
-    </div>
 
   </div>
 

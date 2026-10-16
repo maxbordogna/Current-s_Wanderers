@@ -31,11 +31,9 @@
   <style>
     /* ---- home page specific: media square + description (first screen), teaser below ---- */
     .media-square {
-      position: absolute;
-      left: calc(11.111% + 3px);
-      top: 0;
-      width: 49vh;
-      height: 49vh;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
       background: var(--media-bg);
       overflow: hidden;
     }
@@ -107,10 +105,11 @@
       background: #555;
     }
 
+    /* hangs under the square (which is the media block's whole height) */
     .media-caption {
       position: absolute;
-      left: calc(11.111% + 3px);
-      top: calc(49vh + var(--caption-gap, 6px));
+      left: 0;
+      top: calc(100% + var(--caption-gap, 6px));
       font-family: 'Paper Mono', monospace;
       font-weight: var(--mono-weight);
       font-size: var(--mono);
@@ -196,7 +195,7 @@
       will-change: transform;
     }
     /* the first screen: the content column, as tall as what is left of the window
-       below the menu's first line, so the description sits at the bottom of the
+       below the menu bar, so the description sits at the bottom of the
        screen just as it did when the page didn't scroll */
     .home-content {
       flex: 1 1 auto;
@@ -205,8 +204,13 @@
     }
     .home-hero {
       position: relative;
-      height: calc(100vh - 22.47vh - var(--nav-text-offset, 10px) - var(--margin));
-      min-height: calc(49vh + 12rem);
+      height: calc(100vh - var(--content-top, 22.47vh) - var(--margin));
+      min-height: calc(33.4vw - 20px + 15rem);
+    }
+
+    /* "Video Trailer": points down to the teaser; only in the horizontal layout */
+    .trailer-link {
+      display: none;
     }
 
     /* the teaser below it: same player as the video essays */
@@ -353,11 +357,6 @@
     }
 
 
-    .utility-nav {
-      background: var(--bg);
-      padding-top: 0.5rem;
-      padding-right: var(--margin);
-    }
 
     /* ---- landscape: whole page scrolls, title + nav lock to the top ---- */
     @media (orientation: landscape) {
@@ -376,60 +375,126 @@
         flex-direction: column;
         height: auto;
         min-height: 100vh;
+        padding-top: calc(var(--bar-h) + var(--push));
       }
 
-      .title {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        background: var(--bg);
-        margin: 0;
-        padding: 10px var(--margin) 0.75rem;
-      }
 
-      .credits {
-        order: -1;
-        position: static;
-        margin: var(--credits-top, 2px) var(--margin) 0 calc(25% + 15px);
-        width: auto;
-      }
 
       .content-row {
         display: flex;
         align-items: flex-start;
-        padding: 0;
+        padding: 0 0 0 calc(25% + 15px);
       }
 
-      /* start level with the first menu item's text */
       .home-content {
         margin-right: var(--margin);
-        padding-top: var(--nav-text-offset, 10px);
       }
 
-      .site-nav {
-        position: sticky;
-        left: auto;
-        top: 0;
-        flex: 0 0 calc(25% + 15px);
-        padding-left: var(--margin);
+      /* offsets as percentages of the content column (which starts at 25% + 15px
+         of the window and ends one margin before its right edge):
+         the left edge of column 3 of the six-column grid, and the page's left margin */
+      .home-content {
+        --col3-left: calc(11.1111% + (15px + var(--margin)) / 9 + (var(--margin) + var(--gutter)) / 3 - 15px);
+        --page-left: calc(-33.3333% - (15px + var(--margin)) / 3 + var(--margin) - 15px);
       }
 
-      .utility-nav {
-        position: fixed;
-        left: var(--margin);
-        right: auto;
-        bottom: var(--margin);
+      /* the first screen is a column: the video (with its caption) is centred in
+         the space between the top and the description, which sits at the bottom */
+      .home-hero {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* the Video Trailer button: at the page's left margin (the content column
+         starts at 25% + 15px, hence the negative offset), level with the last
+         line of the description */
+      .trailer-link {
+        display: block;
+        position: absolute;
+        left: var(--page-left);
+        bottom: 0;
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--fg-dim);
+        font: inherit;
+        font-family: 'Paper Mono', monospace;
+        font-weight: var(--mono-weight);
+        font-size: var(--mono);
+        line-height: calc(var(--serif-body) * 1.1);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+      .trailer-link:hover {
+        color: var(--fg);
+      }
+      /* the teaser: flush with the page's left margin, 16:9, as wide as it can be
+         (up to the right margin) without growing taller than the screen it scrolls
+         to (the window minus the menu bar and a margin above and below). The
+         button scrolls it right under the menu bar. */
+      .essay-entry {
+        margin-left: var(--page-left);
+        width: min(calc(100% - var(--page-left)), calc((100vh - var(--bar-h) - 2 * var(--margin)) * 16 / 9));
+        scroll-margin-top: calc(var(--bar-h) + var(--margin));
+        /* tall enough that the page can scroll all the way down to it */
+        min-height: calc(100vh - var(--bar-h) - 2 * var(--margin));
+      }
+
+      /* the description is one block, flush left, from column 3 to the right
+         margin (column 6) */
+      .description {
+        position: static;
+        flex: none;
+        margin-left: var(--col3-left);
+        width: auto;
+      }
+
+      /* Home keeps its big title (the other pages don't). It scrolls with the page,
+         only the menu bar stays put; the first screen starts right below it. Its
+         height is measured below. */
+      :root {
+        --content-top: calc(var(--bar-h) + var(--title-h, 0px));
+      }
+      .title {
+        display: block;
+        position: static;
         margin: 0;
-        z-index: 30;
+        padding: 10px var(--margin) 0.75rem;
       }
+      /* one line, its size fitted to the window's width (script below) */
+      .title {
+        font-size: var(--title-fit, var(--serif-title));
+      }
+      .title .rest {
+        white-space: nowrap;
+      }
+
+      /* the square spans exactly the two middle columns of the menu's six-column
+         grid (columns 3 and 4) */
+      .media-block {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: var(--col3-left);
+        width: calc(44.4444% + (15px + var(--margin)) * 0.44444 - (var(--margin) + var(--gutter)) * 0.66667);
+      }
+      .media-block .media-square {
+        flex: none;
+      }
+      .media-block .media-caption {
+        position: static;
+        flex: none;
+        margin-top: var(--caption-gap, 6px);
+      }
+
+
     }
 
     @media (orientation: portrait) {
-      .utility-nav {
-        background: none;
-        padding-top: 0;
-        padding-right: 0;
-      }
       .content-row,
       .home-content,
       .home-hero {
@@ -474,12 +539,15 @@
 
     <h1 class="title"><span class="prefix">01&nbsp;·&nbsp;</span><span class="rest"><span class="seg1">Current’s Wanderers</span> <span class="dot">·</span> <span class="seg2">A Real-Time Bridge to Plankton Life</span></span></h1>
 
-    <div class="credits">
-      <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
-      <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
-      <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
-      <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
+    <div class="credits" id="credits" role="region" aria-label="Credits">
+      <div class="credits-inner">
+        <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+        <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+        <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
+        <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
+      </div>
     </div>
+    <div class="credits-backdrop" id="creditsBackdrop"></div>
 
     <div class="content-row">
     <nav class="site-nav">
@@ -489,6 +557,7 @@
         <a href="video-essays.html"><span class="nav-num">[02]·</span>[Video Essays]</a>
         <a href="written-thesis.html"><span class="nav-num">[03]·</span>[Written Thesis]</a>
         <a href="documentation.html"><span class="nav-num">[04]·</span>[Documentation]</a>
+        <button class="credits-toggle" id="creditsToggle" type="button" aria-expanded="false" aria-controls="credits">[Credits]</button>
       </div>
     </nav>
 
@@ -509,6 +578,7 @@
       </div>
 
       <p class="description stack-item">Current’s Wanderers was active for sixteen days, from June 11 to June 26, 2026, at the ZHdK diploma Exhibition. During that period of time, it enabled a real-time physical interaction with plankton life in Lake Greifensee. This might have been one of the first attempts to bridge the perceptual gap between planktonic and human ecosystems through a real-time multisensory interface.</p>
+      <button class="trailer-link" id="trailerLink" type="button">[↓ Video Trailer ↓]</button>
       </div>
 
       <div class="essay-entry">
@@ -531,9 +601,6 @@
     </div>
     </div>
 
-    <div class="utility-nav">
-      <a href="contacts.html?from=index.html">[Contacts]</a>
-    </div>
 
   </div>
 
@@ -676,44 +743,37 @@
     });
   </script>
   <script>
-    // keep the sticky site-nav positioned right below the sticky title
+
+    // landscape: the title's size is fitted so the line fills the window between
+    // the margins; its height then feeds the first-screen layout (--content-top)
     (function () {
-      const stickyTitle = document.querySelector('.title');
-      const stickyNav = document.querySelector('.site-nav');
+      const title = document.querySelector('.title');
+      const rest = title.querySelector('.rest');
+      const root = document.documentElement;
+      const landscape = window.matchMedia('(orientation: landscape)');
 
-      function positionStickyNav() {
-        if (!window.matchMedia('(orientation: landscape)').matches) {
-          stickyNav.style.top = '';
-          return;
+      function fitTitle() {
+        if (landscape.matches) {
+          const cs = getComputedStyle(title);
+          const avail = title.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+          root.style.setProperty('--title-fit', '100px');
+          const w = rest.getBoundingClientRect().width;
+          if (w > 0) root.style.setProperty('--title-fit', (100 * avail / w) + 'px');
+        } else {
+          root.style.removeProperty('--title-fit');
         }
-        stickyNav.style.top = stickyTitle.getBoundingClientRect().height + 'px';
-
-        // match the fixed-layout pages: the nav/content row starts at 22.47vh
-        const creditsEl = document.querySelector('.credits');
-        const titleBottom = creditsEl.getBoundingClientRect().bottom + window.scrollY +
-          stickyTitle.getBoundingClientRect().height;
-        document.querySelector('.content-row').style.paddingTop =
-          Math.max(0, window.innerHeight * 0.2247 - titleBottom) + 'px';
+        root.style.setProperty('--title-h', title.offsetHeight + 'px');
       }
-
-      let pendingNav = false;
-      function scheduleNav() {
-        if (pendingNav) return;
-        pendingNav = true;
-        requestAnimationFrame(() => {
-          pendingNav = false;
-          positionStickyNav();
-        });
-      }
-
-      scheduleNav();
-      window.addEventListener('resize', scheduleNav);
-      window.addEventListener('orientationchange', scheduleNav);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(scheduleNav);
-      }
+      fitTitle();
+      window.addEventListener('resize', fitTitle);
+      window.addEventListener('orientationchange', fitTitle);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitle);
     })();
 
+    document.getElementById('trailerLink').addEventListener('click', () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.querySelector('.essay-entry').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
 
     document.querySelectorAll('.essay-media').forEach((media) => {
       const container = media.querySelector('.essay-video');
