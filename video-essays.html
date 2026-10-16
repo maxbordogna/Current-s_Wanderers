@@ -27,7 +27,18 @@
     }
 
     .essay-media {
+      position: relative;
       min-width: 0;
+    }
+
+    /* the video's title: above the video, in the grotesque */
+    .essay-title {
+      margin-bottom: var(--caption-gap, 6px);
+      font-family: var(--title-font, 'BDO Grotesk', sans-serif);
+      font-weight: var(--title-weight, 500);
+      font-size: var(--serif-body);
+      line-height: 1.1;
+      color: var(--fg);
     }
     .essay-video {
       position: relative;
@@ -223,6 +234,18 @@
     }
 
 
+    /* the grid position of an entry (see the landscape block): animatable */
+    @property --n {
+      syntax: '<number>';
+      inherits: false;
+      initial-value: 1;
+    }
+    @property --j {
+      syntax: '<number>';
+      inherits: false;
+      initial-value: 1;
+    }
+
     @media (orientation: portrait) {
       .content-row {
         display: contents;
@@ -268,18 +291,87 @@
         padding: var(--margin) 0 0 var(--margin);
       }
 
+      /* The two videos live on the six-column grid, centred in the height of the
+         first screen. At first each takes one column (video 1 in column 3, video 2
+         in column 4). Clicking one makes it big, five columns wide (columns 1-5 for
+         video 1, 2-6 for video 2) and sends the other to the free column at the
+         near edge (6 / 1); clicking the small one swaps them. Only the big one
+         has controls. The big one never gets taller than the screen. Each
+         entry is described by --j (first column) and --n (number of columns),
+         which are animated, so the position, the width and the vertical centring
+         (the video's half height, as a negative margin) move together. */
       .essay-list {
+        --stage-h: calc(100vh - var(--bar-h) - 2 * var(--margin));
+        position: relative;
         margin-right: var(--margin);
+        /* grows by script when a description opens below the screen */
+        min-height: max(var(--stage-h), var(--list-h, 0px));
       }
-
-      /* each entry (video, caption, description) is as wide as it can be, up to
-         the right margin, without the 16:9 video growing taller than the window
-         minus the menu bar and a margin above and below */
       .essay-entry {
-        width: min(100%, calc((100vh - var(--bar-h) - 2 * var(--margin)) * 16 / 9));
+        --n: 1;
+        --j: 2;
+        --w: min(calc(var(--n) * 16.6667% + (var(--n) / 6 - 1) * var(--gutter)), calc(var(--stage-h) * 16 / 9));
+        position: absolute;
+        top: calc(var(--stage-h) / 2);
+        left: calc((var(--j) - 1) * (16.6667% + var(--gutter) / 6));
+        width: var(--w);
+        margin: calc(var(--w) * -0.28125) 0 0 0;
+        transform-origin: 50% 0;
+        transition: --n 0.6s cubic-bezier(0.22, 0.8, 0.26, 1), --j 0.6s cubic-bezier(0.22, 0.8, 0.26, 1),
+                    transform 0.3s ease, opacity 0.3s ease;
+      }
+      .essay-entry:nth-child(1) {
+        --j: 3;
+      }
+      .essay-entry:nth-child(2) {
+        --j: 4;
+      }
+      .essay-list[data-active="1"] .essay-entry:nth-child(1) { --n: 5; --j: 1; }
+      .essay-list[data-active="1"] .essay-entry:nth-child(2) { --n: 1; --j: 6; }
+      .essay-list[data-active="2"] .essay-entry:nth-child(1) { --n: 1; --j: 1; }
+      .essay-list[data-active="2"] .essay-entry:nth-child(2) { --n: 5; --j: 2; }
+
+      /* the title hangs above the video (so it doesn't move the video's centring),
+         close to it: half the usual caption gap */
+      .essay-title {
+        position: absolute;
+        left: 0;
+        bottom: 100%;
+        margin-bottom: calc(var(--caption-gap, 6px) / 2);
+        white-space: nowrap;
       }
 
-
+      /* the small video: just a preview you can click; no controls, no buttons.
+         The video (not its title) is a little transparent; on hover it turns fully
+         opaque and the whole entry grows slightly, title included. */
+      .essay-entry:not(.is-active) .essay-video {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+      @media (hover: hover) {
+        .essay-entry:not(.is-active):hover {
+          transform: scale(1.05);
+        }
+        .essay-entry:not(.is-active):hover .essay-video {
+          opacity: 1;
+        }
+      }
+      .essay-entry:not(.is-active) .essay-video {
+        cursor: pointer;
+      }
+      .essay-entry:not(.is-active) .video-overlay,
+      .essay-entry:not(.is-active) .essay-captions,
+      .essay-entry:not(.is-active) .essay-desc-wrap {
+        display: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .essay-entry {
+          transition: none;
+        }
+        .essay-entry:not(.is-active):hover {
+          transform: none;
+        }
+      }
     }
   </style>
 </head>
@@ -315,6 +407,7 @@
 
       <div class="essay-entry">
         <div class="essay-media">
+          <p class="essay-title">Current’s Wanderers</p>
           <div class="essay-video">
             <video src="Media/currents-wanderers-essay.mp4" autoplay muted loop playsinline preload="auto"></video>
             <p class="essay-loading-text">Loading</p>
@@ -328,7 +421,7 @@
             </div>
           </div>
           <div class="essay-captions">
-            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc1">Current’s Wanderers <span class="essay-toggle">[+]</span></button>
+            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc1">[Description]</button>
             <a class="essay-yt-link" href="https://youtu.be/RJfNlYhdRxA" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
           </div>
         </div>
@@ -337,6 +430,7 @@
 
       <div class="essay-entry">
         <div class="essay-media">
+          <p class="essay-title">Reading the Sample</p>
           <div class="essay-video">
             <video src="Media/reading-the-sample.mp4" autoplay muted loop playsinline preload="auto"></video>
             <p class="essay-loading-text">Loading</p>
@@ -350,7 +444,7 @@
             </div>
           </div>
           <div class="essay-captions">
-            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc2">Reading the Sample <span class="essay-toggle">[+]</span></button>
+            <button class="essay-caption" type="button" aria-expanded="false" aria-controls="essayDesc2">[Description]</button>
             <a class="essay-yt-link" href="https://youtu.be/bnudlB9M76g" target="_blank" rel="noopener noreferrer">[Watch full video on YouTube]</a>
           </div>
         </div>
@@ -369,16 +463,89 @@
 
   <script src="script.js"></script>
   <script>
-    // clicking a video's title opens/closes its description
-    document.querySelectorAll('.essay-entry').forEach((entry) => {
+    const list = document.querySelector('.essay-list');
+    const entries = Array.from(list.querySelectorAll('.essay-entry'));
+    const landscape = window.matchMedia('(orientation: landscape)');
+    const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const margin = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 20;
+
+    function setCaption(entry, open) {
       const toggle = entry.querySelector('.essay-caption');
-      const mark = entry.querySelector('.essay-toggle');
+      entry.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    // horizontal layout: the page is as tall as the open description needs
+    function updateListHeight() {
+      if (!landscape.matches) { list.style.removeProperty('--list-h'); return; }
+      const open = entries.find((e) => e.classList.contains('is-open'));
+      if (!open) { list.style.removeProperty('--list-h'); return; }
+      const need = open.getBoundingClientRect().bottom - list.getBoundingClientRect().top + margin();
+      list.style.setProperty('--list-h', need + 'px');
+    }
+
+    // after opening a description: scroll down so all of its text is on screen
+    // (but never so far that the video's caption goes under the menu bar)
+    function revealDescription(entry) {
+      const m = margin();
+      const inner = entry.querySelector('.essay-desc-inner');
+      const finalBottom = entry.getBoundingClientRect().bottom + inner.scrollHeight;
+      list.style.setProperty('--list-h', (finalBottom - list.getBoundingClientRect().top + m) + 'px');
+      const barBottom = document.querySelector('.site-nav').getBoundingClientRect().bottom;
+      const capTop = entry.querySelector('.essay-captions').getBoundingClientRect().top;
+      const delta = Math.min(finalBottom - (window.innerHeight - m), capTop - (barBottom + m));
+      if (delta > 0) window.scrollBy({ top: delta, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    }
+
+    // the small videos act like buttons (keyboard included)
+    function syncSmallVideos() {
+      entries.forEach((entry) => {
+        const box = entry.querySelector('.essay-video');
+        const small = landscape.matches && !entry.classList.contains('is-active');
+        if (small) {
+          box.setAttribute('role', 'button');
+          box.setAttribute('tabindex', '0');
+          box.setAttribute('aria-label', 'Open ' + entry.querySelector('.essay-title').textContent.trim());
+        } else {
+          box.removeAttribute('role');
+          box.removeAttribute('tabindex');
+          box.removeAttribute('aria-label');
+        }
+      });
+    }
+
+    function setActive(entry) {
+      entries.forEach((e) => {
+        const on = e === entry;
+        e.classList.toggle('is-active', on);
+        if (!on) {
+          setCaption(e, false);
+          const v = e.querySelector('video');
+          v.muted = true;
+          e.querySelector('.video-mute').textContent = '[Unmute]';
+          e.querySelector('.essay-video').classList.remove('show-controls');
+        }
+      });
+      list.dataset.active = String(entries.indexOf(entry) + 1);
+      syncSmallVideos();
+      setTimeout(updateListHeight, 500);
+    }
+
+    // clicking a video's title opens/closes its description
+    entries.forEach((entry) => {
+      const toggle = entry.querySelector('.essay-caption');
       toggle.addEventListener('click', () => {
-        const open = entry.classList.toggle('is-open');
-        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        mark.textContent = open ? '[−]' : '[+]';
+        const open = !entry.classList.contains('is-open');
+        setCaption(entry, open);
+        if (!landscape.matches) return;
+        if (open) revealDescription(entry);
+        else setTimeout(updateListHeight, 500);
       });
     });
+
+    syncSmallVideos();
+    landscape.addEventListener('change', () => { syncSmallVideos(); updateListHeight(); });
+    window.addEventListener('resize', updateListHeight);
 
     document.querySelectorAll('.essay-media').forEach((media) => {
       const container = media.querySelector('.essay-video');
@@ -396,6 +563,22 @@
           loadingText.classList.add('is-hidden');
         }, { once: true });
       }
+
+      const entry = media.closest('.essay-entry');
+      // horizontal layout: a click on the small video makes it the big one
+      container.addEventListener('click', (e) => {
+        if (landscape.matches && !entry.classList.contains('is-active')) {
+          e.stopImmediatePropagation();
+          setActive(entry);
+        }
+      });
+      container.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === container &&
+            landscape.matches && !entry.classList.contains('is-active')) {
+          e.preventDefault();
+          setActive(entry);
+        }
+      });
 
       let hideTimer = null;
       container.addEventListener('click', () => {
