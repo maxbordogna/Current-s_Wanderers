@@ -382,11 +382,6 @@ a, a:visited, a:hover, a:active {
     pointer-events: auto;
   }
 
-  /* the page behind stays put (no scrollbar jump: the gutter is reserved) */
-  html.credits-open {
-    overflow: hidden;
-  }
-
   /* the big page titles are not shown here: the menu already names the page */
   .title {
     display: none;

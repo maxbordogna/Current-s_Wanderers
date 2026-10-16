@@ -18,6 +18,7 @@ if (navToggle && navList) {
 // page down by its own height (--drawer-h, measured here).
 (function () {
   const toggle = document.getElementById('creditsToggle');
+  const drawer = document.getElementById('credits');
   const inner = document.querySelector('.credits-inner');
   const backdrop = document.getElementById('creditsBackdrop');
   if (!toggle || !inner || !backdrop) return;
@@ -37,6 +38,8 @@ if (navToggle && navList) {
 
   toggle.addEventListener('click', () => setOpen(!root.classList.contains('credits-open')));
   backdrop.addEventListener('click', () => setOpen(false));
+  // a click anywhere inside the open drawer closes it
+  if (drawer) drawer.addEventListener('click', () => setOpen(false));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && root.classList.contains('credits-open')) setOpen(false);
   });
