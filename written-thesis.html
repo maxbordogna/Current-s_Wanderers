@@ -23,6 +23,11 @@
       gap: 1.25rem;
     }
 
+    /* lifted above the menu bar (z-index 40) while the cover turns */
+    .thesis-viewer.is-lifted {
+      z-index: 50;
+    }
+
     .thesis-book-wrap {
       position: relative;
       width: 100%;
@@ -93,19 +98,17 @@
        line instead of floating centered in the box; alignBook() in the
        script cancels StPageFlip's own centering offsets */
     @media (orientation: landscape) {
-      /* this page doesn't scroll: the footer is pinned to the bottom edge and
-         the viewer stops above it */
-      .site-footer {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding-top: 0;
-      }
+      /* starts at column 2 of the six-column grid and runs to the right margin: the
+         book is as tall as the space down to the buttons, unless that would make
+         it wider than that (then the width limits it, see .thesis-book) */
       .thesis-viewer {
-        bottom: var(--footer-h);
+        left: calc(16.6667% + (var(--margin) * 4 + var(--gutter)) / 6);
+        bottom: var(--margin);
         align-items: flex-start;
         justify-content: flex-start;
+        /* the book's height is worked out from this box (cq units below) */
+        container-type: size;
+        gap: calc(var(--margin) / 2);
       }
       /* the slide is only for page turns (opening/closing the cover);
          the first placement and resizes must jump, never glide */
@@ -117,10 +120,31 @@
          nothing to centre, so its offset is 0. With a looser box it centred the
          pages ~44px down but drew the "hard" cover/back-cover turns at the
          top, so those turns ended with a visible jump downwards. */
+      /* The book is as tall as the room down to the buttons, but never wider than
+         the box: its height is the smaller of (box height - buttons) and (box width
+         x the open book's proportions). The buttons follow right under it. */
       .thesis-book-wrap {
         container-type: size;
+        flex: none;
+        max-width: none;
+        height: min(calc(100cqh - var(--mono) * 1.2 - var(--margin) / 2), calc(100cqw * 708 / 998));
         align-items: flex-start;
         justify-content: flex-start;
+      }
+      /* the buttons are as wide as the page(s) showing (--pdf-w, set by the
+         script): turn buttons in the middle, Download PDF at the right edge */
+      .thesis-controls {
+        position: relative;
+        width: var(--pdf-w, 100%);
+        justify-content: center;
+        transition: width 0.35s ease;
+      }
+      .thesis-controls a {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
       }
       .thesis-book {
         /* !important: StPageFlip writes width:100% inline */
@@ -227,11 +251,6 @@
       </div>
     </div>
 
-    <footer class="site-footer">
-      <p>Project concluded in June 2026</p>
-      <p>@Zurich University of the Arts · Department Design, Interaction Design</p>
-    </footer>
-
   </div>
 
   <script src="script.js"></script>
@@ -326,7 +345,10 @@
       // when a turn has finished, line the book up again (this is the slide
       // to the left after the cover has closed)
       pageFlip.on('changeState', (e) => {
-        if (e.data === 'read') alignBook(true, true);
+        if (e.data === 'read') {
+          if (!openingCover) liftBook(false);
+          alignBook(true, true);
+        }
       });
 
       pageFlip.on('flip', () => {
@@ -356,11 +378,20 @@
     const SLIDE_MS = 350;   // keep in sync with .thesis-book.is-animated
     let openingCover = false;
 
+    // while the cover turns, the book is lifted above the menu bar: the cover's
+    // swing (drawn in perspective) goes visibly over the bar instead of under it
+    const viewerEl = bookEl.closest('.thesis-viewer');
+    function liftBook(on) {
+      viewerEl.classList.toggle('is-lifted', on);
+    }
+
     function goNext() {
       if (openingCover) return;
       if (pageFlip.getCurrentPageIndex() === 0 && window.matchMedia('(orientation: landscape)').matches) {
         openingCover = true;
+        liftBook(true);
         alignBook(true, true, 0);
+        updatePdfWidth(true);
         setTimeout(() => {
           openingCover = false;
           pageFlip.flipNext();
@@ -372,6 +403,7 @@
 
     function goPrev() {
       if (openingCover) return;
+      if (pageFlip.getCurrentPageIndex() <= 1) liftBook(true);   // the cover closes
       pageFlip.flipPrev();
     }
 
@@ -407,6 +439,7 @@
       alignedX = x;
       const t = 'translate(' + (-x || 0) + 'px, ' + (-y || 0) + 'px)';
       if (bookEl.style.transform !== t) bookEl.style.transform = t;
+      updatePdfWidth();
       return true;
     }
 
@@ -434,7 +467,24 @@
       setTimeout(() => placeBookFirstTime(tries + 1), 50);
     }
 
+    // landscape: the buttons are as wide as the page(s) showing
+    // (asOpen: the cover is about to open: widen to the open book right away, so
+    // the buttons move with the book's slide instead of after the page turn)
+    function updatePdfWidth(asOpen) {
+      const viewer = bookEl.closest('.thesis-viewer');
+      if (!viewer) return;
+      if (!window.matchMedia('(orientation: landscape)').matches) {
+        viewer.style.removeProperty('--pdf-w');
+        return;
+      }
+      const rect = pageFlip && pageFlip.getBoundsRect();
+      if (!rect || !(rect.pageWidth > 0)) return;
+      const lone = !asOpen && pageFlip.getOrientation() === 'landscape' && pageFlip.getCurrentPageIndex() === 0;
+      viewer.style.setProperty('--pdf-w', (rect.pageWidth * (lone ? 1 : 2)) + 'px');
+    }
+
     function updateControls() {
+      updatePdfWidth();
       const current = pageFlip.getCurrentPageIndex() + 1;
       pageCountEl.textContent = current + ' / ' + logicalPages.length;
       prevBtn.disabled = current <= 1;
