@@ -621,7 +621,7 @@
   // just visibility:hidden), so nothing reflows while it types.
   const UNITS = [
     '.title .rest', '.credits p', '.credits-toggle', '.site-nav a',
-    '.media-caption', '.description', '.trailer-link', '.portfolio-top', '.utility-nav a', '.utility-nav button'
+    '.media-caption', '.description', '.trailer-link', '.site-footer p', '.portfolio-top', '.utility-nav a', '.utility-nav button'
   ];
 
   function prepareTyping() {
