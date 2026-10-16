@@ -71,7 +71,7 @@
     (function () {
       var params = new URLSearchParams(location.search);
       var from = params.get('from');
-      var allowed = ['index.html', 'video-essays.html', 'written-thesis.html', 'cultural-probes.html', 'documentation.html'];
+      var allowed = ['index.html', 'video-essays.html', 'written-thesis.html', 'documentation.html'];
       if (from && allowed.indexOf(from) !== -1) {
         document.getElementById('portfolioBack').href = from;
       }
