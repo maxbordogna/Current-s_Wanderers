@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon1.png?v=2">
+  <title>Live data (prototype) · Current's Wanderers</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- live data prototype: 46 detection frequencies + a canvas of the sampled water ---- */
+    /* two line pitches, in pixels, for the whole page: the grotesque's, and the mono's = 3/4 of it
+       (four mono lines span three grotesque lines, so the baselines meet every third line) */
+    .viz-page {
+      --grot-lh: calc(var(--serif-body) * 1.15);
+      --mono-lh: calc(var(--grot-lh) * 0.75);
+    }
+
+    /* the title of the section: above a line that runs from the left to the right margin */
+    .viz-head {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 2px;
+      /* one line of the text below, counted from the title's text (not from the line):
+         minus the 2px of padding and the 1px of the line */
+      margin-bottom: calc(var(--serif-body) * 1.15 - 3px);
+    }
+    /* the closing title: four lines of the text above it, like between the introduction and the data */
+    .viz-head-more { margin-top: calc(var(--grot-lh) * 4); margin-bottom: 0; }
+    .viz-head h2 {
+      font-family: var(--title-font, 'BDO Grotesk', sans-serif);
+      font-weight: var(--title-weight, 500);
+      font-size: var(--serif-body);
+      line-height: var(--grot-lh);
+      color: var(--fg);
+    }
+
+    /* the introduction: text over columns 1-3, the sources over columns 4-6 */
+    .viz-intro {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      /* at least four lines of the text above the next title (the block is as tall as its taller
+         column, so the gap below the last line of the text is never less than this) */
+      margin-bottom: calc(var(--serif-body) * 1.15 * 4);
+    }
+    .intro-text {
+      grid-column: 1 / 4;
+      font-family: var(--body-font, 'BDO Grotesk', sans-serif);
+      font-weight: var(--body-weight, 400);
+      font-size: var(--serif-body);
+      line-height: var(--grot-lh);
+    }
+    /* the two columns share one baseline grid: both use the same line pitch in pixels (not just
+       the same multiplier, which gives different pixels at different font sizes) and a blank line
+       between paragraphs / sources */
+    .intro-text p + p { margin-top: var(--grot-lh); }
+    .intro-sources {
+      grid-column: 4 / 7;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      /* the two fonts sit differently in their line boxes: this brings the first mono baseline
+         onto the first baseline of the grotesque text (they are 0.18 em apart) */
+      padding-top: 0.18em;
+      color: var(--fg-dim);
+    }
+    /* each source is one link: it opens the article in a new tab. A source and its letter(s)
+       in the text light up together (script below: .is-lit) */
+    .src {
+      display: block;
+      margin-bottom: var(--mono-lh);   /* one mono line between sources, so they stay on the mono pitch */
+      overflow-wrap: anywhere;
+      color: var(--fg-dim);
+      transition: color 0.15s ease;
+    }
+    .src.is-lit, .cite.is-lit { color: #fff; }
+    .cite {
+      transition: color 0.15s ease;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: 0.8em;
+      color: var(--fg-dim);
+      vertical-align: 0.15em;
+      margin-left: 0.15em;
+      line-height: 0;            /* a raised letter must not make its line taller than the grid pitch */
+    }
+
+    .viz-info:not(:has(.viz-status:not([hidden]))) { display: none; }
+    .viz-info {
+      margin-top: calc(var(--margin) * -0.5);
+      margin-bottom: var(--margin);
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: var(--fg-dim);
+    }
+    .viz-info .viz-line + .viz-line { margin-top: 0.35em; }
+    .viz-status.is-offline { color: var(--fg); }
+
+    .viz {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+
+    /* a line of text above the list (columns 1-3) and one above the canvas (columns 4-6) */
+    /* the descriptions stay in the mono but in full white: the names and numbers under them are
+       70% / 25% white, which is what tells the description from the data */
+    .viz-cap {
+      grid-row: 2;
+      margin-bottom: 2px;        /* the same distance as between a title and its line */
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: var(--fg);
+    }
+    /* the date of the dataset is the first line of the same block of descriptions, over the full width */
+    .viz-cap-date { grid-column: 1 / 7; grid-row: 1; margin-bottom: var(--mono-lh); }   /* one blank mono line below it */
+    .viz-cap-cells { grid-column: 1 / 4; }
+    .viz-cap-stage { grid-column: 4 / 7; display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: 1.5em; }
+    .viz-cap-stage .cap-right { margin-left: auto; text-align: right; }
+
+    /* the 46 cells: three columns, filled top to bottom */
+    .cells {
+      grid-column: 1 / 4;
+      grid-row: 3;
+      /* a line under the description, level with the top edge of the square (same colour and weight) */
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(16, 1fr);
+      grid-auto-flow: column;
+      column-gap: var(--gutter);
+      aspect-ratio: 1 / 1;
+    }
+    .cell {
+      position: relative;
+      /* compact: each cell is only as wide as it needs (about 18 characters of name), left-aligned
+         on its grid column; a name that doesn't fit goes on two lines */
+      width: min(100%, 18em);
+      justify-self: start;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto 34px;
+      /* the first line of the name sits in the vertical middle of the row, so the first lines
+         line up across the columns; the number and the circle always stay level with that first
+         line, and a second line of the name hangs below it */
+      grid-template-rows: calc(50% - var(--mono-lh) / 2) auto;
+      align-items: start;
+      column-gap: 8px;
+      background: none;
+      border: none;
+      padding: 0;
+      text-align: left;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: rgba(255, 255, 255, 0.7);      /* a class that is present: 70% white */
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    /* only the classes that are present (and switched on) react to the mouse: 100% white */
+    .cell:not(.is-off):not(.is-none):hover,
+    .cell.is-hot { color: #fff; }
+    /* switched off by hand: 25% and no reaction (still clickable, to switch it on again) */
+    .cell.is-off { color: rgba(255, 255, 255, 0.25); }
+    /* not detected in this hour: they do not exist for now: 25%, no dot at all, no reaction */
+    .cell.is-none { color: rgba(255, 255, 255, 0.25); pointer-events: none; cursor: default; }
+    .cell.is-none .cell-dot i { display: none; }
+    /* the circle comes after the name and the number and hugs the number (left-aligned in its slot),
+       so it clearly belongs to its own row and not to the next column */
+    .cell > * { grid-row: 2; }
+    .cell-dot {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      height: var(--mono-lh);    /* one line: the circle is centred on the first line */
+    }
+    .cell-dot i {
+      display: block;
+      border-radius: 50%;
+      background: var(--fg);
+      transition: width 0.4s ease, height 0.4s ease;
+    }
+    .cell-dot i.is-zero {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .cell.is-off .cell-dot i { background: none; border: 1px solid rgba(255, 255, 255, 0.25); }
+    /* words are never broken: a name wraps between words, and a word that is too long for the
+       line on its own is cut with an ellipsis */
+    .cell-name {
+      line-height: var(--mono-lh);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+    .cell-name small { font-size: 0.85em; opacity: 0.7; margin-left: 0.35em; }
+    .cell-val { font-variant-numeric: tabular-nums; }
+
+    /* the square canvas: the 1 cm of water the microscope looks at */
+    .stage {
+      grid-column: 4 / 7;
+      grid-row: 3;
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .stage canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (orientation: landscape) {
+      html, body { height: auto; }
+      html { overflow-y: auto; }
+      body { overflow: visible; }
+      .page {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        padding-top: calc(var(--bar-h) + var(--push));
+      }
+      .content-row { padding: var(--margin) var(--margin) 0 var(--margin); }
+    }
+    @media (orientation: portrait) {
+      .content-row { display: contents; }
+      .viz { display: block; }
+      .viz-intro { display: block; }
+      .intro-sources { margin-top: 1.5rem; }
+      .stage { margin-bottom: 1.5rem; }
+      .viz-cap-stage { margin-top: 1rem; }
+      .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <div class="credits" id="credits" role="region" aria-label="Credits">
+      <div class="credits-inner">
+        <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
+        <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
+        <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
+        <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
+      </div>
+    </div>
+    <div class="credits-backdrop" id="creditsBackdrop"></div>
+
+    <div class="content-row">
+    <nav class="site-nav">
+      <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <div class="nav-list" id="navList">
+        <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
+        <a href="video-essays.html"><span class="nav-num">[02]·</span>[Video Essays]</a>
+        <a href="written-thesis.html"><span class="nav-num">[03]·</span>[Written Thesis]</a>
+        <a href="documentation.html" class="active"><span class="nav-num">[04]·</span>[Documentation]</a>
+        <button class="credits-toggle" id="creditsToggle" type="button" aria-expanded="false" aria-controls="credits">[Credits]</button>
+      </div>
+    </nav>
+
+    <div class="stack-item viz-page" style="min-width:0;width:100%">
+      <div class="viz-head"><h2>Data Source / Aquascope Eawag / Lake Greifensee</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>Over 60 million images of the world beneath the surface of Lake Greifensee have been taken and observed by the Aquascope research group at Eawag. This growing archive forms one of the most comprehensive datasets ever created of this largely unseen world <a class="cite" data-ref="a" href="https://aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee/" target="_blank" rel="noopener noreferrer">[A]</a></p>
+          <p>Every hour, for ten minutes, an underwater microscope records what drifts past it <a class="cite" data-ref="b" href="https://www.eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life/" target="_blank" rel="noopener noreferrer">[B]</a>, and a neural network sorts each image into classes of plankton <a class="cite" data-ref="c" href="https://doi.org/10.3389/fmicb.2021.746297" target="_blank" rel="noopener noreferrer">[C]</a>. The resulting counts are published by Eawag as a public dataset <a class="cite" data-ref="d" href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer">[D]</a> and updated as new hours come in.</p>
+          <p>Current’s Wanderers reads the latest data from the lake. Each cell below shows how often a class was detected, as individuals per second averaged over the hour.</p>
+        </div>
+        <div class="intro-sources">
+          <a class="src" id="src-a" data-ref="a" href="https://aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee/" target="_blank" rel="noopener noreferrer">[A] Pomati, Francesco. 2025. ‘Instant Insights: Real-Time Plankton Classification Now Online – AQUASCOPE’. aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee</a>
+          <a class="src" id="src-b" data-ref="b" href="https://www.eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life/" target="_blank" rel="noopener noreferrer">[B] Zierl, Bärbel. 2020. ‘Aquascope: Shedding Light on Underwater Life’. eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life</a>
+          <a class="src" id="src-c" data-ref="c" href="https://doi.org/10.3389/fmicb.2021.746297" target="_blank" rel="noopener noreferrer">[C] Kyathanahally, Sreenath P., Thomas Hardeman, Ewa Merz, et al. 2021. ‘Deep Learning Classification of Lake Zooplankton’. Frontiers in Microbiology 12 (November): 746297. doi.org/10.3389/fmicb.2021.746297</a>
+          <a class="src" id="src-d" data-ref="d" href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer">[D] Eawag · Aquascope. ‘Lake Greifen Aquascope’, dataset 1387, Datalakes. datalakes-eawag.ch/datadetail/1387</a>
+        </div>
+      </div>
+
+      <div class="viz-info" id="vizInfo">
+        <div class="viz-line viz-status" id="vizStatus" hidden></div>
+      </div>
+
+      <div class="viz">
+        <div class="viz-cap viz-cap-date" id="vizTime"></div>
+        <div class="viz-cap viz-cap-cells" id="vizCapCells"></div>
+        <div class="cells" id="cells" aria-label="Detection frequency per class (detections per second)"></div>
+        <div class="viz-cap viz-cap-stage"><span id="vizCount"></span><span class="cap-right">Sample size: 1 cm³</span></div>
+        <div class="stage" id="stage">
+          <canvas id="water"></canvas>
+        </div>
+      </div>
+
+      <div class="viz-head viz-head-more"><h2>More documentation is under construction</h2></div>
+    </div>
+    </div>
+
+    <footer class="site-footer">
+      <p>Massimo Bordogna</p>
+      <p>Project concluded in June 2026</p>
+      <p>@Zurich University of the Arts · Department Design, Interaction Design</p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Each cell is one of the 46 classes the Aquascope microscope counts (23 on the 0.5x
+    // lens, 23 on the 5x lens). The value is the mean number of individuals detected per
+    // second (roi/sec) in the latest hour available on Datalakes (dataset 1387). The circle's
+    // AREA is proportional to that frequency, on one scale for all 46 classes. On the canvas,
+    // every class floats as many spheres as it had individuals in that hour (frequency x 3600 s,
+    // rounded up so a class that was seen at all is always visible).
+    const CLASSES = [["y", "chlorophyte 5x"], ["y1", "uroglena 0.5x"], ["y2", "daphnia 0.5x"], ["y3", "aphanizomenon 0.5x"], ["y4", "asplanchna 0.5x"], ["y5", "asterionella 0.5x"], ["y6", "aulacoseira 5x"], ["y7", "bosmina 0.5x"], ["y8", "centric diatom 5x"], ["y9", "ceratium 0.5x"], ["y10", "chaoborus 0.5x"], ["y11", "chroococcales 5x"], ["y12", "chydorus 0.5x"], ["y13", "ciliate 5x"], ["y14", "closterium 5x"], ["y15", "coleps 5x"], ["y16", "cosmarium 5x"], ["y17", "cryptophyte 5x"], ["y18", "cyanobacteria colonial 5x"], ["y19", "cyanobacteria filament 5x"], ["y20", "cyanobacteria filament 0.5x"], ["y21", "cyclops 0.5x"], ["y22", "diaphanosoma 0.5x"], ["y23", "diatom 0.5x"], ["y24", "dinobryon 0.5x"], ["y25", "dinoflagellate 5x"], ["y26", "eudiaptomus 0.5x"], ["y27", "fragilaria 0.5x"], ["y28", "gymnodinium 5x"], ["y29", "hormidium like 5x"], ["y30", "hydra 0.5x"], ["y31", "kellicottia 0.5x"], ["y32", "keratella 0.5x"], ["y33", "leptodora 0.5x"], ["y34", "mallomonas 5x"], ["y35", "nauplius 0.5x"], ["y36", "pandorina 5x"], ["y37", "paradileptus 0.5x"], ["y38", "pediastrum 5x"], ["y39", "pennate diatom 5x"], ["y40", "peridinium 5x"], ["y41", "rotifer 5x"], ["y42", "rotifer 0.5x"], ["y43", "staurastrum 5x"], ["y44", "synura 5x"], ["y45", "tintinnid 5x"]];          // [axis, "name 5x"]
+    const FALLBACK = {"time": 1789632000, "rates": {"y": 0.2166666666666666, "y1": 0.0369565217391304, "y2": 0.0004347826086956, "y3": 0, "y4": 0, "y5": 0, "y6": 0, "y7": 0, "y8": 0, "y9": 0.0004347826086956, "y10": 0, "y11": 0, "y12": 0, "y13": 0, "y14": 0, "y15": 0, "y16": 0.0016666666666666, "y17": 0.0616666666666666, "y18": 0.03, "y19": 0, "y20": 0.0004347826086956, "y21": 0.0021739130434782, "y22": 0, "y23": 0.0004347826086956, "y24": 0.0160869565217391, "y25": 0, "y26": 0.0013043478260869, "y27": 0.0004347826086956, "y28": 0, "y29": 0.0083333333333333, "y30": 0, "y31": 0, "y32": 0, "y33": 0, "y34": 0, "y35": 0.0065217391304347, "y36": 0, "y37": 0.0034782608695652, "y38": 0, "y39": 0, "y40": 0.0033333333333333, "y41": 0.0016666666666666, "y42": 0.0030434782608695, "y43": 0, "y44": 0, "y45": 0}, "maxRate": 0.375};        // the last data saved with the page
+    const LIST_URL = 'https://api.datalakes-eawag.ch/files?datasets_id=1387&type=json';
+    const FILE_URL = (id) => 'https://api.datalakes-eawag.ch/files/' + id + '?get=raw';
+    const POLL_MS = 5 * 60 * 1000;
+    const HOUR_S = 3600;
+    const MAX_DOT = 34;                      // px: diameter of the biggest circle
+
+    // alphabetical, lens as a small tag
+    const cls = CLASSES.map(([axis, full]) => {
+      const m = full.match(/^(.*) (0\.5x|5x)$/);
+      const label = m ? m[1] : full;
+      return { axis, label: label.charAt(0).toUpperCase() + label.slice(1), lens: m ? m[2].replace('x', '×') : '' };
+    }).sort((a, b) => a.label.localeCompare(b.label) || a.lens.localeCompare(b.lens));
+
+    const cellsEl = document.getElementById('cells');
+    const on = cls.map(() => true);
+    let data = { time: FALLBACK.time, rates: FALLBACK.rates, maxRate: FALLBACK.maxRate, live: false };
+    let hot = -1;
+
+    // ---- sources: a letter in the text and its source light up together ----
+    (function () {
+      const set = (ref, on) => document.querySelectorAll('[data-ref="' + ref + '"]').forEach((el) => el.classList.toggle('is-lit', on));
+      const ref = (e) => { const t = e.target.closest && e.target.closest('[data-ref]'); return t ? t.dataset.ref : null; };
+      const intro = document.querySelector('.viz-intro');
+      intro.addEventListener('mouseover', (e) => { const r = ref(e); if (r) set(r, true); });
+      intro.addEventListener('mouseout', (e) => { const r = ref(e); if (r) set(r, false); });
+      intro.addEventListener('focusin', (e) => { const r = ref(e); if (r) set(r, true); });
+      intro.addEventListener('focusout', (e) => { const r = ref(e); if (r) set(r, false); });
+    })();
+
+    // ---- the cells ----
+    const cellEls = cls.map((c, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cell';
+      b.innerHTML = '<span class="cell-name">' + c.label + '<small>' + c.lens + '</small></span>' +
+        '<span class="cell-val"></span>' +
+        '<span class="cell-dot"><i></i></span>';
+      b.addEventListener('click', () => {
+        on[i] = !on[i];
+        b.classList.toggle('is-off', !on[i]);
+        // an inactive cell does not react to the mouse
+        if (!on[i] && hot === i) { hot = -1; b.classList.remove('is-hot'); }
+        if (on[i] && b.matches(':hover')) { hot = i; b.classList.add('is-hot'); }
+        syncSpheres(); updateInfo();
+      });
+      b.addEventListener('mouseenter', () => { if (on[i]) { hot = i; b.classList.add('is-hot'); } });
+      b.addEventListener('mouseleave', () => { hot = -1; b.classList.remove('is-hot'); });
+      cellsEl.appendChild(b);
+      return b;
+    });
+
+    const rateOf = (i) => (data.rates && data.rates[cls[i].axis]) || 0;
+    const fmt = (v) => v === 0 ? '0' : (v >= 0.1 ? v.toFixed(3) : v.toFixed(4));
+
+    function renderCells() {
+      cellEls.forEach((b, i) => {
+        const r = rateOf(i);
+        const dot = b.querySelector('i');
+        if (r > 0) {
+          const d = Math.max(3, MAX_DOT * Math.sqrt(r / data.maxRate));
+          dot.style.width = dot.style.height = d + 'px';
+          dot.classList.remove('is-zero');
+        } else {
+          dot.style.width = dot.style.height = '7px';
+          dot.classList.add('is-zero');
+        }
+        b.querySelector('.cell-val').textContent = fmt(r);
+        b.classList.toggle('is-none', r <= 0);
+        if (r <= 0 && hot === i) { hot = -1; b.classList.remove('is-hot'); }
+      });
+    }
+
+    // ---- the info lines ----
+    const fmtTime = (s) => new Date(s * 1000).toLocaleString('en-GB',
+      { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' UTC';
+    const countFor = (i) => { const r = rateOf(i); return r > 0 ? Math.ceil(r * HOUR_S - 1e-9) : 0; };
+
+    function updateInfo() {
+      const st = document.getElementById('vizStatus');
+      // nothing is said while the data is read live; only a failed connection is mentioned
+      st.textContent = data.live ? '' : 'Offline: showing the last data saved with this page';
+      st.hidden = data.live;
+      st.classList.toggle('is-offline', !data.live);
+      document.getElementById('vizTime').textContent = 'Latest dataset available: ' + fmtTime(data.time);
+      let total = 0, shown = 0;
+      cls.forEach((c, i) => { const n = countFor(i); total += n; if (on[i]) shown += n; });
+      document.getElementById('vizCapCells').textContent =
+        'Estimated individuals detected per second, divided into ' + cls.length + ' classes';
+      document.getElementById('vizCount').textContent =
+        'Estimated individuals in one hour: ' + shown + ' of ' + total;
+    }
+
+    // ---- the canvas: circles drifting in the sampled water ----
+    // The movement follows the rules of the opening animation of the site (intro.js) exactly:
+    //  - a flow field of 20 px cells; each cell's direction comes from two blended Perlin noises
+    //    that slowly evolve in time; near the edges the vectors bend back inward;
+    //  - each sphere steers towards the direction of the cell it is in, at its own top speed
+    //    (35-95 px/s), and spheres closer than 24 px push each other apart;
+    //  - a sphere that leaves the square comes back in from the opposite side (the square is a
+    //    wrap-around: no edges, so no inward push at the borders either);
+    //  - the push between spheres is a cushion: it fades in with an ease and it also damps the
+    //    speed at which two spheres approach each other, so they meet softly and don't rebound.
+    // The field itself is not drawn, and the pointer has no effect on it.
+    const canvas = document.getElementById('water');
+    const ctx = canvas.getContext('2d');
+    const stage = document.getElementById('stage');
+    const SCL = 20, NOISE_STEP = 0.055, FIELD_SPEED = 0.2, STEER = 1.3;
+    const SPEED = [35, 95];                   // px/s
+    const EDGE_FORCE = 0;                     // the intro bends the field inward at the edges (2.4 there); here the square wraps around
+    let REPEL_RADIUS = 24, REPEL_FORCE = 1000; // how far / how hard spheres push each other apart
+    let CUSHION = true;                       // eased push + damping of the approach (false: the intro's plain push)
+    let DAMPER = 10;                          // how fast the approach speed of two close spheres is absorbed (1/s)
+    let PUSH_DAMP = 2.1, PUSH_MAX = 80;       // the push builds up and fades gradually (1/s); its top speed (px/s)
+    const ease = (t) => t * t * (3 - 2 * t);  // smoothstep
+    const R0 = 2.3 * 0.75;                    // sphere radius (css px) at the reference size: 3/4 of the first size
+    // Everything that has a size scales with the square, so the picture is the same at any screen
+    // size: the spheres, the field cells, the distances, speeds and pushes. The reference is this
+    // computer's screen with the browser full screen: a 1728 px wide viewport (3456 x 2234 Retina
+    // at 2x), where the square is 832 px wide (inside its border). K = 1 there.
+    const REF = 832;
+    let K = 1, R = R0, sScl = SCL, rRad = 24, rForce = 1000, pMax = 80;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 3D Perlin noise (same as intro.js)
+    const perm = new Uint8Array(512);
+    (function () {
+      const t = Array.from({ length: 256 }, (_, i) => i);
+      for (let i = 255; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [t[i], t[j]] = [t[j], t[i]]; }
+      for (let i = 0; i < 512; i++) perm[i] = t[i & 255];
+    })();
+    const fade = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    function grad(hash, x, y, z) {
+      const h = hash & 15, u = h < 8 ? x : y, v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+      return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+    }
+    function perlin(x, y, z) {
+      const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+      const fx = x - Math.floor(x), fy = y - Math.floor(y), fz = z - Math.floor(z);
+      const u = fade(fx), v = fade(fy), w = fade(fz);
+      const A = perm[X] + Y, AA = perm[A] + Z, AB = perm[A + 1] + Z;
+      const B = perm[X + 1] + Y, BA = perm[B] + Z, BB = perm[B + 1] + Z;
+      const x1 = lerp(grad(perm[AA], fx, fy, fz), grad(perm[BA], fx - 1, fy, fz), u);
+      const x2 = lerp(grad(perm[AB], fx, fy - 1, fz), grad(perm[BB], fx - 1, fy - 1, fz), u);
+      const x3 = lerp(grad(perm[AA + 1], fx, fy, fz - 1), grad(perm[BA + 1], fx - 1, fy, fz - 1), u);
+      const x4 = lerp(grad(perm[AB + 1], fx, fy - 1, fz - 1), grad(perm[BB + 1], fx - 1, fy - 1, fz - 1), u);
+      return lerp(lerp(x1, x2, v), lerp(x3, x4, v), w);
+    }
+
+    let W = 0, H = 0, dpr = 1, cols = 1, rows = 1, EDGE_BAND = 100;
+    let fx = new Float32Array(1), fy = new Float32Array(1);
+    let repelCols = 1, repelRows = 1, repelHead = new Int32Array(1), repelNext = new Int32Array(1);
+    let zoff = Math.random() * 100;
+    const spheres = [];
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const newSphere = (c) => ({ c, x: rand(0, W), y: rand(0, H), vx: 0, vy: 0, max: rand(SPEED[0], SPEED[1]) * K, cell: 0, ux: 0, uy: 0 });
+
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      const r = stage.getBoundingClientRect();
+      const ow = W, oh = H;
+      W = Math.max(1, r.width - 2); H = Math.max(1, r.height - 2);
+      const oldK = K;
+      K = Math.max(0.45, Math.min(1.8, Math.min(W, H) / REF));
+      sScl = SCL * K; rRad = REPEL_RADIUS * K; rForce = REPEL_FORCE * K; pMax = PUSH_MAX * K;
+      R = Math.max(1, R0 * K);
+      if (oldK !== K) spheres.forEach((sp) => { sp.max *= K / oldK; });
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.max(1, Math.floor(W / sScl)); rows = Math.max(1, Math.floor(H / sScl));
+      fx = new Float32Array(cols * rows); fy = new Float32Array(cols * rows);
+      EDGE_BAND = 1;
+      repelCols = Math.max(1, Math.ceil(W / rRad)); repelRows = Math.max(1, Math.ceil(H / rRad));
+      repelHead = new Int32Array(repelCols * repelRows);
+      if (ow && oh) spheres.forEach((s) => { s.x *= W / ow; s.y *= H / oh; });
+    }
+
+    // keep each class at its target number of spheres (adds/removes, keeps the others where they are)
+    function syncSpheres() {
+      const have = cls.map(() => []);
+      spheres.forEach((s) => have[s.c].push(s));
+      spheres.length = 0;
+      cls.forEach((c, i) => {
+        const target = countFor(i);
+        const mine = have[i].slice(0, target);
+        while (mine.length < target) mine.push(newSphere(i));
+        mine.forEach((s) => spheres.push(s));
+      });
+      repelNext = new Int32Array(spheres.length);
+    }
+
+    function updateField() {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = x + y * cols, cx = x * sScl + sScl / 2, cy = y * sScl + sScl / 2;
+          const nx = x * NOISE_STEP, ny = y * NOISE_STEP;
+          const a = Math.atan2(
+            perlin(nx + 57.3, ny + 11.9, zoff + 31.7) * 0.75 + perlin(nx * 2 + 3.1, ny * 2 + 8.4, zoff * 1.5 + 90.2) * 0.25,
+            perlin(nx, ny, zoff) * 0.75 + perlin(nx * 2, ny * 2, zoff * 1.5) * 0.25);
+          let vx = Math.cos(a), vy = Math.sin(a);
+          const dl = cx, dr = W - cx, dtp = cy, db = H - cy;
+          if (dl < EDGE_BAND) vx += (EDGE_BAND - dl) / EDGE_BAND * EDGE_FORCE;
+          if (dr < EDGE_BAND) vx -= (EDGE_BAND - dr) / EDGE_BAND * EDGE_FORCE;
+          if (dtp < EDGE_BAND) vy += (EDGE_BAND - dtp) / EDGE_BAND * EDGE_FORCE;
+          if (db < EDGE_BAND) vy -= (EDGE_BAND - db) / EDGE_BAND * EDGE_FORCE;
+          const m = Math.hypot(vx, vy) || 1;
+          fx[i] = vx / m; fy[i] = vy / m;
+        }
+      }
+    }
+
+    // like moveFlock() in intro.js (only the active spheres move), on a wrap-around square
+    function moveSpheres(dt) {
+      repelHead.fill(-1);
+      for (let n = 0; n < spheres.length; n++) {
+        const q = spheres[n];
+        if (!on[q.c]) { q.cell = -1; continue; }
+        const cx = Math.min(repelCols - 1, Math.max(0, Math.floor(q.x / rRad)));
+        const cy = Math.min(repelRows - 1, Math.max(0, Math.floor(q.y / rRad)));
+        const c = cx + cy * repelCols;
+        repelNext[n] = repelHead[c]; repelHead[c] = n; q.cell = c;
+      }
+      const steer = Math.min(1, STEER * 1.6 * dt), r2max = rRad * rRad;
+      const fade = Math.exp(-PUSH_DAMP * dt);
+      const hw = W / 2, hh = H / 2;
+      for (let n = 0; n < spheres.length; n++) {
+        const q = spheres[n];
+        if (q.cell < 0) continue;
+        // 1. follow the flow field
+        const ci = Math.min(cols - 1, Math.max(0, Math.floor(q.x / sScl)));
+        const ri = Math.min(rows - 1, Math.max(0, Math.floor(q.y / sScl)));
+        const i = ci + ri * cols;
+        q.vx += (fx[i] * q.max - q.vx) * steer;
+        q.vy += (fy[i] * q.max - q.vy) * steer;
+        // 2. spheres that come too close push each other apart (across the wrap-around seam too)
+        const qcx = q.cell % repelCols, qcy = (q.cell - qcx) / repelCols;
+        let ax = 0, ay = 0;
+        for (let oy = -1; oy <= 1; oy++) {
+          const gy = (qcy + oy + repelRows) % repelRows;
+          for (let ox = -1; ox <= 1; ox++) {
+            const gx = (qcx + ox + repelCols) % repelCols;
+            for (let m = repelHead[gx + gy * repelCols]; m !== -1; m = repelNext[m]) {
+              if (m === n) continue;
+              const o = spheres[m];
+              let dx = q.x - o.x, dy = q.y - o.y;
+              if (dx > hw) dx -= W; else if (dx < -hw) dx += W;
+              if (dy > hh) dy -= H; else if (dy < -hh) dy += H;
+              let d2 = dx * dx + dy * dy;
+              if (d2 >= r2max) continue;
+              if (d2 < 0.0001) { const a = Math.random() * 6.2832; dx = Math.cos(a); dy = Math.sin(a); d2 = 1; }
+              const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, t = 1 - d / rRad;
+              if (CUSHION) {
+                // an eased push, plus a damper on the speed at which the two are approaching
+                let f = ease(t) * rForce;
+                const vn = (q.vx + q.ux - o.vx - o.ux) * nx + (q.vy + q.uy - o.vy - o.uy) * ny;
+                if (vn < 0) f -= DAMPER * ease(t) * vn;
+                ax += nx * f; ay += ny * f;
+              } else {
+                q.vx += nx * t * rForce * dt; q.vy += ny * t * rForce * dt;
+              }
+            }
+          }
+        }
+        if (CUSHION) {
+          // the push builds up gradually in its own velocity and fades gradually: no abrupt rebound
+          q.ux = (q.ux + ax * dt) * fade;
+          q.uy = (q.uy + ay * dt) * fade;
+          const pu = Math.hypot(q.ux, q.uy);
+          if (pu > pMax) { q.ux *= pMax / pu; q.uy *= pMax / pu; }
+        }
+        q.x += (q.vx + q.ux) * dt; q.y += (q.vy + q.uy) * dt;
+        // 3. leaving one side means coming back in from the opposite one
+        if (q.x < 0) q.x += W; else if (q.x >= W) q.x -= W;
+        if (q.y < 0) q.y += H; else if (q.y >= H) q.y -= H;
+      }
+    }
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (dt > 0 && !reduce) {
+        zoff += dt * FIELD_SPEED;
+        updateField();
+        moveSpheres(dt);
+      }
+      ctx.clearRect(0, 0, W, H);
+      // evidenced class: whiter (not bigger); the others step back
+      for (const s of spheres) {
+        if (!on[s.c]) continue;
+        ctx.globalAlpha = hot < 0 ? 0.8 : (hot === s.c ? 1 : 0.22);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, R, 0, 6.2832);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(frame);
+    }
+    window.addEventListener('resize', resize);
+
+    // ---- the data: the same steps as the Python script, in the browser ----
+    let loadedKey = null;
+    async function loadLatest() {
+      const list = await (await fetch(LIST_URL, { cache: 'no-store' })).json();
+      list.sort((a, b) => b.maxdatetime.localeCompare(a.maxdatetime));
+      const latest = list[0];
+      const key = latest.id + '|' + latest.maxdatetime;
+      if (key === loadedKey) { data.live = true; return false; }
+      const raw = await (await fetch(FILE_URL(latest.id))).json();
+      let k = raw.x.length - 1;
+      raw.x.forEach((t, j) => { if (t > raw.x[k]) k = j; });
+      const rates = {}; let maxRate = 0;
+      cls.forEach((c) => {
+        rates[c.axis] = raw[c.axis][k] || 0;
+        raw[c.axis].forEach((v) => { if (v > maxRate) maxRate = v; });
+      });
+      data = { time: raw.x[k], rates, maxRate: Math.max(maxRate, 1e-6), live: true };
+      loadedKey = key;
+      return true;
+    }
+    async function refresh() {
+      try { await loadLatest(); } catch (e) { data.live = false; console.warn('Datalakes not reachable:', e); }
+      renderCells(); syncSpheres(); updateInfo();
+    }
+
+    resize();
+    updateField();
+    renderCells(); syncSpheres(); updateInfo();
+    requestAnimationFrame(frame);
+    refresh();
+    setInterval(() => { if (!document.hidden) refresh(); }, POLL_MS);
+  </script>
+</body>
+</html>
