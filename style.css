@@ -16,7 +16,7 @@
   /* BDO's x-height is tall: scale it down so the sizes below stay balanced */
   size-adjust: 90%;
 }
-/* Apfel Grotezk, "Brukt" style (Collletttivo, SIL Open Font License 1.1): on trial for the Home title */
+/* Apfel Grotezk, "Brukt" style (Collletttivo, SIL Open Font License 1.1): the Home title */
 @font-face {
   font-family: 'Apfel Grotezk Brukt';
   src: url('Fonts/ApfelGrotezk-Brukt.woff2') format('woff2');
