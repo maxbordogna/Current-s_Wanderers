@@ -624,30 +624,78 @@
     '.media-caption', '.description', '.trailer-link', '.site-footer p', '.portfolio-top', '.utility-nav a', '.utility-nav button'
   ];
 
+  // The line each character of a text node sits on (rows are told apart by their
+  // vertical centre). Whitespace takes the line of the character before it.
+  function charLines(node, rows) {
+    const text = node.nodeValue;
+    const out = new Array(text.length);
+    const range = document.createRange();
+    let last = 0;
+    for (let i = 0; i < text.length; i++) {
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const r = range.getClientRects()[0];
+      if (r && r.height > 0 && !/\s/.test(text[i])) {
+        const c = r.top + r.height / 2;
+        let row = rows.findIndex((y) => Math.abs(y - c) < r.height * 0.5);
+        if (row < 0) { rows.push(c); row = rows.length - 1; }
+        last = row;
+      }
+      out[i] = last;
+    }
+    return out;
+  }
+
+  // A text that wraps over several lines types on all of its lines at once: each
+  // text node is cut into one piece per line, and every line gets its own progress.
   function prepareTyping() {
     const units = [];
     document.querySelectorAll(UNITS.join(',')).forEach((el) => {
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      const nodes = [];
+      const found = [];
       let n;
       while ((n = walker.nextNode())) {
         if (n.nodeValue.trim() === '') continue;
-        const tw = document.createElement('span');
-        tw.className = 'intro-tw';
-        const a = document.createElement('span');
-        const b = document.createElement('span');
-        b.style.visibility = 'hidden';
-        b.textContent = n.nodeValue;
-        tw.append(a, b);
-        nodes.push({ orig: n, tw, a, b, text: n.nodeValue, len: n.nodeValue.length });
+        found.push(n);
       }
-      if (!nodes.length) return;
-      nodes.forEach((o) => o.orig.parentNode.replaceChild(o.tw, o.orig));
-      const total = nodes.reduce((s, o) => s + o.len, 0);
+      if (!found.length) return;
+      const rows = [];
+      const lineOf = found.map((node) => charLines(node, rows));
+      const lines = [];
+      const pieces = found.map((node, ni) => {
+        const text = node.nodeValue;
+        const parts = [];
+        let from = 0;
+        for (let i = 1; i <= text.length; i++) {
+          if (i < text.length && lineOf[ni][i] === lineOf[ni][from]) continue;
+          const part = { text: text.slice(from, i), line: lineOf[ni][from] };
+          const tw = document.createElement('span');
+          tw.className = 'intro-tw';
+          const a = document.createElement('span');
+          const b = document.createElement('span');
+          b.style.visibility = 'hidden';
+          b.textContent = part.text;
+          tw.append(a, b);
+          Object.assign(part, { tw, a, b, len: part.text.length });
+          (lines[part.line] || (lines[part.line] = { parts: [], total: 0 })).parts.push(part);
+          lines[part.line].total += part.len;
+          parts.push(part);
+          from = i;
+        }
+        return { orig: node, parts };
+      });
+      pieces.forEach((pc) => {
+        const parent = pc.orig.parentNode;
+        pc.parts.forEach((part) => parent.insertBefore(part.tw, pc.orig));
+        parent.removeChild(pc.orig);
+      });
+      const rowsUsed = lines.filter(Boolean);
+      const longest = Math.max(...rowsUsed.map((l) => l.total));
       units.push({
-        nodes,
-        total,
-        dur: Math.min(TYPE_MAX_MS, Math.max(300, total * TYPE_MS_PER_CHAR)),
+        pieces,
+        lines: rowsUsed,
+        total: longest,
+        dur: Math.min(TYPE_MAX_MS, Math.max(300, longest * TYPE_MS_PER_CHAR)),
         delay: Math.random() * 120,
         shown: -1,
         done: false
@@ -656,18 +704,24 @@
     return units;
   }
 
-  function setUnitProgress(u, k) {
-    let rem = k;
-    for (const o of u.nodes) {
-      const take = Math.min(rem, o.len);
-      o.a.textContent = o.text.slice(0, take);
-      o.b.textContent = o.text.slice(take);
-      rem -= take;
+  function setUnitProgress(u, prog) {
+    for (const line of u.lines) {
+      let rem = Math.floor(prog * line.total);
+      for (const part of line.parts) {
+        const take = Math.min(rem, part.len);
+        part.a.textContent = part.text.slice(0, take);
+        part.b.textContent = part.text.slice(take);
+        rem -= take;
+      }
     }
   }
 
   function finishUnit(u) {
-    u.nodes.forEach((o) => o.tw.parentNode && o.tw.parentNode.replaceChild(o.orig, o.tw));
+    u.pieces.forEach((pc) => {
+      const first = pc.parts[0].tw;
+      if (first.parentNode) first.parentNode.insertBefore(pc.orig, first);
+      pc.parts.forEach((part) => part.tw.parentNode && part.tw.parentNode.removeChild(part.tw));
+    });
     u.done = true;
   }
 
@@ -682,7 +736,7 @@
         const prog = Math.min(1, t / u.dur);
         const k = Math.floor(prog * u.total);
         if (prog >= 1) { finishUnit(u); continue; }
-        if (k !== u.shown) { u.shown = k; setUnitProgress(u, k); }
+        if (k !== u.shown) { u.shown = k; setUnitProgress(u, prog); }
         pending++;
       }
       if (pending) requestAnimationFrame(tick);

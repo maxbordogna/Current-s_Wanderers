@@ -226,6 +226,9 @@
     .essay-media {
       min-width: 0;
     }
+    .description-more {
+      margin-top: 1.5rem;
+    }
     .essay-video {
       position: relative;
       width: 100%;
@@ -445,11 +448,18 @@
          to (the window minus the menu bar and a margin above and below). The
          button scrolls it right under the menu bar. */
       .essay-entry {
-        margin-left: var(--page-left);
-        width: min(calc(100% - var(--page-left)), calc((100vh - var(--bar-h) - 2 * var(--margin)) * 16 / 9));
         scroll-margin-top: calc(var(--bar-h) + var(--margin));
         /* tall enough that the page can scroll all the way down to it */
         min-height: calc(100vh - var(--bar-h) - 2 * var(--margin));
+      }
+      .essay-media {
+        margin-left: var(--page-left);
+        width: min(calc(100% - var(--page-left)), calc((100vh - var(--bar-h) - 2 * var(--margin)) * 16 / 9));
+      }
+      /* the text under the teaser: the same column as the description above
+         (percentages resolve against the same width, the entry is full width) */
+      .essay-entry .description-more {
+        margin-top: 1.5rem;
       }
 
       /* the description is one block, flush left, from column 2 to the right
@@ -588,7 +598,7 @@
         <p class="media-caption">Recording of the installation</p>
       </div>
 
-      <p class="description stack-item">Current’s Wanderers was active for sixteen days, from June 11 to June 26, 2026, at the ZHdK diploma Exhibition. During that period of time, it enabled a real-time physical interaction with plankton life in Lake Greifensee. This might have been one of the first attempts to bridge the perceptual gap between planktonic and human ecosystems through a real-time multisensory interface.</p>
+      <p class="description stack-item">There is a deeply poetic quality in defining a group of living beings by their inability to resist the movement of aquatic currents. Plankton are wandering entities, guided by the forces that animate the very substance composing the entirety of their universe: water. It is precisely this medium that, despite physically separating plankton from the terrestrial environments humans typically inhabit, offers a fundamental point of connection through which these life forms can be approached.</p>
       <button class="trailer-link" id="trailerLink" type="button">[↓ Video Trailer ↓]</button>
       </div>
 
@@ -607,6 +617,7 @@
             </div>
           </div>
         </div>
+        <p class="description description-more stack-item">Current’s Wanderers was active for sixteen days, from June 11 to June 26, 2026, at the ZHdK diploma Exhibition. During that period of time, it enabled a real-time physical interaction with plankton life in Lake Greifensee. This might have been one of the first attempts to bridge the perceptual gap between planktonic and human ecosystems through a real-time multisensory interface.</p>
       </div>
 
     </div>
