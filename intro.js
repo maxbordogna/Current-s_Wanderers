@@ -691,11 +691,15 @@
       });
       const rowsUsed = lines.filter(Boolean);
       const longest = Math.max(...rowsUsed.map((l) => l.total));
+      const dur = Math.min(TYPE_MAX_MS, Math.max(300, longest * TYPE_MS_PER_CHAR));
       units.push({
         pieces,
         lines: rowsUsed,
+        // every line types at the same speed (a shorter line finishes sooner); a very
+        // long text speeds all its lines up equally so it still ends within TYPE_MAX_MS
+        msPerChar: dur / longest,
         total: longest,
-        dur: Math.min(TYPE_MAX_MS, Math.max(300, longest * TYPE_MS_PER_CHAR)),
+        dur,
         delay: Math.random() * 120,
         shown: -1,
         done: false
@@ -704,9 +708,9 @@
     return units;
   }
 
-  function setUnitProgress(u, prog) {
+  function setUnitProgress(u, t) {
     for (const line of u.lines) {
-      let rem = Math.floor(prog * line.total);
+      let rem = Math.min(line.total, Math.floor(t / u.msPerChar));
       for (const part of line.parts) {
         const take = Math.min(rem, part.len);
         part.a.textContent = part.text.slice(0, take);
@@ -733,10 +737,9 @@
         if (u.done) continue;
         const t = now - t0 - u.delay;
         if (t < 0) { pending++; continue; }
-        const prog = Math.min(1, t / u.dur);
-        const k = Math.floor(prog * u.total);
-        if (prog >= 1) { finishUnit(u); continue; }
-        if (k !== u.shown) { u.shown = k; setUnitProgress(u, prog); }
+        if (t >= u.dur) { finishUnit(u); continue; }
+        const k = Math.floor(t / u.msPerChar);
+        if (k !== u.shown) { u.shown = k; setUnitProgress(u, t); }
         pending++;
       }
       if (pending) requestAnimationFrame(tick);
