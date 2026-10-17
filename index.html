@@ -400,6 +400,7 @@
       .home-content {
         --col3-left: calc(11.1111% + (15px + var(--margin)) / 9 + (var(--margin) + var(--gutter)) / 3 - 15px);
         --page-left: calc(-33.3333% - (15px + var(--margin)) / 3 + var(--margin) - 15px);
+        --col2-left: calc(-11.1111% - (15px + var(--margin)) / 9 + var(--margin) * 0.66667 + var(--gutter) / 6 - 15px);
       }
 
       /* the first screen is a column: the video (with its caption) is centred in
@@ -445,12 +446,12 @@
         min-height: calc(100vh - var(--bar-h) - 2 * var(--margin));
       }
 
-      /* the description is one block, flush left, from column 3 to the right
+      /* the description is one block, flush left, from column 2 to the right
          margin (column 6) */
       .description {
         position: static;
         flex: none;
-        margin-left: var(--col3-left);
+        margin-left: var(--col2-left);
         width: auto;
       }
 
