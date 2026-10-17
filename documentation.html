@@ -237,6 +237,10 @@
       .intro-sources { margin-top: 1.5rem; }
       .stage { margin-bottom: 1.5rem; }
       .viz-cap-stage { margin-top: 1rem; }
+      /* vertical version: the sample size is aligned to the left of the square (on its own line
+         when the two texts don't fit side by side), not to the right */
+      .viz-cap-stage { justify-content: flex-start; }
+      .viz-cap-stage .cap-right { margin-left: 0; text-align: left; }
       .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
     }
   </style>
