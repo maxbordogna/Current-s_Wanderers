@@ -552,6 +552,22 @@
     .chap-body { display: contents; }
     .chap-toggle { display: none; }
 
+    /* ---- the structure ---- */
+    .cube { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+    .cube-draw { grid-column: 1 / 5; }
+    .cube-draw canvas { display: block; width: 100%; height: min(90vh, 900px); cursor: grab; touch-action: pan-y; }
+    .cube-side {
+      grid-column: 5 / 7;
+      position: sticky;
+      top: calc(var(--bar-h, 0px) + var(--push, 0px) + var(--margin) + 28px);
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh);
+    }
+    .cube-toggles { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: var(--mono-lh); }
+    .cube-toggles button { background: none; border: none; padding: 0; font: inherit; color: rgba(255, 255, 255, 0.7); cursor: pointer; text-align: left; transition: color 0.2s ease; }
+    .cube-toggles button:hover { color: #fff; }
+    .cube-info { min-height: calc(var(--mono-lh) * 6); white-space: pre-line; color: var(--fg); }
+    .cube-info.is-idle { color: var(--fg-dim); }
+
     @media (orientation: landscape) {
       html, body { height: auto; }
       html { overflow-y: auto; }
@@ -590,6 +606,9 @@
       .viz-head:hover .chap-toggle, .viz-head.is-open .chap-toggle { color: #fff; }
       .chap-body { display: none; }
       .chap-body.is-open { display: block; margin-bottom: calc(var(--grot-lh) * 4); }
+      .cube { display: block; }
+      .cube-draw canvas { height: 62vh; }
+      .cube-side { position: static; margin-top: 1rem; }
       .net-stage { height: 60vh; }
       .flow { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .flow-states { margin-top: 1.5rem; }
@@ -760,7 +779,41 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[05]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
+      <div class="viz-head viz-head-next" data-step="The Structure"><h2><span class="chap-n">[05]</span> The Structure / The Cube of the Installation</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>The installation is a cube of 60 × 60 × 60 cm, a stand-in for the cubic centimetre of water that the underwater microscope looks at. It is built like a piece of laboratory equipment: a frame of aluminium profiles of 2 × 2 cm, side panels of 4 mm frosted acrylic, and painted MDF for the top and the bottom. It stands on four legs of the same profile, with its bottom about 40 cm from the floor.</p>
+          <p>The top surface works like a glovebox. Two openings lead to a pair of gloves hanging inside, so that the visitor’s hands disappear into the cube, and a long-throw projector hung from the ceiling draws the visualisation on that surface, together with a digital version of the hands.</p>
+          <p>Everything else is hidden. A wooden box, laser-cut, holds a Mac Studio and carries the Leap Motion in the middle of the cube, 40 cm below the top surface and 20 cm above the bottom one. On the floor of the cube sit the Arduino and its two breadboards. Around it, in a corner of the room, the projected surface of the lake covers two walls, much larger than the cube and above it, the projector is hung high from the ceiling, and a pair of loudspeakers stands on the floor under the cube. Visitors wear headphones.</p>
+          <p>Below, the whole installation is a model to turn: press and drag to rotate it, move the pointer over a part to light it up, pull it apart, and switch each layer on or off.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Cube<br><span class="dim">600 × 600 × 600 mm, on four legs: its bottom is about 400 mm from the floor. Frame of aluminium profiles, 20 × 20 mm.</span></p>
+          <p>Panels<br><span class="dim">Frosted acrylic, 4 mm, on the sides. Painted MDF, 555 × 555 mm, for the top and the bottom.</span></p>
+          <p>Openings<br><span class="dim">Two of Ø 150 mm in the top surface, 340 mm centre to centre.</span></p>
+          <p>Sensor<br><span class="dim">Leap Motion, in the middle of the cube: 400 mm below the top surface, 200 mm above the bottom one.</span></p>
+          <p>Box<br><span class="dim">Wood, laser-cut, 300 × 300 × 200 mm. It holds the computer and the sensor.</span></p>
+        </div>
+      </div>
+
+      <div class="cube">
+        <div class="cube-draw" id="cubeDraw"></div>
+        <div class="cube-side">
+          <div class="cube-toggles">
+            <button type="button" id="cubeLayerStructure"></button>
+            <button type="button" id="cubeLayerInside"></button>
+            <button type="button" id="cubeLayerOutside"></button>
+            <button type="button" id="cubePull"></button>
+            <button type="button" id="cubeIn"></button>
+            <button type="button" id="cubeOut"></button>
+            <button type="button" id="cubeReset"></button>
+          </div>
+          <div class="cube-info is-idle" id="cubeInfo"></div>
+        </div>
+      </div>
+
+      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[06]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -784,7 +837,7 @@
       <div class="net-stage"><canvas id="netCanvas" aria-label="The TouchDesigner network of the installation"></canvas></div>
       <div class="net-info is-idle" id="netInfo"></div>
 
-      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[06]</span> More documentation is under construction</h2></div>
+      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[07]</span> More documentation is under construction</h2></div>
     </div>
     </div>
 
@@ -1688,6 +1741,288 @@
     }
     makeFlow({ prefix: 'flow', states: '.flow-state', haptics: false });
     makeFlow({ prefix: 'haptic', states: null, haptics: true, handsOnly: true });
+
+    // ---- the structure: the installation as a small 3D model, to turn with the mouse ----
+    // Millimetres: x to the right, y towards the back, z up (the floor is z = 0). The cube is 600 mm on every side,
+    // stands on four legs so that its bottom is 400 mm above the floor, and the visitor stands on the x = 600 side, facing the corner.
+    // The room is the corner of the exhibition: two walls behind and to the left of the cube, carrying the projections.
+    // Drag to turn it; the parts light up under the pointer.
+    (function () {
+      const holder = document.getElementById('cubeDraw');
+      if (!holder) return;
+      const infoEl = document.getElementById('cubeInfo');
+      const cv = document.createElement('canvas');
+      cv.setAttribute('aria-label', 'The installation as a 3D model that can be turned');
+      holder.appendChild(cv);
+      const g = cv.getContext('2d');
+      const L = 600, LEG = 400, TAU = Math.PI * 2;
+      // the cube, its legs and its projector are moved together, towards the middle of the two wall projections
+      const SHIFT = [350, -300];
+      const CEN = [300 + SHIFT[0], 330 + SHIFT[1], 1000];
+
+      // ---- the parts: faces and lines in space ----
+      const parts = [];
+      // the parts of the cube are built from its own corner and lifted by the height of the legs; the room is built from the floor
+      function part(id, layer, title, text, off, prio, base) {
+        const p = { id, layer, title, text, off, prio, base: base || [SHIFT[0], SHIFT[1], LEG], faces: [], lines: [] };
+        parts.push(p);
+        return p;
+      }
+      const face = (p, v, o) => p.faces.push(Object.assign({ v, fill: '#171717', fa: 1, sa: 0.9 }, o || {}));
+      const line = (p, a, b, o) => p.lines.push(Object.assign({ a, b, al: 0.9, w: 1, dash: null }, o || {}));
+      function box(p, x, y, z, w, d, h, o) {                               // all six faces of a block
+        const V = [[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z], [x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]];
+        [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]].forEach((f) => face(p, f.map((i) => V[i]), o));
+      }
+      function edges(p, x, y, z, w, d, h, o) {                              // the twelve edges of a block
+        const V = [[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z], [x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]];
+        [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].forEach(([a, b]) => line(p, V[a], V[b], o));
+      }
+      // a rounded limb: rings (centre, radius along x, radius along the other direction) joined by faces, tapering to a point
+      function tube(p, rings, N, o) {
+        const norm = (v) => { const m = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m, v[1] / m, v[2] / m]; };
+        const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+        const pts = rings.map((r, i) => {
+          const c = r.c, prev = rings[Math.max(0, i - 1)].c, next = rings[Math.min(rings.length - 1, i + 1)].c;
+          const d = norm([next[0] - prev[0], next[1] - prev[1], next[2] - prev[2]]);
+          const dot = d[0];
+          const u = norm([1 - d[0] * dot, -d[1] * dot, -d[2] * dot]), v = cross(d, u);
+          const out = [];
+          for (let k = 0; k < N; k++) {
+            const t = k / N * TAU, ca = Math.cos(t) * r.a, sb = Math.sin(t) * r.b;
+            out.push([c[0] + u[0] * ca + v[0] * sb, c[1] + u[1] * ca + v[1] * sb, c[2] + u[2] * ca + v[2] * sb]);
+          }
+          return out;
+        });
+        for (let i = 0; i < pts.length - 1; i++) {
+          for (let k = 0; k < N; k++) {
+            const k2 = (k + 1) % N;
+            face(p, [pts[i][k], pts[i][k2], pts[i + 1][k2], pts[i + 1][k]], o);
+          }
+        }
+      }
+      const ring = (p, cx, cy, z, r, o) => {
+        for (let i = 0; i < 40; i++) { const a = i / 40 * TAU, b = (i + 1) / 40 * TAU; line(p, [cx + r * Math.cos(a), cy + r * Math.sin(a), z], [cx + r * Math.cos(b), cy + r * Math.sin(b), z], o); }
+      };
+
+      // the room: the floor, the two projected walls, the legs and the loudspeakers
+      const FLOOR = [0, 0, 0], CUBE_FLOOR = [SHIFT[0], SHIFT[1], 0];
+      const walls = part('walls', 'outside', 'Wall projections', 'The projected surface of the lake, seen from below, on the two walls around the cube.', [0, 0, 0], 12, FLOOR);
+      face(walls, [[-500, 1000, 1000], [2100, 1000, 1000], [2100, 1000, 2600], [-500, 1000, 2600]], { fill: '#fff', fa: 0.04, sa: 0.55, dash: [6, 4] });
+      face(walls, [[-500, -1600, 1000], [-500, 1000, 1000], [-500, 1000, 2600], [-500, -1600, 2600]], { fill: '#fff', fa: 0.04, sa: 0.55, dash: [6, 4] });
+      face(walls, [[-500, -1600, 0], [2100, -1600, 0], [2100, 1000, 0], [-500, 1000, 0]], { fill: '#fff', fa: 0.0, sa: 0.18, dash: [2, 5] });
+      const spk = part('speakers', 'outside', 'Loudspeakers', 'Two loudspeakers on the floor, in the corner of the room, carry the sound of the lake; visitors also wear headphones.', [-60, 60, 0], 6, FLOOR);
+      box(spk, -480, 840, 0, 150, 160, 270, { fill: '#202020' });
+      box(spk, -290, 840, 0, 150, 160, 270, { fill: '#202020' });
+      const legs = part('legs', 'structure', 'Legs', 'Four legs, the vertical edges of the frame continued down to the floor, lift the cube about 40 cm.', [0, 0, -110], 9.5, CUBE_FLOOR);
+      [[0, 0], [L - 20, 0], [0, L - 20], [L - 20, L - 20]].forEach(([x, y]) => box(legs, x, y, 0, 20, 20, LEG, { fill: '#171717', sa: 0.9 }));
+
+      // the projector, hung from the ceiling, high above the cube, and the light it throws on the top surface
+      const prj = part('projector', 'outside', 'Projector', 'A long-throw projector, hung from the ceiling at the height of the top of the wall projections, off to one side of the cube, draws the visualisation on its top surface at an angle.', [0, 0, 160], 5, CUBE_FLOOR);
+      box(prj, -245, 255, 2570, 90, 70, 30, { fill: '#202020' });
+      [[40, 60], [L - 40, 60], [L - 40, L - 60], [40, L - 60]].forEach(([x, y]) => line(prj, [-200, 290, 2570], [x, y, LEG + L + 12], { dash: [3, 4], al: 0.45 }));
+
+      // the two projectors of the walls: on the ceiling (at the height of the top of the projections), each opposite its wall
+      // and centred on the projection it creates
+      const WP = (id, title, text, at, corners) => {
+        const wp = part(id, 'outside', title, text, [0, 0, 160], 5.5, FLOOR);
+        box(wp, at[0] - 45, at[1] - 35, at[2] - 30, 90, 70, 30, { fill: '#202020' });
+        corners.forEach((c) => line(wp, [at[0], at[1], at[2] - 15], c, { dash: [3, 5], al: 0.3 }));
+      };
+      WP('wall-projector-back', 'Projector of the back wall', 'A ceiling projector facing the back wall, centred on the projection it throws.', [800, -1500, 2600],
+        [[-500, 1000, 1000], [2100, 1000, 1000], [2100, 1000, 2600], [-500, 1000, 2600]]);
+      WP('wall-projector-left', 'Projector of the left wall', 'A ceiling projector facing the left wall, centred on the projection it throws.', [2000, -300, 2600],
+        [[-500, -1600, 1000], [-500, 1000, 1000], [-500, 1000, 2600], [-500, -1600, 2600]]);
+
+      // the inside: floor, electronics, box, computer, sensor, gloves
+      const bottom = part('bottom', 'structure', 'Bottom panel', 'Painted MDF, 555 × 555 mm, with a Ø 50 mm hole for the cables.', [0, 0, -90], 9);
+      box(bottom, 22, 22, 0, 556, 556, 14, { fill: '#1a1a1a' });
+      ring(bottom, 90, 545, 14, 25, { al: 0.9 });
+      const ele = part('electronics', 'inside', 'Arduino and two breadboards', 'The Arduino Uno and the two breadboards with the transistors and resistors of the gloves, fixed on the bottom panel.', [0, 0, 40], 3);
+      box(ele, 456, 265, 14, 52, 68, 8, { fill: '#0f0f0f' });            // the Arduino, between the two breadboards
+      box(ele, 517, 345, 14, 55, 165, 10, { fill: '#202020' });          // breadboard 1
+      box(ele, 517, 90, 14, 55, 165, 10, { fill: '#202020' });           // breadboard 2
+      const wbox = part('box', 'inside', 'Wooden box', 'Laser-cut wood, 300 × 300 × 200 mm, with finger joints and slots. It hides the computer and carries the sensor at the right height.', [0, 0, 20], 4);
+      box(wbox, 150, 150, 14, 300, 300, 200, { fill: '#171717' });
+      for (let i = 1; i < 6; i++) {
+        const z = 14 + 200 * i / 6;
+        line(wbox, [170, 150, z], [430, 150, z], { al: 0.45 }); line(wbox, [170, 450, z], [430, 450, z], { al: 0.45 });
+        line(wbox, [150, 170, z], [150, 430, z], { al: 0.45 }); line(wbox, [450, 170, z], [450, 430, z], { al: 0.45 });
+      }
+      const mac = part('computer', 'inside', 'Computer', 'A Mac Studio, hidden inside the wooden box. It runs the whole TouchDesigner patch.', [0, 0, 60], 2);
+      edges(mac, 202, 202, 22, 197, 197, 95, { dash: [4, 3], al: 0.85 });
+      const sen = part('sensor', 'inside', 'Leap Motion', 'The hand sensor sits in the middle of the cube, on top of the wooden box: about 400 mm below the top surface and 200 mm above the bottom one.', [0, 0, 110], 1);
+      box(sen, 285, 260, 214, 30, 80, 13, { fill: '#fff', fa: 0.3, sa: 1 });
+      // the two gloves, hanging from the openings
+      const glv = part('gloves', 'inside', 'Gloves', 'Two haptic gloves hang from the openings of the top surface. Each one carries twelve coin motors (two per point of the hand).', [0, 0, 130], 1.5);
+      [[130, 1], [470, -1]].forEach(([cy, side]) => {
+        const f0 = glv.faces.length, l0 = glv.lines.length;
+        const cx = L - 220, z0 = L - 10, G = { fill: '#222', sa: 0.3 };
+        ring(glv, cx, cy, z0, 52);
+        // the sleeve narrows to the wrist; the palm swells and closes towards the fingers
+        tube(glv, [{ c: [cx, cy, z0], a: 52, b: 52 }, { c: [cx, cy, z0 - 60], a: 48, b: 48 }, { c: [cx, cy, z0 - 100], a: 30, b: 34 }], 14, G);
+        tube(glv, [{ c: [cx, cy, z0 - 100], a: 30, b: 34 }, { c: [cx, cy, z0 - 130], a: 22, b: 50 }, { c: [cx, cy, z0 - 170], a: 19, b: 54 }, { c: [cx, cy, z0 - 196], a: 16, b: 46 }], 14, G);
+        // four fingers, a little apart and curling towards the palm: the index next to the thumb, then the middle, the ring
+        // and, on the far side from the thumb, the pinky, shorter and thinner; each tapers to a rounded tip
+        [[side * 36, 84, 1], [side * 12, 96, 1.05], [-side * 12, 88, 1], [-side * 38, 62, 0.8]].forEach(([dy, len, k]) => {
+          const y0 = cy + dy * 0.9, zb = z0 - 192, sp = dy / 36;
+          tube(glv, [{ c: [cx, y0, zb], a: 10 * k, b: 11 * k }, { c: [cx - 3, y0 + sp * 3, zb - len * 0.4], a: 9.5 * k, b: 10 * k }, { c: [cx - 9, y0 + sp * 6, zb - len * 0.75], a: 8 * k, b: 8.5 * k }, { c: [cx - 13, y0 + sp * 8, zb - len], a: 4.5 * k, b: 5 * k }, { c: [cx - 14, y0 + sp * 8, zb - len - 5], a: 0.5, b: 0.5 }], 8, G);
+        });
+        // the thumb, on the inner side, angled away from the palm
+        tube(glv, [{ c: [cx, cy + side * 44, z0 - 140], a: 14, b: 15 }, { c: [cx - 4, cy + side * 62, z0 - 168], a: 11, b: 12 }, { c: [cx - 10, cy + side * 74, z0 - 200], a: 8, b: 9 }, { c: [cx - 13, cy + side * 78, z0 - 220], a: 4.5, b: 5 }, { c: [cx - 14, cy + side * 79, z0 - 225], a: 0.5, b: 0.5 }], 8, G);
+        // worn with the palms up: the hand is turned by 180 degrees around the axis of its own opening
+        const turn = (v) => [2 * cx - v[0], 2 * cy - v[1], v[2]];
+        for (let i = f0; i < glv.faces.length; i++) glv.faces[i].v = glv.faces[i].v.map(turn);
+        for (let i = l0; i < glv.lines.length; i++) { glv.lines[i].a = turn(glv.lines[i].a); glv.lines[i].b = turn(glv.lines[i].b); }
+      });
+      // the shell: top surface with its two openings, side panels, frame
+      const top = part('top', 'structure', 'Top surface', 'Painted MDF, 555 × 555 mm, with two openings of Ø 150 mm, 340 mm apart, for the hands. The projector draws the visualisation on it.', [0, 0, 130], 8);
+      box(top, 22, 22, L - 14, 556, 556, 14, { fill: '#1b1b1b', fa: 0.78 });
+      [130, 470].forEach((cy) => { ring(top, L - 220, cy, L, 75); ring(top, L - 220, cy, L - 14, 75, { al: 0.5 }); });
+      const pan = part('panels', 'structure', 'Side panels', 'Frosted acrylic, 4 mm thick, held by the aluminium frame.', [0, 0, 0], 10);
+      const PF = { fill: '#fff', fa: 0.06, sa: 0.18 };
+      [[[0, 0, 0], [L, 0, 0], [L, 0, L], [0, 0, L], [0, -110, 0]], [[L, 0, 0], [L, L, 0], [L, L, L], [L, 0, L], [110, 0, 0]],
+       [[0, L, 0], [L, L, 0], [L, L, L], [0, L, L], [0, 110, 0]], [[0, 0, 0], [0, L, 0], [0, L, L], [0, 0, L], [-110, 0, 0]]].forEach((f) => face(pan, f.slice(0, 4), Object.assign({ off: f[4] }, PF)));
+      const frm = part('frame', 'structure', 'Frame', 'Aluminium profiles of 2 × 2 cm, twelve in all, forming the 60 cm cube.', [0, 0, 0], 7);
+      const T = 20, PF2 = { fill: '#171717', sa: 0.9 };
+      [0, L - T].forEach((z) => {                                          // the bottom and top rectangles of the frame
+        box(frm, 0, 0, z, L, T, T, PF2); box(frm, 0, L - T, z, L, T, T, PF2);
+        box(frm, 0, T, z, T, L - 2 * T, T, PF2); box(frm, L - T, T, z, T, L - 2 * T, T, PF2);
+      });
+      [[0, 0], [L - T, 0], [0, L - T], [L - T, L - T]].forEach(([x, y]) => box(frm, x, y, T, T, T, L - 2 * T, PF2));
+
+      // ---- view: turn, tilt, explode ----
+      let yaw = -0.5, pitch = 0.3, vyaw = 0, vpitch = 0, zoom = 1, explode = 0, explodeTo = 0, dirty = true;
+      const layers = { structure: true, inside: true, outside: true };
+      let W = 1, H = 1, dpr = 1, hot = null, pinned = null;
+      let drawn = [];                                                       // the items of the last frame, for finding what is under the pointer
+      function resize() {
+        const r = cv.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return;
+        dpr = window.devicePixelRatio || 1; W = r.width; H = r.height;
+        cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        dirty = true;
+      }
+      const project = (p, off) => {
+        const x = p[0] + off[0] - CEN[0], y = p[1] + off[1] - CEN[1], z = p[2] + off[2] - CEN[2];
+        const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+        const x1 = cy * x - sy * y, y1 = sy * x + cy * y;
+        const k = Math.min(W, H) / 2500 * zoom;
+        return [W / 2 + x1 * k, H * 0.52 - (y1 * sp + z * cp) * k, y1 * cp - z * sp];
+      };
+      const sum = (a, b, f) => [a[0] + b[0] * f, a[1] + b[1] * f, a[2] + b[2] * f];
+
+      function draw() {
+        dirty = false;
+        g.clearRect(0, 0, W, H);
+        const items = [];
+        const lit = pinned || hot;
+        for (const p of parts) {
+          if (!layers[p.layer]) continue;
+          const dim = lit && lit !== p.id ? 0.22 : 1, on = lit === p.id;
+          for (const f of p.faces) {
+            const o = sum(p.off, f.off || [0, 0, 0], 1), off = [o[0] * explode + p.base[0], o[1] * explode + p.base[1], o[2] * explode + p.base[2]];
+            const q = f.v.map((v) => project(v, off));
+            items.push({ part: p, type: 'f', q, d: q.reduce((s, a) => s + a[2], 0) / q.length, f, dim, on });
+          }
+          for (const l of p.lines) {
+            const off = [p.off[0] * explode + p.base[0], p.off[1] * explode + p.base[1], p.off[2] * explode + p.base[2]];
+            const q = [project(l.a, off), project(l.b, off)];
+            items.push({ part: p, type: 'l', q, d: (q[0][2] + q[1][2]) / 2 - 0.5, l, dim, on });
+          }
+        }
+        items.sort((a, b) => b.d - a.d);                                    // the far ones first
+        for (const it of items) {
+          g.globalAlpha = it.dim;
+          if (it.type === 'f') {
+            g.beginPath(); it.q.forEach((a, i) => (i ? g.lineTo(a[0], a[1]) : g.moveTo(a[0], a[1]))); g.closePath();
+            g.globalAlpha = it.dim * it.f.fa; g.fillStyle = it.f.fill; g.fill();
+            g.globalAlpha = it.dim * it.f.sa; g.strokeStyle = '#fff'; g.lineWidth = it.on ? 1.6 : 1; g.setLineDash(it.f.dash || []); g.stroke();
+          } else {
+            g.beginPath(); g.moveTo(it.q[0][0], it.q[0][1]); g.lineTo(it.q[1][0], it.q[1][1]);
+            g.globalAlpha = it.dim * it.l.al; g.strokeStyle = '#fff'; g.lineWidth = it.l.w * (it.on ? 1.8 : 1); g.setLineDash(it.l.dash || []); g.stroke();
+          }
+        }
+        g.setLineDash([]); g.globalAlpha = 1;
+        drawn = items;
+      }
+
+      // ---- what is under the pointer: the small parts first, the big shells last ----
+      const ORDER = ['sensor', 'gloves', 'computer', 'electronics', 'box', 'projector', 'wall-projector-back', 'wall-projector-left', 'speakers', 'legs', 'frame', 'top', 'bottom', 'panels', 'walls'];
+      const inPoly = (q, x, y) => { let c = false; for (let i = 0, j = q.length - 1; i < q.length; j = i++) { if ((q[i][1] > y) !== (q[j][1] > y) && x < (q[j][0] - q[i][0]) * (y - q[i][1]) / (q[j][1] - q[i][1]) + q[i][0]) c = !c; } return c; };
+      const near = (q, x, y) => { const [a, b] = q, dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy); };
+      function pick(x, y) {
+        for (const id of ORDER) {
+          const p = parts.find((q) => q.id === id);
+          if (!p || !layers[p.layer]) continue;
+          const mine = drawn.filter((it) => it.part === p);
+          const solid = id !== 'computer';
+          if (mine.some((it) => (it.type === 'l' && near(it.q, x, y) < 6) || (solid && it.type === 'f' && inPoly(it.q, x, y)))) return id;
+        }
+        return null;
+      }
+      function say() {
+        const id = pinned || hot, p = parts.find((q) => q.id === id);
+        if (!p) { infoEl.textContent = 'Drag to turn the cube. Move the pointer over a part.'; infoEl.classList.add('is-idle'); return; }
+        infoEl.classList.remove('is-idle');
+        infoEl.textContent = p.title + '\n' + p.text;
+      }
+
+      // ---- pointer: drag to turn, hover to light up ----
+      let drag = null;
+      cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, moved: false, lx: e.clientX, ly: e.clientY }; vyaw = vpitch = 0; });
+      cv.addEventListener('pointermove', (e) => {
+        const r = cv.getBoundingClientRect();
+        if (drag) {
+          const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly;
+          if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) drag.moved = true;
+          if (drag.moved) {
+            yaw += dx * 0.01; pitch = Math.max(-0.2, Math.min(1.5, pitch + dy * 0.008)); vyaw = dx * 0.01; vpitch = dy * 0.008; dirty = true;
+            cv.style.cursor = 'grabbing';
+          }
+          drag.lx = e.clientX; drag.ly = e.clientY;
+        } else {
+          const h = pick(e.clientX - r.left, e.clientY - r.top);
+          if (h !== hot) { hot = h; dirty = true; say(); }
+        }
+      });
+      cv.addEventListener('pointerup', (e) => {
+        const r = cv.getBoundingClientRect();
+        if (drag && !drag.moved) { const h = pick(e.clientX - r.left, e.clientY - r.top); pinned = (h && h !== pinned) ? h : null; hot = h; dirty = true; say(); }
+        drag = null; cv.style.cursor = '';
+      });
+      cv.addEventListener('pointerleave', () => { if (hot) { hot = null; dirty = true; say(); } });
+      cv.addEventListener('wheel', (e) => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); zoom = Math.min(2.5, Math.max(0.6, zoom * Math.exp(-e.deltaY * 0.01))); dirty = true; }, { passive: false });
+
+      // ---- the switches ----
+      const lb = { structure: document.getElementById('cubeLayerStructure'), inside: document.getElementById('cubeLayerInside'), outside: document.getElementById('cubeLayerOutside'), pull: document.getElementById('cubePull'), reset: document.getElementById('cubeReset'), in: document.getElementById('cubeIn'), out: document.getElementById('cubeOut') };
+      const label = () => {
+        lb.structure.textContent = '[Structure: ' + (layers.structure ? 'on' : 'off') + ']';
+        lb.inside.textContent = '[Inside: ' + (layers.inside ? 'on' : 'off') + ']';
+        lb.outside.textContent = '[Projection and sound: ' + (layers.outside ? 'on' : 'off') + ']';
+        lb.pull.textContent = '[Pull apart: ' + (explodeTo ? 'on' : 'off') + ']';
+        lb.reset.textContent = '[Reset the view]';
+        lb.in.textContent = '[Zoom in]'; lb.out.textContent = '[Zoom out]';
+      };
+      ['structure', 'inside', 'outside'].forEach((k) => lb[k].addEventListener('click', () => { layers[k] = !layers[k]; label(); dirty = true; }));
+      lb.pull.addEventListener('click', () => { explodeTo = explodeTo ? 0 : 1; label(); dirty = true; });
+      lb.reset.addEventListener('click', () => { yaw = -0.5; pitch = 0.3; zoom = 1; vyaw = vpitch = 0; dirty = true; });
+      lb.in.addEventListener('click', () => { zoom = Math.min(2.5, zoom * 1.3); dirty = true; });
+      lb.out.addEventListener('click', () => { zoom = Math.max(0.6, zoom / 1.3); dirty = true; });
+      label(); say();
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      (function loop() {
+        // a turn goes on a little after the mouse is released; the parts glide apart and back
+        if (!drag && (Math.abs(vyaw) > 0.0004 || Math.abs(vpitch) > 0.0004) && !reduce) { yaw += vyaw; pitch = Math.max(-0.2, Math.min(1.5, pitch + vpitch)); vyaw *= 0.93; vpitch *= 0.93; dirty = true; }
+        if (Math.abs(explodeTo - explode) > 0.002) { explode += (explodeTo - explode) * (reduce ? 1 : 0.12); dirty = true; }
+        if (dirty) draw();
+        requestAnimationFrame(loop);
+      })();
+      new ResizeObserver(resize).observe(cv);
+      resize();
+    })();
 
     // ---- the network: the TouchDesigner patch of the installation, redrawn as a map ----
     // TD_NODES: [name, "FAMILY:type", x, y, width, height, bypassed, [indices of the nodes wired to its inputs]],
