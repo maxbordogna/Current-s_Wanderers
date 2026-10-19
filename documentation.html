@@ -802,7 +802,7 @@
           <p>Plankton cannot be heard, smelled or touched. The gloves add the missing sense: when a creature on the screen is also felt on the hand, the two read as one contact. In an early test with two daphnia on the screen, only one of them wired to a vibrating motor, the visitor’s attention went almost entirely to that one.</p>
           <p>Every frame, the software checks each of the twelve points tracked on the two hands, the palm and the five fingertips of each. A point is in contact when it is within 150 px of a living creature. For every point in contact, TouchDesigner sends the Arduino one line of text: the pin that drives that point’s motor, a colon and a power from 0 to 255, for instance 8:27. While the contact lasts a new value is sent every frame; when it ends, the pin gets a single 0. The Arduino reads each line and sets that pin to the power it was given: through an NMOS transistor on a breadboard, the pin drives two coin motors wired in parallel, so each glove has twelve motors and the pair has twenty-four. For safety, every pin goes through a resistor on its way to the transistor.</p>
           <p>The power is never constant. It oscillates around 25, a little either side, along a slow wave with some noise, and every pin has its own phase. The first prototype, a coin motor on each fingertip of a cycling glove built after a public tutorial <a class="cite" data-ref="f" href="https://www.youtube.com/watch?v=ZAsGHhWxwpM" target="_blank" rel="noopener noreferrer">[F]</a>, showed that the vibrations felt most alive close to the minimum power at which the motors start, almost like a living body, so that is where they are kept.</p>
-          <p>Below, the same rule runs in the browser. Move the pointer over the creatures: it moves a pair of hands, twelve points, mirrored about the middle. When a point touches a creature, its channel lights up in the diagram, its two motors shake, and the line that would go to the Arduino appears in the log.</p>
+          <p>Below, the same rule runs in the browser, with your own hands. Switch the camera on and hold them in front of it: MediaPipe, as in the previous chapter, finds the twelve points, and the square is the picture of the camera, mirrored. When a point touches a creature, its channel lights up in the diagram, its two motors shake, and the line that would go to the Arduino appears in the log.</p>
         </div>
         <div class="intro-sources is-formula">
           <p>Serial link<br><span class="dim">USB serial, 500,000 baud. One line per pin, pin:power, power from 0 to 255. Each line is sent twice, to avoid a problem in which the Arduino blocked the vibration of a pin.</span></p>
@@ -822,7 +822,9 @@
         </div>
         <div class="flow-view">
           <div class="flow-toggles">
+            <button type="button" id="hapticCamera"></button>
             <button type="button" id="hapticCreaturesBtn"></button>
+            <span class="hand-status" id="hapticCameraStatus"></span>
           </div>
           <div class="flow-stage" id="hapticStage">
             <canvas id="hapticCanvas"></canvas>
@@ -1387,6 +1389,91 @@
       if (shownIdx >= 0) creatureInfoEl.textContent = infoFor(shownIdx);
     }
 
+    // ---- the hands, found by MediaPipe in the picture of the computer's camera: one tracker for the two chapters that use it ----
+    // A chapter asks for it with acquire(name) and gives it back with release(name); the camera runs while someone holds it.
+    // The picture never leaves the browser. hands: [{ side, joints: { palm, thumb, index, middle, ring, pinky }, pts: [21 points] }],
+    // all in the square cut out of the middle of the picture (0..1, y downwards), already mirrored, as in a mirror.
+    const handTracker = (function () {
+      const BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+      const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+      const users = new Set();
+      let stream = null, video = null, landmarker = null, loading = false, on = false, stage = '', note = '';
+      let hands = [], frames = 0, seen = 0, started = 0, lastDetect = 0, lastStamp = 0, lastError = '';
+      const grab = document.createElement('canvas');                     // the picture handed to MediaPipe: a copy of every frame, which every browser accepts
+      // the square cut out of the middle of the picture
+      const crop = () => { const vw = video.videoWidth || 640, vh = video.videoHeight || 480, side = Math.min(vw, vh); return { vw, vh, side, sx: (vw - side) / 2, sy: (vh - side) / 2 }; };
+      const mean = (a) => [a.reduce((t, p) => t + p[0], 0) / a.length, a.reduce((t, p) => t + p[1], 0) / a.length];
+
+      async function start() {
+        if (loading || on) return;
+        loading = true; lastError = ''; note = ''; stage = 'Asking for the camera…';
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('this browser gives no access to the camera here');
+          stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
+          stage = 'Loading MediaPipe and its hand model, about 8 MB…';
+          const mod = await import(BASE + '/vision_bundle.mjs');
+          const files = await mod.FilesetResolver.forVisionTasks(BASE + '/wasm');
+          // the processor: the graphics card often finds nothing without saying so, and one small model is fast enough on the processor
+          landmarker = await mod.HandLandmarker.createFromOptions(files, {
+            baseOptions: { modelAssetPath: MODEL, delegate: 'CPU' }, runningMode: 'VIDEO', numHands: 2,
+            minHandDetectionConfidence: 0.35, minHandPresenceConfidence: 0.35, minTrackingConfidence: 0.35
+          });
+          video = document.createElement('video');
+          video.playsInline = true; video.muted = true; video.srcObject = stream;
+          video.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+          document.body.appendChild(video);                              // in the page, so that every browser keeps playing it
+          await video.play();
+          on = true; frames = 0; seen = 0; started = performance.now(); lastStamp = 0;
+          if (!users.size) stop();                                       // everyone gave it back while it was loading
+        } catch (e) {
+          const m = (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : e);
+          stop(); note = 'The camera could not be started (' + m.slice(0, 140) + ').';
+        }
+        loading = false;
+      }
+      function stop() {
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        if (video && video.parentNode) video.parentNode.removeChild(video);
+        stream = null; video = null; landmarker = null; on = false; hands = [];
+      }
+      (function loop(now) {
+        requestAnimationFrame(loop);
+        if (!on || !landmarker || !video || video.readyState < 2 || now - lastDetect <= 30) return;
+        lastDetect = now; frames++;
+        try {
+          const c = crop();
+          if (grab.width !== c.vw || grab.height !== c.vh) { grab.width = c.vw; grab.height = c.vh; }
+          grab.getContext('2d').drawImage(video, 0, 0, c.vw, c.vh);
+          const stamp = Math.max(lastStamp + 1, Math.round(now)); lastStamp = stamp;     // MediaPipe wants times that only grow
+          const res = landmarker.detectForVideo(grab, stamp);
+          const found = (res.landmarks || []).map((lm) => {
+            const pts = lm.map((p) => [1 - (p.x * c.vw - c.sx) / c.side, (p.y * c.vh - c.sy) / c.side]);   // as in a mirror
+            // the palm is the middle of the wrist and of the bases of the fingers; the others are the tips
+            return { pts, joints: { palm: mean([pts[0], pts[5], pts[9], pts[13], pts[17]]), thumb: pts[4], index: pts[8], middle: pts[12], ring: pts[16], pinky: pts[20] } };
+          }).sort((a, b) => a.joints.palm[0] - b.joints.palm[0]);
+          // the hand on the left of the mirror is the left hand; a single hand goes by which half it is in
+          found.forEach((h, i) => { h.side = found.length === 2 ? (i === 0 ? 'left' : 'right') : (h.joints.palm[0] < 0.5 ? 'left' : 'right'); });
+          hands = found;
+          if (hands.length) seen++;
+        } catch (e) { lastError = String(e); hands = []; }
+      })(0);
+      window.addEventListener('pagehide', stop);
+      return {
+        acquire(name) { users.add(name); if (!on && !loading) start(); },
+        release(name) { users.delete(name); if (!users.size && !loading) stop(); },
+        get on() { return on; }, get loading() { return loading; }, get video() { return video; },
+        get hands() { return hands; }, crop,
+        // what to tell the visitor
+        status() {
+          if (loading) return stage;
+          if (!on) return note;
+          const waited = (performance.now() - started) / 1000;
+          return 'Camera on (' + frames + ' frames) · ' + (hands.length ? hands.length + (hands.length === 1 ? ' hand' : ' hands') + ' found' : 'no hand found') +
+            (!seen && waited > 6 ? '. Show an open hand to the camera, in good light, about 40 cm away.' : '') + (lastError ? ' (' + lastError.slice(0, 90) + ')' : '');
+        }
+      };
+    })();
+
     // ---- flow and touch: the installation's flow field (TouchDesigner, shared_module.py and
     // creatures_script), with the pointer standing in for the hands ----
     // Everything is computed in the installation's own units: a 1920 x 1920 canvas, y pointing up,
@@ -1409,7 +1496,7 @@
       // their steering by 16. Here it is tempered (the pointer sweeps much more abruptly than a hand), so
       // that the picture stays readable.
       const FAST_GAIN = 20, BOOST_GAIN = 7;
-      const HAND = [['palm', 0, 0], ['thumb', -125, 40], ['index', -50, 170], ['middle', 0, 190], ['ring', 50, 170], ['pinky', 100, 130]];
+      const HAND = ['palm', 'thumb', 'index', 'middle', 'ring', 'pinky'];
       const wrap = (a) => { a = (a + Math.PI) % TAU; if (a < 0) a += TAU; return a - Math.PI; };
       const map = (v, a, b, c, d) => c + (d - c) * (v - a) / (b - a);
       const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -1424,19 +1511,30 @@
       let zoff = Math.random() * 50, simMs = 0;
 
       // ---- the pointer, and the points it stands for ----
-      const opts = { hands: !!cfg.handsOnly, live: false };
+      const opts = { live: false };
       const ptr = { inside: false, u: 0, v: 0 };
-      function rawPoints() {
-        if (!ptr.inside) return [];
-        const mx = ptr.u * WORLD, my = (1 - ptr.v) * WORLD;
-        // one point is treated as one fingertip of the right hand; two hands are mirrored about the middle
-        if (!opts.hands) return [{ key: cfg.haptics ? 'right_index' : 'mouse', side: 'right', x: mx, y: my }];
-        const pts = [];
-        HAND.forEach(([n, ox, oy]) => {
-          pts.push({ key: 'right_' + n, side: 'right', x: mx + ox, y: my + oy });
-          pts.push({ key: 'left_' + n, side: 'left', x: WORLD - mx - ox, y: my + oy });
+      // with the camera (the glove chapter) the points are the palm and the five fingertips of the hands MediaPipe finds,
+      // eased a little because the camera gives a new position only a few times a second
+      let camHeld = false;
+      const camSmooth = new Map();
+      function cameraPoints() {
+        const out = [], now = new Set();
+        if (camHeld) handTracker.hands.forEach((h) => {
+          for (const name in h.joints) {
+            const key = h.side + '_' + name, j = h.joints[name], tx = j[0] * WORLD, ty = (1 - j[1]) * WORLD;
+            const e = camSmooth.get(key) || { x: tx, y: ty };
+            e.x += (tx - e.x) * 0.25; e.y += (ty - e.y) * 0.25;
+            camSmooth.set(key, e); now.add(key);
+            out.push({ key, side: h.side, x: e.x, y: e.y });
+          }
         });
-        return pts;
+        for (const k of [...camSmooth.keys()]) if (!now.has(k)) camSmooth.delete(k);
+        return out;
+      }
+      function rawPoints() {
+        if (cfg.camera) return cameraPoints();
+        if (!ptr.inside) return [];
+        return [{ key: 'mouse', side: 'right', x: ptr.u * WORLD, y: (1 - ptr.v) * WORLD }];     // one fingertip
       }
       const prevPos = new Map(), smooth = new Map(), stillSince = new Map(), aoMap = new Map();
       let pts = [], onCanvas = false, nConv = 0, handMax = { left: 0, right: 0 }, curR = MIN_R, maxSpeed = 0;
@@ -1603,7 +1701,7 @@
         mapDots = {};
         const hands = ['left', 'right'];
         const keys = [];
-        hands.forEach((hand) => HAND.forEach(([name]) => keys.push(hand + '_' + name)));
+        hands.forEach((hand) => HAND.forEach((name) => keys.push(hand + '_' + name)));
         const Y0 = 70, DY = 46, GAP = 28, rowY = (i) => Y0 + i * DY + (i >= 6 ? GAP : 0);
         let art = '<svg class="w-art" viewBox="0 0 590 700" role="img" aria-label="Wiring of the haptic gloves: Arduino, breadboard, transistors and motors">' +
           '<defs><pattern id="wHoles" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1.4" fill="#fff" fill-opacity="0.28"/></pattern></defs>';
@@ -1759,6 +1857,18 @@
         if (!opts.live && cr.every((c) => !c.alive)) seed(7);
       });
       label();
+      // the camera of the glove chapter
+      const btnCamera = $('Camera'), camStatus = $('CameraStatus');
+      let camLast = 0, hiddenAt = 0;
+      const camLabel = () => { btnCamera.textContent = '[Camera: ' + (camHeld ? 'on' : 'off') + ']'; };
+      function camOff(text) { if (camHeld) handTracker.release(cfg.prefix); camHeld = false; camLabel(); camStatus.textContent = text; }
+      if (cfg.camera) {
+        btnCamera.addEventListener('click', () => {
+          if (camHeld) camOff('The camera is off.');
+          else { camHeld = true; camLabel(); handTracker.acquire(cfg.prefix); }
+        });
+        camLabel(); camStatus.textContent = 'The camera is off. It is asked for only when you switch it on, and the picture stays in your browser.';
+      }
       const at = (e) => {
         const r = stage.getBoundingClientRect();
         ptr.u = (e.clientX - r.left) / r.width; ptr.v = (e.clientY - r.top) / r.height;
@@ -1772,10 +1882,18 @@
 
       // ---- the loop: fixed 60 steps per second, only while the chapter is on screen ----
       let running = false, last = performance.now(), acc = 0;
-      new IntersectionObserver((e) => { running = e[0].isIntersecting; last = performance.now(); }).observe(stage);
+      new IntersectionObserver((e) => { running = e[0].isIntersecting; last = performance.now(); if (!running) hiddenAt = last; }).observe(stage);
       function frame(now) {
         requestAnimationFrame(frame);
-        if (!running || document.hidden) { last = now; return; }
+        if (!running || document.hidden) {
+          last = now;
+          if (cfg.camera && camHeld && now - hiddenAt > 2500) camOff('The camera was switched off when you left the chapter.');
+          return;
+        }
+        if (cfg.camera && camHeld) {
+          if (!handTracker.on && !handTracker.loading) camOff(handTracker.status() || 'The camera is off.');
+          else if (now - camLast > 400) { camLast = now; camStatus.textContent = handTracker.status(); }
+        }
         acc += Math.min(100, now - last); last = now;
         let n = 0;
         while (acc >= STEP_MS && n < 4) { simStep(); acc -= STEP_MS; n++; }
@@ -1789,7 +1907,7 @@
       requestAnimationFrame(frame);
     }
     makeFlow({ prefix: 'flow', states: '.flow-state', haptics: false });
-    makeFlow({ prefix: 'haptic', states: null, haptics: true, handsOnly: true });
+    makeFlow({ prefix: 'haptic', states: null, haptics: true, camera: true });
 
     // ---- the structure: the installation as a small 3D model, to turn with the mouse ----
     // Millimetres: x to the right, y towards the back, z up (the floor is z = 0). The cube is 600 mm on every side,
@@ -2454,12 +2572,7 @@
       const camG = camCv.getContext('2d'), outG = outCv.getContext('2d');
       const btnCam = document.getElementById('handSource'), statusEl = document.getElementById('handStatus');
       const TAU = Math.PI * 2;
-      const BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-      const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-
-      let stream = null, video = null, landmarker = null, loading = false, camOn = false;
-      let hands = [], frames = 0, seen = 0, started = 0, lastStatus = 0, lastDetect = 0, lastStamp = 0, S = 1, visible = false, hiddenSince = 0, lastError = '', delegate = 'CPU';
-      const grab = document.createElement('canvas');                     // the picture handed to MediaPipe: a copy of every frame, which every browser accepts
+      let mine = false, S = 1, visible = false, hiddenSince = 0, lastStatus = 0;
       const say = (t) => { statusEl.textContent = t; };
 
       function size() {
@@ -2467,62 +2580,29 @@
         [camCv, outCv].forEach((c) => { const r = c.getBoundingClientRect(); if (r.width < 1) return; S = r.width; c.width = Math.round(r.width * dpr); c.height = Math.round(r.width * dpr); c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); });
       }
       const label = () => {
-        btnCam.textContent = '[Camera: ' + (camOn ? 'on' : 'off') + ']';
+        btnCam.textContent = '[Camera: ' + (mine ? 'on' : 'off') + ']';
         camCv.classList.add('is-ir');
       };
-
-      // the square cut out of the middle of the picture, shared by both panels so that the circles sit on the hands
-      const crop = () => { const vw = video.videoWidth || 640, vh = video.videoHeight || 480, side = Math.min(vw, vh); return { vw, vh, side, sx: (vw - side) / 2, sy: (vh - side) / 2 }; };
+      function off(text) { if (mine) handTracker.release('hand'); mine = false; label(); say(text); }
 
       function draw() {
         camG.clearRect(0, 0, S, S); outG.clearRect(0, 0, S, S);
         [camG, outG].forEach((g) => { g.strokeStyle = 'rgba(255,255,255,0.25)'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, S - 1, S - 1); });
-        if (camOn && video && video.readyState >= 2) {
-          const c = crop();
+        const video = handTracker.video;
+        if (mine && handTracker.on && video && video.readyState >= 2) {
+          const c = handTracker.crop();
           camG.save(); camG.translate(S, 0); camG.scale(-1, 1); camG.drawImage(video, c.sx, c.sy, c.side, c.side, 0, 0, S, S); camG.restore();
-        } else {
-          [camG, outG].forEach((g) => { g.fillStyle = 'rgba(255,255,255,0.4)'; g.font = "12px 'Paper Mono', monospace"; g.textAlign = 'center'; g.fillText(loading ? 'Loading…' : 'Camera off', S / 2, S / 2); });
-        }
-        hands.forEach((h) => {
           outG.fillStyle = '#fff';
-          h.forEach((p) => { outG.beginPath(); outG.arc(p[0] * S, p[1] * S, 5, 0, TAU); outG.fill(); });
-        });
+          handTracker.hands.forEach((h) => h.pts.forEach((p) => { outG.beginPath(); outG.arc(p[0] * S, p[1] * S, 5, 0, TAU); outG.fill(); }));
+        } else {
+          [camG, outG].forEach((g) => { g.fillStyle = 'rgba(255,255,255,0.4)'; g.font = "12px 'Paper Mono', monospace"; g.textAlign = 'center'; g.fillText(mine ? 'Loading…' : 'Camera off', S / 2, S / 2); });
+        }
       }
 
-      async function start() {
-        if (loading || camOn) return;
-        loading = true; lastError = ''; say('Asking for the camera…'); draw();
-        try {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('this browser gives no access to the camera here');
-          stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
-          say('Loading MediaPipe and its hand model, about 8 MB…');
-          const mod = await import(BASE + '/vision_bundle.mjs');
-          const files = await mod.FilesetResolver.forVisionTasks(BASE + '/wasm');
-          // Safari is often unhappy with the GPU: it gets the processor
-          const make = (d) => mod.HandLandmarker.createFromOptions(files, {
-            baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: 'VIDEO', numHands: 2,
-            minHandDetectionConfidence: 0.35, minHandPresenceConfidence: 0.35, minTrackingConfidence: 0.35
-          });
-          landmarker = await make('CPU');                                      // the graphics card often finds nothing without saying so; the processor is slow enough for one small model
-          video = document.createElement('video');
-          video.playsInline = true; video.muted = true; video.srcObject = stream;
-          video.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
-          document.body.appendChild(video);                              // in the page, so that every browser keeps playing it
-          await video.play();
-          camOn = true; frames = 0; seen = 0; started = performance.now(); lastStamp = 0;
-        } catch (e) {
-          lastError = (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : e);
-          stop(); say('The camera could not be started (' + lastError.slice(0, 140) + ').');
-        }
-        loading = false; label();
-      }
-      function stop() {
-        if (stream) stream.getTracks().forEach((t) => t.stop());
-        if (video && video.parentNode) video.parentNode.removeChild(video);
-        stream = null; video = null; landmarker = null; camOn = false; hands = []; label();
-      }
-      btnCam.addEventListener('click', () => { if (camOn) { stop(); say('The camera is off.'); } else start(); });
-      window.addEventListener('pagehide', stop);
+      btnCam.addEventListener('click', () => {
+        if (mine) off('The camera is off.');
+        else { mine = true; label(); say(''); handTracker.acquire('hand'); }
+      });
 
       const seenNow = new Map();                                                // the two squares sit one above the other on a narrow screen: the chapter counts as in view while either is
       const io = new IntersectionObserver((es) => {
@@ -2533,26 +2613,10 @@
       io.observe(camCv); io.observe(outCv);
       (function loop(now) {
         requestAnimationFrame(loop);
-        if (!visible) { if (camOn && now - hiddenSince > 2500) { stop(); say('The camera was switched off when you left the chapter.'); } return; }
-        if (camOn && landmarker && video && video.readyState >= 2 && now - lastDetect > 30) {
-          lastDetect = now; frames++;
-          try {
-            const c = crop();
-            if (grab.width !== c.vw || grab.height !== c.vh) { grab.width = c.vw; grab.height = c.vh; }
-            grab.getContext('2d').drawImage(video, 0, 0, c.vw, c.vh);
-            const stamp = Math.max(lastStamp + 1, Math.round(now)); lastStamp = stamp;     // MediaPipe wants times that only grow
-            const res = landmarker.detectForVideo(grab, stamp);
-            hands = (res.landmarks || []).map((lm) => lm.map((p) => [1 - (p.x * c.vw - c.sx) / c.side, (p.y * c.vh - c.sy) / c.side]));   // as in a mirror
-            if (hands.length) seen++;
-          } catch (e) { lastError = String(e); hands = []; }
-        }
+        if (!visible) { if (mine && now - hiddenSince > 2500) off('The camera was switched off when you left the chapter.'); return; }
+        if (mine && !handTracker.on && !handTracker.loading) off(handTracker.status() || 'The camera is off.');
         draw();
-        if (camOn && now - lastStatus > 400) {
-          lastStatus = now;
-          const waited = (now - started) / 1000;
-          say('Camera on (' + delegate + ', ' + frames + ' frames) · ' + (hands.length ? hands.length + (hands.length === 1 ? ' hand' : ' hands') + ' found' : 'no hand found') +
-            (!seen && waited > 6 ? '. Show an open hand to the camera, in good light, about 40 cm away.' : '') + (lastError ? ' (' + lastError.slice(0, 90) + ')' : ''));
-        }
+        if (mine && now - lastStatus > 400) { lastStatus = now; say(handTracker.status()); }
       })(0);
       new ResizeObserver(size).observe(camCv);
       size(); label(); say('The camera is off. It is asked for only when you switch it on.'); draw();
