@@ -320,85 +320,12 @@
     .creature.is-hot .creature-n { color: #fff; }
     .creatures:has(.is-hot) .creature:not(.is-hot) img { opacity: 0.2; }
 
-    /* the number of the chapter in its title, in the title's own font: the same [01] as on the step line;
-       it lights up (full white) when the line has reached that chapter */
+    /* the number of the chapter in its title, in the title's own font; it lights up (full white) while its chapter is open */
     .chap-n {
       color: var(--fg-dim);
       transition: color 0.3s ease;
     }
-    .viz-head.is-current .chap-n { color: #fff; }
-
-    /* ---- the step line: a thin horizontal line fixed at the bottom edge of the menu bar (it does not
-       scroll) that fills up, chapter by chapter, as the page scrolls. One node per chapter, evenly
-       spaced between the two margins; a node fills when its chapter is reached. ---- */
-    .rail {
-      position: fixed;
-      left: var(--margin);
-      right: var(--margin);
-      top: calc(var(--push, 0px) + var(--bar-h, 0px) + 9px);       /* a clear gap under the menu bar, not on its edge */
-      height: 1px;
-      z-index: 41;                        /* over the bar (40), under nothing that matters */
-      pointer-events: none;
-      background: rgba(255, 255, 255, 0.2);
-    }
-    /* a strip of the page's own colour under the bar, so the text scrolling up never runs through the line or its nodes */
-    .rail::before {
-      content: '';
-      position: fixed;
-      left: 0; right: 0;
-      top: calc(var(--push, 0px) + var(--bar-h, 0px));
-      height: 19px;
-      background: var(--bg);
-      z-index: -1;
-    }
-    .rail-fill {
-      position: absolute;
-      inset: 0;
-      background: #fff;
-      transform-origin: left;
-      transform: scaleX(0);
-    }
-    .rail-node {
-      position: absolute;
-      top: 0;
-      width: 7px;
-      height: 7px;
-      margin: -3px 0 0 -3.5px;
-      padding: 0;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      background: var(--bg);
-      pointer-events: auto;
-      cursor: pointer;
-      transition: background 0.3s ease, border-color 0.3s ease;
-    }
-    .rail-node::before { content: ''; position: absolute; inset: -5px; }          /* a bigger target */
-    .rail-node.is-reached { background: #fff; border-color: #fff; }
-    .rail-node.is-upcoming { border-style: dashed; }
-    /* the name of the chapter, under its node: on hover / focus, and for a moment when a chapter is
-       reached. The first one hangs from the left margin, the last from the right one. */
-    .rail-label {
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 1px 6px;
-      white-space: nowrap;
-      font-family: 'Paper Mono', monospace;
-      font-weight: var(--mono-weight);
-      font-size: var(--mono);
-      line-height: var(--mono-lh, 1.2);
-      color: #fff;
-      background: var(--bg);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-    .rail-node:first-of-type .rail-label { left: 3.5px; transform: none; padding-left: 0; }
-    .rail-node:last-of-type .rail-label { left: auto; right: 3.5px; transform: none; padding-right: 0; }
-    .rail-node:hover .rail-label,
-    .rail-node:focus-visible .rail-label,
-    .rail-node.is-flash .rail-label { opacity: 1; }
+    .viz-head.is-open .chap-n { color: #fff; }
 
     /* ---- flow and touch: the installation's flow field, with the pointer in place of the hands ---- */
     .flow {
@@ -610,7 +537,6 @@
         padding-top: calc(var(--bar-h) + var(--push));
       }
       .content-row { padding: var(--margin) var(--margin) 0 var(--margin); }
-      .viz-page { padding-top: 16px; }      /* room for the step line under the bar */
     }
     @media (orientation: portrait) {
       .content-row { display: contents; }
@@ -639,9 +565,6 @@
       .net-stage { height: 60vh; }
       .flow { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .flow-states { margin-top: 1.5rem; }
-      .rail { top: 8px; }
-      .page { padding-top: 26px; }                    /* under the step line, so that the menu line ([Menu] / [Credits]) is not covered by it */
-      .rail::before { content: ''; position: fixed; left: 0; right: 0; top: 0; height: 18px; background: var(--bg); z-index: -1; }
       .creature-layout { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .creature-cap { margin: 12px 0 2px; }
       .creature-view { position: sticky; top: 18px; z-index: 3; background: var(--bg); padding: 8px 0 10px; }
@@ -2621,72 +2544,6 @@
       })(0);
       new ResizeObserver(size).observe(camCv);
       size(); label(); say('The camera is off. It is asked for only when you switch it on.'); draw();
-    })();
-
-    // ---- the step line ----
-    (function () {
-      const heads = [...document.querySelectorAll('.viz-head[data-step]')];
-      if (heads.length < 2) return;
-      const rail = document.createElement('div');
-      rail.className = 'rail';
-      rail.innerHTML = '<div class="rail-fill"></div>';
-      const fill = rail.firstChild;
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const nodes = heads.map((h, k) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'rail-node' + (k === heads.length - 1 ? ' is-upcoming' : '');
-        b.style.left = (k / (heads.length - 1) * 100) + '%';
-        b.setAttribute('aria-label', 'Chapter ' + (k + 1) + ': ' + h.dataset.step);
-        b.innerHTML = '<span class="rail-label">[' + String(k + 1).padStart(2, '0') + '] ' + h.dataset.step + '</span>';
-        b.addEventListener('click', () => {
-          if (k < heads.length - 1) accordion.open(k);
-          const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 0;
-          const y = h.getBoundingClientRect().top + window.scrollY - bar - 30;
-          window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
-        });
-        rail.appendChild(b);
-        return b;
-      });
-      document.body.appendChild(rail);
-
-      let reached = -1, flashTimer = null, ticking = false;
-      function update() {
-        ticking = false;
-        // The line is anchored to the scroll position: it is empty at the very top of the page, and chapter k
-        // (k >= 1) is reached when its title crosses a line a third of the way down the window. In between,
-        // the fill grows evenly. The last chapter is reached at the latest at the bottom of the page.
-        const ref = window.innerHeight * 0.33;
-        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-        const y = window.scrollY;
-        const at = [0];
-        heads.forEach((h, k) => {
-          if (k === 0) return;
-          const a = h.getBoundingClientRect().top + y - ref;
-          at.push(Math.min(maxScroll, Math.max(at[k - 1] + 1, a)));
-        });
-        let idx = 0;
-        at.forEach((a, k) => { if (y >= a - 0.5) idx = k; });
-        let p = idx;
-        if (idx < heads.length - 1) p += Math.min(1, Math.max(0, (y - at[idx]) / (at[idx + 1] - at[idx])));
-        fill.style.transform = 'scaleX(' + (p / (heads.length - 1)) + ')';
-        nodes.forEach((n, k) => n.classList.toggle('is-reached', k <= idx));
-        heads.forEach((h, k) => h.classList.toggle('is-current', k === idx));
-        if (idx !== reached) {
-          if (idx > reached && reached >= 0) {
-            nodes[idx].classList.add('is-flash');
-            clearTimeout(flashTimer);
-            const k = idx;
-            flashTimer = setTimeout(() => nodes[k].classList.remove('is-flash'), 2200);
-          }
-          reached = idx;
-        }
-      }
-      const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
-      window.addEventListener('scroll', request, { passive: true });
-      window.addEventListener('resize', request);
-      window.addEventListener('load', request);
-      update();
     })();
 
     resize();
