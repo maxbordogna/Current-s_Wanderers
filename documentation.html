@@ -1718,9 +1718,14 @@
           set: new Set(TD_NODES.map((n, i) => i).filter((i) => TD_NODES[i][1].startsWith('CHOP:audio'))) },
         { id: 'image', label: 'Image', text: 'Everything that draws: the water shader, the renders, blurs and glows, the introductory texts and the outputs to the screens.', set: new Set() }
       ];
-      const groupOf = TD_NODES.map(() => GROUPS.length - 1);
-      GROUPS.forEach((gr, k) => { if (gr.id !== 'image') gr.set.forEach((i) => { groupOf[i] = k; }); });
-      GROUPS[GROUPS.length - 1].set = new Set(groupOf.map((k, i) => (k === GROUPS.length - 1 ? i : -1)).filter((i) => i >= 0));
+      // The windows show a node by naming it (not by a wire), so those four links are added here.
+      const DISPLAY = [['window1', 'over7'], ['window4', 'S3'], ['windowLeft', 'transform2'], ['windowRight', 'transform4']].map(([w, src]) => [at[w], at[src]]);
+      const shows = TD_NODES.map(() => []), shownBy = TD_NODES.map(() => []);
+      DISPLAY.forEach(([w, src]) => { shows[w].push(src); shownBy[src].push(w); });
+      const IMAGE = GROUPS.length - 1;
+      const groupOf = TD_NODES.map(() => IMAGE);                                       // everything not placed above draws
+      GROUPS.slice(0, IMAGE).forEach((gr, k) => gr.set.forEach((i) => { groupOf[i] = k; }));
+      GROUPS[IMAGE].set = new Set(groupOf.map((k, i) => (k === IMAGE ? i : -1)).filter((i) => i >= 0));
 
       // ---- entries and exits: what comes into the patch from outside, and where it goes out ----
       const PORTS = [
@@ -1730,7 +1735,7 @@
         { io: 'in', label: 'Animations and sounds · files', text: 'The 52 animated creatures, video files that also carry their sound.', nodes: [...spriteSet].filter((i) => TD_NODES[i][1] === 'TOP:moviefilein') },
         { io: 'in', label: 'Background sound · files', text: 'The ambient underwater sound, read from audio files.', nodes: names(['audiofilein1', 'inbackground1', 'inbackground2']) },
         { io: 'out', label: 'Gloves · Arduino (USB serial)', text: 'Out to the Arduino: one line per pin, pin:power, at 500,000 baud.', nodes: names(['arduino']) },
-        { io: 'out', label: 'Projectors · windows', text: 'Out to the projectors: four windows, one per output of the projection.', nodes: names(['window1', 'window4', 'windowLeft', 'windowRight']) },
+        { io: 'out', label: 'Projectors · windows', text: 'Out to the projectors: four windows. window1 is a 742 px square and shows over7; window4, windowLeft and windowRight are 1920 × 1080 and show S3, transform2 and transform4.', nodes: names(['window1', 'window4', 'windowLeft', 'windowRight']) },
         { io: 'out', label: 'Sound · speakers', text: 'Out to the speakers and headphones: one audio output per creature sound, plus the background.',
           nodes: TD_NODES.map((n, i) => i).filter((i) => TD_NODES[i][1] === 'CHOP:audiodevout') }
       ];
@@ -1793,7 +1798,7 @@
         g.clearRect(0, 0, W, H);
         const foc = hover >= 0 ? hover : sel;
         const near = new Set();
-        if (foc >= 0) { near.add(foc); TD_NODES[foc][7].forEach((s) => near.add(s)); outs[foc].forEach((t) => near.add(t)); }
+        if (foc >= 0) { near.add(foc); TD_NODES[foc][7].forEach((s) => near.add(s)); outs[foc].forEach((t) => near.add(t)); shows[foc].forEach((s) => near.add(s)); shownBy[foc].forEach((w) => near.add(w)); }
         const lit = hoverSet ? hoverSet.set : filter ? filter.set : (hoverPort >= 0 ? new Set(PORTS[hoverPort].nodes) : null);
         // the wires: left to right, from the right side of a node to the left side of the next
         const quiet = new Path2D(), strong = new Path2D();
@@ -1806,8 +1811,18 @@
           const p = on ? strong : quiet;
           p.moveTo(x1, y1); p.bezierCurveTo(x1 + d, y1, x2 - d, y2, x2, y2);
         }
+        // what a window shows: a dashed link from the node it names to the window
+        const dq = new Path2D(), ds = new Path2D();
+        for (const [w, src] of DISPLAY) {
+          const A = TD_NODES[src], B = TD_NODES[w];
+          const x1 = toX(A[2] + A[4]), y1 = toY(A[3] + A[5] / 2), x2 = toX(B[2]), y2 = toY(B[3] + B[5] / 2), d = Math.max(16, Math.abs(x2 - x1) * 0.4);
+          const p = ((foc >= 0 && (w === foc || src === foc)) || (lit && lit.has(w) && lit.has(src))) ? ds : dq;
+          p.moveTo(x1, y1); p.bezierCurveTo(x1 + d, y1, x2 - d, y2, x2, y2);
+        }
         g.lineWidth = 1;
         g.strokeStyle = 'rgba(255,255,255,' + (foc >= 0 || lit ? 0.07 : 0.2) + ')'; g.stroke(quiet);
+        g.setLineDash([4, 3]); g.strokeStyle = 'rgba(255,255,255,' + (foc >= 0 || lit ? 0.1 : 0.3) + ')'; g.stroke(dq);
+        g.strokeStyle = 'rgba(255,255,255,0.9)'; g.stroke(ds); g.setLineDash([]);
         g.strokeStyle = 'rgba(255,255,255,0.9)'; g.stroke(strong);
         // the nodes
         const labels = TD_NODES[0][4] * sc >= 62;
@@ -1885,6 +1900,8 @@
           let t = n[0] + ' · ' + n[1] + (n[6] ? ' · bypassed' : '') + ' · ' + GROUPS[groupOf[i]].label;
           const cut = (l) => (l.length > 6 ? l.slice(0, 6).map(nm).join(', ') + ' … (' + l.length + ')' : l.map(nm).join(', '));
           t += '\n' + (n[7].length ? 'from ' + cut(n[7]) : 'no inputs') + '\n' + (outs[i].length ? 'to ' + cut(outs[i]) : 'no outputs');
+          if (shows[i].length) t += '\nshows ' + cut(shows[i]);
+          if (shownBy[i].length) t += '\nshown by ' + cut(shownBy[i]);
           infoEl.textContent = t;
         } else if (hoverSet || filter) {
           const f = hoverSet || filter;
