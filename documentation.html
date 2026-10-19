@@ -448,6 +448,62 @@
     .flow-state + .flow-state { margin-top: var(--mono-lh); }
     .flow-state.is-on { color: #fff; }
     .flow-readout { margin-top: calc(var(--mono-lh) * 2); color: var(--fg-dim); }
+    /* the wiring of the gloves: Arduino pin - transistor on the breadboard - two coin motors - point of the glove */
+    .haptic-wiring {
+      color: var(--fg-dim);
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: calc(var(--mono-lh) * 1.25);
+    }
+    /* the drawing in a horizontal window, the plain rows in a vertical one */
+    .haptic-wiring .w-art { display: block; width: 100%; max-width: 560px; height: auto; margin-top: var(--mono-lh); }
+    .haptic-wiring .w-list { display: none; }
+    .haptic-wiring .w-art * { vector-effect: non-scaling-stroke; }
+    .w-ch .w-sig { opacity: 0.55; transition: opacity 0.15s ease; }
+    .w-ch.is-on .w-sig { opacity: 1; stroke-width: 2; }
+    .w-ch.is-on .w-hp { fill: #fff; }
+    .w-ch .w-mot { transition: fill 0.15s ease; }
+    .w-ch.is-on .w-mot { fill: #fff; fill-opacity: 0.45; animation: w-shake 0.08s linear infinite; }
+    .w-ch.is-on .w-nm { fill-opacity: 1; }
+    @media (orientation: portrait) {
+      .haptic-wiring .w-art { display: none; }
+      .haptic-wiring .w-list { display: block; }
+    }
+    @media (prefers-reduced-motion: reduce) { .w-ch.is-on .w-mot { animation: none; } }
+    .w-src { color: var(--fg); margin-bottom: var(--mono-lh); }
+    .w-row {
+      display: grid;
+      grid-template-columns: 2.8em minmax(6px, 1fr) 3.4em minmax(6px, 1fr) 3.2em 8.4em 2.4em;
+      align-items: center;
+    }
+    .w-head { margin-bottom: calc(var(--mono-lh) * 0.5); }
+    .w-h1 { grid-column: 1 / 3; }
+    .w-h2 { grid-column: 3 / 5; }
+    .w-h3 { grid-column: 5 / 8; }
+    .w-group { margin-top: calc(var(--mono-lh) * 0.75); margin-bottom: calc(var(--mono-lh) * 0.25); color: var(--fg); }
+    .w-group { display: flex; justify-content: space-between; align-items: center; column-gap: 1em; }
+    .w-r { color: var(--fg-dim); display: inline-flex; align-items: center; gap: 0.6em; }
+    .w-rbox { display: inline-block; min-width: 2em; text-align: center; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 2px; }
+    .w-pin, .w-q {
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      transition: border-color 0.15s ease;
+    }
+    .w-line { height: 1px; background: rgba(255, 255, 255, 0.25); transition: background 0.15s ease; }
+    .w-m { display: flex; justify-content: center; gap: 3px; }
+    .w-m b { display: block; width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }
+    .w-name { padding-left: 0.9em; }
+    .w-pow { text-align: right; font-variant-numeric: tabular-nums; }
+    .w-row.is-on { color: #fff; }
+    .w-row.is-on .w-pin, .w-row.is-on .w-q { border-color: #fff; }
+    .w-row.is-on .w-line { background: #fff; }
+    .w-row.is-on .w-m b { background: #fff; border-color: #fff; animation: w-shake 0.08s linear infinite; }
+    @keyframes w-shake { 0% { transform: translate(0.7px, 0); } 50% { transform: translate(-0.7px, 0.7px); } 100% { transform: translate(0.7px, -0.7px); } }
+    @media (prefers-reduced-motion: reduce) { .w-row.is-on .w-m b { animation: none; } }
+    .haptic-log-title { margin-top: var(--mono-lh); color: var(--fg-dim); }
+    .haptic-log { white-space: pre; color: var(--fg); min-height: calc(var(--mono-lh) * 8); }
 
     @media (orientation: landscape) {
       html, body { height: auto; }
@@ -520,13 +576,14 @@
         <div class="intro-text">
           <p>Over 60 million images of the world beneath the surface of Lake Greifensee have been taken and observed by the Aquascope research group at Eawag. This growing archive forms one of the most comprehensive datasets ever created of this largely unseen world <a class="cite" data-ref="a" href="https://aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee/" target="_blank" rel="noopener noreferrer">[A]</a></p>
           <p>Every hour, for ten minutes, an underwater microscope records what drifts past it <a class="cite" data-ref="b" href="https://www.eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life/" target="_blank" rel="noopener noreferrer">[B]</a>, and a neural network sorts each image into classes of plankton <a class="cite" data-ref="c" href="https://doi.org/10.3389/fmicb.2021.746297" target="_blank" rel="noopener noreferrer">[C]</a>. The resulting counts are published by Eawag as a public dataset <a class="cite" data-ref="d" href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer">[D]</a> and updated as new hours come in.</p>
-          <p>Current’s Wanderers reads the latest data from the lake. Each cell below shows how often a class was detected, as individuals per second averaged over the hour.</p>
+          <p>Current’s Wanderers reads the latest data from the lake. Each cell below shows how often a class was detected, as individuals per second averaged over the hour. The tag next to a name says which of the microscope’s two lenses saw it: 0.5× for larger organisms, from about 0.1 mm to 1 cm, and 5× for smaller ones, from about 10 to 150 µm <a class="cite" data-ref="e" href="https://doi.org/10.1016/j.watres.2021.117524" target="_blank" rel="noopener noreferrer">[E]</a></p>
         </div>
         <div class="intro-sources">
           <a class="src" id="src-a" data-ref="a" href="https://aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee/" target="_blank" rel="noopener noreferrer">[A] Pomati, Francesco. 2025. ‘Instant Insights: Real-Time Plankton Classification Now Online – AQUASCOPE’. aquascope.ch/2025/08/21/diving-deep-real-time-plankton-monitoring-in-greifensee</a>
           <a class="src" id="src-b" data-ref="b" href="https://www.eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life/" target="_blank" rel="noopener noreferrer">[B] Zierl, Bärbel. 2020. ‘Aquascope: Shedding Light on Underwater Life’. eawag.ch/en/info/portal/news/news-detail/aquascope-shedding-light-on-underwater-life</a>
           <a class="src" id="src-c" data-ref="c" href="https://doi.org/10.3389/fmicb.2021.746297" target="_blank" rel="noopener noreferrer">[C] Kyathanahally, Sreenath P., Thomas Hardeman, Ewa Merz, et al. 2021. ‘Deep Learning Classification of Lake Zooplankton’. Frontiers in Microbiology 12 (November): 746297. doi.org/10.3389/fmicb.2021.746297</a>
           <a class="src" id="src-d" data-ref="d" href="https://www.datalakes-eawag.ch/datadetail/1387" target="_blank" rel="noopener noreferrer">[D] Eawag · Aquascope. ‘Lake Greifen Aquascope’, dataset 1387, Datalakes. datalakes-eawag.ch/datadetail/1387</a>
+          <a class="src" id="src-e" data-ref="e" href="https://doi.org/10.1016/j.watres.2021.117524" target="_blank" rel="noopener noreferrer">[E] Merz, Ewa, Thea Kozakiewicz, Marta Reyes, et al. 2021. ‘Underwater Dual-Magnification Imaging for Automated Lake Plankton Monitoring’. Water Research 203: 117524. doi.org/10.1016/j.watres.2021.117524</a>
         </div>
       </div>
 
@@ -579,7 +636,7 @@
         <div class="intro-text">
           <p>The creatures do not move on their own: they are carried by a flow field, a grid of 20 px cells, 96 by 96 over the 1920 px canvas, each holding a direction. The directions come from Perlin noise that slowly changes in time, so the current meanders and never repeats. A creature turns to follow the direction of the cell it is in.</p>
           <p>Hands change the current. The installation tracks both hands, a palm and five fingertips each, twelve points in all. What a point does to the current depends on whether it moves and for how long it has been still; the three behaviours are listed below.</p>
-          <p>Below, the same logic runs in the browser. Move the pointer over the square: it stands in for one fingertip, or for a pair of hands with the switch above. The arrows show the direction of the current in each cell, and brighten where a point is steering it. The speed-up of creatures near a fast point is toned down here compared with the installation.</p>
+          <p>Below, the same logic runs in the browser. Move the pointer over the square: it stands in for one fingertip, or for a pair of hands with the switch above. The faint lines show the direction of the current in each cell, and brighten where a point is steering it. The speed-up of creatures near a fast point is toned down here compared with the installation.</p>
         </div>
         <div class="intro-sources is-formula">
           <p>Flow field<br><span class="dim">Cells of 20 px, 96 × 96. Perlin noise evolving slowly in time, a little faster when a point moves fast.</span></p>
@@ -597,7 +654,6 @@
         </div>
         <div class="flow-view">
           <div class="flow-toggles">
-            <button type="button" id="flowArrows"></button>
             <button type="button" id="flowPoints"></button>
             <button type="button" id="flowCreaturesBtn"></button>
           </div>
@@ -608,7 +664,43 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[04]</span> More documentation is under construction</h2></div>
+      <div class="viz-head viz-head-next" data-step="Haptic Gloves"><h2><span class="chap-n">[04]</span> Haptic Gloves and Arduino / From Contact to Vibration</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>Plankton cannot be heard, smelled or touched. The gloves add the missing sense: when a creature on the screen is also felt on the hand, the two read as one contact. In an early test with two daphnia on the screen, only one of them wired to a vibrating motor, the visitor’s attention went almost entirely to that one.</p>
+          <p>Every frame, the software checks each of the twelve points tracked on the two hands, the palm and the five fingertips of each. A point is in contact when it is within 150 px of a living creature. For every point in contact, TouchDesigner sends the Arduino one line of text: the pin that drives that point’s motor, a colon and a power from 0 to 255, for instance 8:27. While the contact lasts a new value is sent every frame; when it ends, the pin gets a single 0. The Arduino reads each line and sets that pin to the power it was given: through an NMOS transistor on a breadboard, the pin drives two coin motors wired in parallel, so each glove has twelve motors and the pair has twenty-four. For safety, each glove also has a resistor.</p>
+          <p>The power is never constant. It oscillates around 25, a little either side, along a slow wave with some noise, and every pin has its own phase. The first prototype, a coin motor on each fingertip of a cycling glove built after a public tutorial <a class="cite" data-ref="f" href="https://www.youtube.com/watch?v=ZAsGHhWxwpM" target="_blank" rel="noopener noreferrer">[F]</a>, showed that the vibrations felt most alive close to the minimum power at which the motors start, almost like a living body, so that is where they are kept.</p>
+          <p>Below, the same rule runs in the browser. Move the pointer over the creatures: it moves a pair of hands, twelve points, mirrored about the middle. When a point touches a creature, its channel lights up in the diagram, its two motors shake, and the line that would go to the Arduino appears in the log.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Serial link<br><span class="dim">USB serial, 500,000 baud. One line per pin, pin:power, power from 0 to 255. Each line is sent twice, to avoid a problem in which the Arduino blocked the vibration of a pin.</span></p>
+          <p>Contact<br><span class="dim">A point within 150 px (on the 1920 px canvas) of a living creature.</span></p>
+          <p>Circuit<br><span class="dim">The Arduino’s 5 V and ground feed the rails of the breadboard. Each pin goes to the gate of an NMOS transistor, which switches the ground of its two motors. A safety resistor protects each glove.</span></p>
+          <p>Power value<br><span class="dim">About 25 while in contact, with a slow wave and a little noise. 0 otherwise.</span></p>
+          <p>Pins<br><span class="dim">Right glove: palm 10 · thumb 9 · index 8 · middle 13 · ring 12 · pinky 11<br>Left glove: palm 4 · thumb 3 · index 2 · middle 7 · ring 6 · pinky 5</span></p>
+          <a class="src" id="src-f" data-ref="f" href="https://www.youtube.com/watch?v=ZAsGHhWxwpM" target="_blank" rel="noopener noreferrer">[F] Science Buddies. 2025. ‘Arduino Science Project: Build a Haptic Glove’. youtube.com/watch?v=ZAsGHhWxwpM</a>
+        </div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-states">
+          <div class="haptic-wiring" id="hapticMap"></div>
+          <p class="haptic-log-title">Sent to the Arduino, as pin:power</p>
+          <div class="haptic-log" id="hapticLog"></div>
+        </div>
+        <div class="flow-view">
+          <div class="flow-toggles">
+            <button type="button" id="hapticCreaturesBtn"></button>
+          </div>
+          <div class="flow-stage" id="hapticStage">
+            <canvas id="hapticCanvas"></canvas>
+            <div class="flow-creatures" id="hapticCreatures"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[05]</span> More documentation is under construction</h2></div>
     </div>
     </div>
 
@@ -652,11 +744,12 @@
     (function () {
       const set = (ref, on) => document.querySelectorAll('[data-ref="' + ref + '"]').forEach((el) => el.classList.toggle('is-lit', on));
       const ref = (e) => { const t = e.target.closest && e.target.closest('[data-ref]'); return t ? t.dataset.ref : null; };
-      const intro = document.querySelector('.viz-intro');
-      intro.addEventListener('mouseover', (e) => { const r = ref(e); if (r) set(r, true); });
-      intro.addEventListener('mouseout', (e) => { const r = ref(e); if (r) set(r, false); });
-      intro.addEventListener('focusin', (e) => { const r = ref(e); if (r) set(r, true); });
-      intro.addEventListener('focusout', (e) => { const r = ref(e); if (r) set(r, false); });
+      document.querySelectorAll('.viz-intro').forEach((intro) => {
+        intro.addEventListener('mouseover', (e) => { const r = ref(e); if (r) set(r, true); });
+        intro.addEventListener('mouseout', (e) => { const r = ref(e); if (r) set(r, false); });
+        intro.addEventListener('focusin', (e) => { const r = ref(e); if (r) set(r, true); });
+        intro.addEventListener('focusout', (e) => { const r = ref(e); if (r) set(r, false); });
+      });
     })();
 
     // ---- the cells ----
@@ -706,6 +799,12 @@
     // ---- the info lines ----
     const fmtTime = (s) => new Date(s * 1000).toLocaleString('en-GB',
       { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' UTC';
+    // a record's time is the start of its hour: 08:00 means 08:00 to 09:00
+    const fmtHour = (s) => {
+      const t = (d) => d.toLocaleString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit' });
+      return new Date(s * 1000).toLocaleString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' }) +
+        ', ' + t(new Date(s * 1000)) + '–' + t(new Date((s + 3600) * 1000)) + ' UTC';
+    };
     const countFor = (i) => { const r = rateOf(i); return r > 0 ? Math.ceil(r * HOUR_S - 1e-9) : 0; };
 
     function updateInfo() {
@@ -724,7 +823,7 @@
       document.getElementById('vizCapCells').textContent =
         'Estimated individuals detected per second, divided into ' + cls.length + ' classes';
       document.getElementById('vizCount').textContent =
-        'Estimated individuals in one hour, ' + fmtTime(data.time) + ': ' + shown + ' of ' + total;
+        'Estimated individuals in one hour, ' + fmtHour(data.time) + ': ' + shown + ' of ' + total;
     }
 
     // ---- the canvas: circles drifting in the sampled water ----
@@ -1103,17 +1202,17 @@
     // creatures_script), with the pointer standing in for the hands ----
     // Everything is computed in the installation's own units: a 1920 x 1920 canvas, y pointing up,
     // 60 steps per second, speeds in canvas px per step. The picture is the same scaled down.
-    (function () {
-      const stage = document.getElementById('flowStage');
-      const cvs = document.getElementById('flowCanvas');
+    function makeFlow(cfg) {
+      const $ = (name) => document.getElementById(cfg.prefix + name);
+      const stage = $('Stage');
+      const cvs = $('Canvas');
       const g = cvs.getContext('2d');
-      const layer = document.getElementById('flowCreatures');
-      const readout = document.getElementById('flowReadout');
-      const btnArrows = document.getElementById('flowArrows');
-      const btnPoints = document.getElementById('flowPoints');
-      const btnCreatures = document.getElementById('flowCreaturesBtn');
+      const layer = $('Creatures');
+      const readout = $('Readout');
+      const btnPoints = $('Points');
+      const btnCreatures = $('CreaturesBtn');
       const stateEls = {};
-      document.querySelectorAll('.flow-state').forEach((el) => { stateEls[el.dataset.state] = el; });
+      if (cfg.states) document.querySelectorAll(cfg.states).forEach((el) => { stateEls[el.dataset.state] = el; });
 
       const SCL = 20, INC = 0.1, MIN_R = 50, MAX_R = 500, REP_R = 40, REP_S = 2;
       const STILL_MS = 2000, RAMP_MS = 2000, WORLD = 1920, COLS = WORLD / SCL, ROWS = WORLD / SCL, N = COLS * ROWS;
@@ -1137,13 +1236,13 @@
       let zoff = Math.random() * 50, simMs = 0;
 
       // ---- the pointer, and the points it stands for ----
-      const opts = { arrows: true, hands: false, live: false };
+      const opts = { hands: !!cfg.handsOnly, live: false };
       const ptr = { inside: false, u: 0, v: 0 };
       function rawPoints() {
         if (!ptr.inside) return [];
         const mx = ptr.u * WORLD, my = (1 - ptr.v) * WORLD;
         // one point is treated as one fingertip of the right hand; two hands are mirrored about the middle
-        if (!opts.hands) return [{ key: 'mouse', side: 'right', x: mx, y: my }];
+        if (!opts.hands) return [{ key: cfg.haptics ? 'right_index' : 'mouse', side: 'right', x: mx, y: my }];
         const pts = [];
         HAND.forEach(([n, ox, oy]) => {
           pts.push({ key: 'right_' + n, side: 'right', x: mx + ox, y: my + oy });
@@ -1291,7 +1390,122 @@
         stepField();
         spawnStep();
         stepCreatures();
+        if (cfg.haptics) stepHaptics();
       }
+
+      // ---- the gloves: what the Arduino is told (motor_controller.py) ----
+      // A point is in contact when a living creature is within 150 px of it. In contact, its motor gets a
+      // power that wobbles around 25 (a slow wave with a little noise, its own phase for every pin); the
+      // line "pin:power" goes to the Arduino every step, and a single "pin:0" when the contact ends.
+      const CONTACT_R = 150;
+      const PIN = { left_palm: 4, left_thumb: 3, left_index: 2, left_middle: 7, left_ring: 6, left_pinky: 5,
+                    right_palm: 10, right_thumb: 9, right_index: 8, right_middle: 13, right_ring: 12, right_pinky: 11 };
+      const contact = new Map(), phases = {}, lastLog = {};
+      const logLines = [];
+      let steps = 0, mapDots = null;
+      const logEl = document.getElementById(cfg.prefix + 'Log');
+      // the wiring, drawn like the real thing: the Arduino, the breadboard with one NMOS transistor per pin, the coin
+      // motors (two in parallel on every channel) and the wires between them. The pin goes to the transistor's gate,
+      // the transistor switches the ground of the motors, the motors take 5 V from the breadboard's rail. A channel
+      // lights up (and its motors shake) while it is on. In a vertical window, where the drawing would be too small
+      // to read, the same channels are listed as plain rows.
+      function buildMap() {
+        const mapEl = document.getElementById(cfg.prefix + 'Map');
+        if (!mapEl) return;
+        mapDots = {};
+        const hands = ['left', 'right'];
+        const keys = [];
+        hands.forEach((hand) => HAND.forEach(([name]) => keys.push(hand + '_' + name)));
+        const Y0 = 70, DY = 46, GAP = 28, rowY = (i) => Y0 + i * DY + (i >= 6 ? GAP : 0);
+        let art = '<svg class="w-art" viewBox="0 0 590 700" role="img" aria-label="Wiring of the haptic gloves: Arduino, breadboard, transistors and motors">' +
+          '<defs><pattern id="wHoles" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1.4" fill="#fff" fill-opacity="0.28"/></pattern></defs>';
+        // the Arduino
+        art += '<rect x="6" y="26" width="124" height="640" rx="4" fill="#262626" stroke="#fff" stroke-opacity="0.6"/>' +
+          '' +
+          '' +
+          '<text x="62" y="346" transform="rotate(-90 62 346)" text-anchor="middle" font-size="15" fill="#fff" fill-opacity="0.85" font-family="\'Paper Mono\', monospace">ARDUINO UNO</text>';
+        // the breadboard, with its two rails
+        art += '<rect x="186" y="30" width="154" height="636" rx="6" fill="#1b1b1b" stroke="#fff" stroke-opacity="0.45"/><rect x="186" y="30" width="154" height="636" rx="6" fill="url(#wHoles)"/>' +
+          '<line x1="200" y1="46" x2="200" y2="650" stroke="#fff" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="324" y1="46" x2="324" y2="650" stroke="#fff" stroke-width="1.5"/>' +
+          '<text x="200" y="26" text-anchor="middle" font-size="11" fill="#fff" fill-opacity="0.6" font-family="\'Paper Mono\', monospace">GND</text>' +
+          '<text x="324" y="26" text-anchor="middle" font-size="11" fill="#fff" fill-opacity="0.6" font-family="\'Paper Mono\', monospace">5 V</text>';
+        // power from the Arduino to the rails
+        art += '<rect x="128" y="636" width="12" height="10" fill="#fff" fill-opacity="0.55"/><rect x="128" y="656" width="12" height="10" fill="#fff" fill-opacity="0.55"/>' +
+          '<text x="120" y="645" text-anchor="end" font-size="11" fill="#fff" fill-opacity="0.85" font-family="\'Paper Mono\', monospace">5V</text>' +
+          '<text x="120" y="665" text-anchor="end" font-size="11" fill="#fff" fill-opacity="0.85" font-family="\'Paper Mono\', monospace">GND</text>' +
+          '<path d="M140 641 H324" stroke="#fff" stroke-width="1" fill="none"/><path d="M140 661 H200 V650" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 3" fill="none" stroke-linejoin="round"/>';
+        let list = '<div class="w-row w-head"><span class="w-h1">Arduino Uno</span><span class="w-h2">Breadboard</span><span class="w-h3">Glove</span></div>';
+        keys.forEach((key, i) => {
+          const y = rowY(i), hand = key.split('_')[0], name = key.split('_')[1];
+          if (i % 6 === 0) list += '<div class="w-group">' + (hand === 'left' ? 'Left glove' : 'Right glove') +
+            '<span class="w-r"><span class="w-rbox">R</span> safety resistor</span></div>';
+          list += '<div class="w-row" data-key="' + key + '"><span class="w-pin">' + PIN[key] + '</span><i class="w-line"></i>' +
+            '<span class="w-q" title="NMOS transistor: the pin is its gate, it switches the ground of the two motors">NMOS</span><i class="w-line"></i>' +
+            '<span class="w-m"><b></b><b></b></span><span class="w-name">' + hand + ' ' + name + '</span><span class="w-pow"></span></div>';
+          art += '<g class="w-ch" data-key="' + key + '">' +
+            '<rect class="w-hp" x="128" y="' + (y - 11) + '" width="12" height="10" fill="#fff" fill-opacity="0.55"/>' +
+            '<text x="120" y="' + (y - 2) + '" text-anchor="end" font-size="11" fill="#fff" fill-opacity="0.85" font-family="\'Paper Mono\', monospace">' + PIN[key] + '</text>' +
+            '<path class="w-sig" d="M140 ' + (y - 6) + ' H226" stroke="#fff" stroke-width="1" fill="none"/>' +
+            '<path d="M226 ' + (y + 6) + ' H200" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 3" fill="none"/>' +
+            '<rect x="226" y="' + (y - 12) + '" width="36" height="24" rx="3" fill="#000" stroke="#fff" stroke-opacity="0.6"/>' +
+            '<text x="244" y="' + (y + 3) + '" text-anchor="middle" font-size="8" fill="#ddd" font-family="\'Paper Mono\', monospace">NMOS</text>' +
+            '<path d="M262 ' + y + ' H396 M396 ' + y + ' V' + (y - 10) + ' H421 M396 ' + y + ' V' + (y + 10) + ' H421" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 3" fill="none" stroke-linejoin="round"/>' +
+            '<path d="M362 ' + (y + 23) + ' H452 V' + (y - 10) + ' M439 ' + (y - 10) + ' H452 M439 ' + (y + 10) + ' H452" stroke="#fff" stroke-width="1" fill="none" stroke-linejoin="round"/>' +
+            '<g class="w-motors"><circle class="w-mot" cx="430" cy="' + (y - 10) + '" r="9" fill="#000" stroke="#fff" stroke-opacity="0.8"/><circle cx="430" cy="' + (y - 10) + '" r="3" fill="#fff" fill-opacity="0.4"/>' +
+            '<circle class="w-mot" cx="430" cy="' + (y + 10) + '" r="9" fill="#000" stroke="#fff" stroke-opacity="0.8"/><circle cx="430" cy="' + (y + 10) + '" r="3" fill="#fff" fill-opacity="0.4"/></g>' +
+            '<text class="w-nm" x="466" y="' + (y + 4) + '" font-size="12" fill="#fff" fill-opacity="0.55" font-family="\'Paper Mono\', monospace">' + name + '</text>' +
+            '<text class="w-pw" x="546" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="#fff" font-family="\'Paper Mono\', monospace"></text></g>';
+        });
+        // the two gloves, and the safety resistor of each, in the 5 V line that feeds it
+        hands.forEach((hand, g) => {
+          const top = rowY(g * 6) - 22, bottom = rowY(g * 6 + 5) + 22, mid = (top + bottom) / 2;
+          const bus0 = rowY(g * 6) + 23, bus1 = rowY(g * 6 + 5) + 23;
+          art += '<path d="M324 ' + bus0 + ' H336 M358 ' + bus0 + ' H362 M362 ' + bus0 + ' V' + bus1 + '" stroke="#fff" stroke-width="1" fill="none"/>' +
+            '<rect x="336" y="' + (bus0 - 4) + '" width="22" height="8" fill="#000" stroke="#fff"/>' +
+            '<text x="347" y="' + (bus0 - 9) + '" text-anchor="middle" font-size="10" fill="#fff" font-family="\'Paper Mono\', monospace">R</text>';
+          art += '<path d="M556 ' + top + ' V' + bottom + '" stroke="#fff" stroke-opacity="0.45" fill="none"/>' +
+            '<text x="570" y="' + mid + '" transform="rotate(-90 570 ' + mid + ')" text-anchor="middle" font-size="12" fill="#fff" font-family="\'Paper Mono\', monospace">' + (hand === 'left' ? 'Left glove' : 'Right glove') + '</text>' +
+            '<text x="584" y="' + mid + '" transform="rotate(-90 584 ' + mid + ')" text-anchor="middle" font-size="10" fill="#fff" fill-opacity="0.5" font-family="\'Paper Mono\', monospace">R · safety resistor</text>';
+        });
+        art += '</svg>';
+        mapEl.innerHTML = '<div class="w-src">TouchDesigner → USB serial, 500,000 baud → Arduino</div><div class="w-list">' + list + '</div>' + art;
+        keys.forEach((key) => {
+          const row = mapEl.querySelector('.w-row[data-key="' + key + '"]'), grp = mapEl.querySelector('.w-ch[data-key="' + key + '"]');
+          mapDots[key] = { row, grp, pow: row.querySelector('.w-pow'), pw: grp.querySelector('.w-pw'), on: false };
+        });
+      }
+      const logSend = (key, power) => {
+        const label = key.replace('_', ' ');
+        logLines.push(PIN[key] + ':' + power + '    ' + label);
+        if (logLines.length > 8) logLines.shift();
+        if (logEl) logEl.textContent = logLines.join('\n');
+      };
+      function stepHaptics() {
+        steps++;
+        const alive = cr.filter((c) => c.alive);
+        const seen = new Set();
+        for (const p of pts) {
+          seen.add(p.key);
+          let near = false;
+          for (const c of alive) if (Math.hypot(c.x - p.x, c.y - p.y) < CONTACT_R) { near = true; break; }
+          if (near) {
+            if (phases[p.key] === undefined) phases[p.key] = Math.random() * TAU;
+            const norm = (Math.sin(steps * 0.05 + phases[p.key]) + (Math.random() * 0.6 - 0.3)) * 0.5 + 0.5;
+            const power = Math.trunc(25 + (norm - 0.5) * 2 * 5);
+            const was = contact.get(p.key) || 0;
+            contact.set(p.key, power);
+            if (!was || steps - (lastLog[p.key] || 0) >= 30) { logSend(p.key, power); lastLog[p.key] = steps; }
+          } else if (contact.get(p.key)) { contact.set(p.key, 0); logSend(p.key, 0); }
+        }
+        // points that are gone (the pointer left): silence them
+        for (const [key, power] of contact) if (!seen.has(key) && power) { contact.set(key, 0); logSend(key, 0); }
+        if (mapDots) for (const key in mapDots) {
+          const power = contact.get(key) || 0, m = mapDots[key], on = power > 0;
+          if (m.on !== on) { m.on = on; m.row.classList.toggle('is-on', on); m.grp.classList.toggle('is-on', on); }
+          m.pow.textContent = m.pw.textContent = on ? power : '';
+        }
+      }
+      if (cfg.haptics) { buildMap(); if (logEl) logEl.textContent = 'Nothing sent yet'; }
 
       // ---- drawing ----
       let k = 1, side = 1, dpr = 1;
@@ -1306,45 +1520,57 @@
       }
       function draw() {
         g.clearRect(0, 0, side, side);
-        if (opts.arrows) {
-          const len = 3 * SCL * k * 0.6, head = len * 0.28;
+        {
+          // The current is always drawn, as plain segments (no arrowheads): very faint where nothing steers it,
+          // brighter where a point bends it, in proportion to how much.
+          const len = 3 * SCL * k * 0.6;
           const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
           for (let gy = 1; gy < ROWS; gy += 3) for (let gx = 1; gx < COLS; gx += 3) {
             const i = gx + gy * COLS, x = cxs[i] * k, y = (WORLD - cys[i]) * k, a = angle[i];
             const ux = Math.cos(a), uy = -Math.sin(a), tx = x + ux * len / 2, ty = y + uy * len / 2;
-            const p = paths[Math.min(3, Math.floor(aoAbs[i] * 1.6))];
+            const steered = aoAbs[i] >= 0.05;
+            const p = paths[steered ? Math.min(3, 1 + Math.floor(aoAbs[i] * 1.2)) : 0];
             p.moveTo(x - ux * len / 2, y - uy * len / 2); p.lineTo(tx, ty);
-            p.moveTo(tx - ux * head - uy * head * 0.6, ty - uy * head + ux * head * 0.6); p.lineTo(tx, ty);
-            p.lineTo(tx - ux * head + uy * head * 0.6, ty - uy * head - ux * head * 0.6);
           }
           g.lineWidth = 1;
-          [0.12, 0.26, 0.42, 0.6].forEach((al, j) => { g.strokeStyle = 'rgba(255,255,255,' + al + ')'; g.stroke(paths[j]); });
+          [0.07, 0.24, 0.4, 0.62].forEach((al, j) => { g.strokeStyle = 'rgba(255,255,255,' + al + ')'; g.stroke(paths[j]); });
         }
         // the points, and how far each one reaches
         for (const p of pts) {
+          // how far the point reaches (exactly as in the previous chapter): the steering radius of a moving point,
+          // 40 px of swirl when it has just stopped, up to 200 px of pull when it is held
           g.beginPath(); g.arc(p.x * k, (WORLD - p.y) * k, (p.R || REP_R) * k, 0, TAU);
           g.strokeStyle = 'rgba(255,255,255,' + (p.moving ? 0.3 : 0.18 + 0.3 * p.conv) + ')'; g.stroke();
+          if (cfg.haptics) {
+            // the glove: a point lights up while a creature is within 150 px of it (always 150 px)
+            const power = contact.get(p.key) || 0;
+            g.beginPath(); g.arc(p.x * k, (WORLD - p.y) * k, CONTACT_R * k, 0, TAU);
+            g.setLineDash([3, 3]); g.strokeStyle = 'rgba(255,255,255,' + (power ? 0.7 : 0.25) + ')'; g.stroke(); g.setLineDash([]);
+            g.beginPath(); g.arc(p.x * k, (WORLD - p.y) * k, power ? 6 : 3, 0, TAU);
+            g.fillStyle = power ? '#fff' : 'rgba(255,255,255,0.6)'; g.fill();
+            continue;
+          }
           g.beginPath(); g.arc(p.x * k, (WORLD - p.y) * k, 3, 0, TAU); g.fillStyle = '#fff'; g.fill();
         }
         // the creatures
         const s = side * 0.16;
         for (const c of cr) if (c.alive) c.img.style.transform = 'translate(' + (c.x * k - s / 2) + 'px,' + ((WORLD - c.y) * k - s / 2) + 'px) rotate(' + (-c.rot) + 'deg)';
-        // which behaviour is happening
-        const on = { moving: pts.some((p) => p.moving), brief: pts.some((p) => !p.moving && p.conv === 0), held: pts.some((p) => p.conv > 0) };
-        for (const key in on) stateEls[key].classList.toggle('is-on', on[key]);
-        readout.textContent = pts.length
+        if (cfg.states) {
+          // which behaviour is happening
+          const on = { moving: pts.some((p) => p.moving), brief: pts.some((p) => !p.moving && p.conv === 0), held: pts.some((p) => p.conv > 0) };
+          for (const key in on) stateEls[key].classList.toggle('is-on', on[key]);
+        }
+        if (readout) readout.textContent = pts.length
           ? pts.length + (pts.length === 1 ? ' point' : ' points') + ' · speed ' + maxSpeed.toFixed(0) + ' px per frame · steering radius ' + Math.round(curR) + ' px'
           : 'Move the pointer over the square';
       }
 
       // ---- controls ----
       const label = () => {
-        btnArrows.textContent = '[Arrows: ' + (opts.arrows ? 'on' : 'off') + ']';
-        btnPoints.textContent = '[Pointer: ' + (opts.hands ? 'two hands, 12 points' : 'mouse, 1 point') + ']';
+        if (btnPoints) btnPoints.textContent = '[Pointer: ' + (opts.hands ? 'two hands, 12 points' : 'mouse, 1 point') + ']';
         btnCreatures.textContent = '[Creatures: ' + (opts.live ? 'live rates' : 'all classes') + ']';
       };
-      btnArrows.addEventListener('click', () => { opts.arrows = !opts.arrows; label(); });
-      btnPoints.addEventListener('click', () => { opts.hands = !opts.hands; label(); });
+      if (btnPoints) btnPoints.addEventListener('click', () => { opts.hands = !opts.hands; label(); });
       btnCreatures.addEventListener('click', () => {
         opts.live = !opts.live; label();
         if (!opts.live && cr.every((c) => !c.alive)) seed(7);
@@ -1378,7 +1604,9 @@
       simMs = 0;
       draw();
       requestAnimationFrame(frame);
-    })();
+    }
+    makeFlow({ prefix: 'flow', states: '.flow-state', haptics: false });
+    makeFlow({ prefix: 'haptic', states: null, haptics: true, handsOnly: true });
 
     // ---- the step line ----
     (function () {
