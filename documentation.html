@@ -779,7 +779,31 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-next" data-step="The Structure"><h2><span class="chap-n">[05]</span> The Structure / The Cube of the Installation</h2></div>
+      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[05]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>Everything described in this documentation runs in a single TouchDesigner project. Below is its network as it stood when the installation was shown: 392 nodes joined by 270 connections, redrawn as a map to move around in. It is a reference, not a tutorial, and it keeps the original layout.</p>
+          <p>Much of it is repetition. Every creature has a movie node and a level node, and the creatures that make a sound have an audio node and an audio output as well, which is why the long rows of identical nodes are there. The rest is the logic of the previous chapters: the data and its JSON, the Python scripts that give birth to the creatures and compute the flow, the Leap Motion input, the serial link to the Arduino, and the shaders that draw the final image.</p>
+          <p>Drag to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Move the pointer over a node to follow its connections (a click keeps it). The groups, like the families, light up the parts of the patch that do one job while the pointer is on them (a click keeps them lit), and the entries and exits mark what comes into the patch from outside (the data, the hands, the files) and where it leaves (the Arduino, the projectors, the speakers); hover one of them to see every node it reaches.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Families<br><span class="dim">Each family has its own outline: plain, dashed, shaded, double, dotted or heavy on top. Click one to light up all its nodes.</span></p>
+          <div class="net-legend" id="netLegend"></div>
+          <p>Connections<br><span class="dim">They run from left to right: outputs on the right of a node, inputs on its left. Only direct wires are drawn, not the links a script makes by naming another node.</span></p>
+          <p>Not drawn<br><span class="dim">The inside of the components (geometries, cameras, lights, windows).</span></p>
+        </div>
+      </div>
+
+      <div class="net-bar">
+        <span class="net-hint">TouchDesigner · main network</span>
+        <span class="net-btns"><button type="button" id="netPorts"></button><button type="button" id="netOut" aria-label="Zoom out">[−]</button><button type="button" id="netIn" aria-label="Zoom in">[+]</button><button type="button" id="netFit">[Fit]</button></span>
+      </div>
+      <div class="net-groups" id="netGroups"></div>
+      <div class="net-stage"><canvas id="netCanvas" aria-label="The TouchDesigner network of the installation"></canvas></div>
+      <div class="net-info is-idle" id="netInfo"></div>
+
+      <div class="viz-head viz-head-next" data-step="The Structure"><h2><span class="chap-n">[06]</span> The Structure / The Cube of the Installation</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -812,30 +836,6 @@
           <div class="cube-info is-idle" id="cubeInfo"></div>
         </div>
       </div>
-
-      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[06]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
-
-      <div class="viz-intro">
-        <div class="intro-text">
-          <p>Everything described in this documentation runs in a single TouchDesigner project. Below is its network as it stood when the installation was shown: 392 nodes joined by 270 connections, redrawn as a map to move around in. It is a reference, not a tutorial, and it keeps the original layout.</p>
-          <p>Much of it is repetition. Every creature has a movie node and a level node, and the creatures that make a sound have an audio node and an audio output as well, which is why the long rows of identical nodes are there. The rest is the logic of the previous chapters: the data and its JSON, the Python scripts that give birth to the creatures and compute the flow, the Leap Motion input, the serial link to the Arduino, and the shaders that draw the final image.</p>
-          <p>Drag to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Move the pointer over a node to follow its connections (a click keeps it). The groups, like the families, light up the parts of the patch that do one job while the pointer is on them (a click keeps them lit), and the entries and exits mark what comes into the patch from outside (the data, the hands, the files) and where it leaves (the Arduino, the projectors, the speakers); hover one of them to see every node it reaches.</p>
-        </div>
-        <div class="intro-sources is-formula">
-          <p>Families<br><span class="dim">Each family has its own outline: plain, dashed, shaded, double, dotted or heavy on top. Click one to light up all its nodes.</span></p>
-          <div class="net-legend" id="netLegend"></div>
-          <p>Connections<br><span class="dim">They run from left to right: outputs on the right of a node, inputs on its left. Only direct wires are drawn, not the links a script makes by naming another node.</span></p>
-          <p>Not drawn<br><span class="dim">The inside of the components (geometries, cameras, lights, windows).</span></p>
-        </div>
-      </div>
-
-      <div class="net-bar">
-        <span class="net-hint">TouchDesigner · main network</span>
-        <span class="net-btns"><button type="button" id="netPorts"></button><button type="button" id="netOut" aria-label="Zoom out">[−]</button><button type="button" id="netIn" aria-label="Zoom in">[+]</button><button type="button" id="netFit">[Fit]</button></span>
-      </div>
-      <div class="net-groups" id="netGroups"></div>
-      <div class="net-stage"><canvas id="netCanvas" aria-label="The TouchDesigner network of the installation"></canvas></div>
-      <div class="net-info is-idle" id="netInfo"></div>
 
       <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[07]</span> More documentation is under construction</h2></div>
     </div>
