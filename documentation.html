@@ -13,6 +13,9 @@
     .viz-page {
       --grot-lh: calc(var(--serif-body) * 1.15);
       --mono-lh: calc(var(--grot-lh) * 0.75);
+      /* the empty space between one chapter and the next: nine lines of the text, against the three that
+         separate the blocks inside a chapter */
+      --chapter-gap: calc(var(--grot-lh) * 9);
     }
 
     /* the title of the section: above a line that runs from the left to the right margin */
@@ -24,7 +27,7 @@
       margin-bottom: calc(var(--serif-body) * 1.15 - 3px);
     }
     /* the closing title: four lines of the text above it, like between the introduction and the data */
-    .viz-head-more { margin-top: calc(var(--grot-lh) * 4); margin-bottom: 0; }
+    .viz-head-more { margin-top: var(--chapter-gap); margin-bottom: 0; }
     .viz-head h2 {
       font-family: var(--title-font, 'BDO Grotesk', sans-serif);
       font-weight: var(--title-weight, 500);
@@ -38,9 +41,9 @@
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       column-gap: var(--gutter);
-      /* at least four lines of the text above the next title (the block is as tall as its taller
+      /* at least three lines of the text above the next block (the block is as tall as its taller
          column, so the gap below the last line of the text is never less than this) */
-      margin-bottom: calc(var(--serif-body) * 1.15 * 4);
+      margin-bottom: calc(var(--serif-body) * 1.15 * 3);
     }
     .intro-text {
       grid-column: 1 / 4;
@@ -218,7 +221,7 @@
     }
 
     /* ---- from data to image: the 52 animated creatures of the installation ---- */
-    .viz-head-next { margin-top: calc(var(--grot-lh) * 4); }
+    .viz-head-next { margin-top: var(--chapter-gap); }
     /* the formula over columns 4-6: the same mono block as the sources, in full white */
     .intro-sources.is-formula { color: var(--fg); }
     .intro-sources.is-formula p + p { margin-top: var(--mono-lh); }
@@ -232,6 +235,18 @@
       column-gap: var(--gutter);
       align-items: start;
     }
+    /* a short description above the creatures, in the space over the line (columns 1-4) */
+    .creature-cap {
+      grid-column: 1 / 5;
+      grid-row: 1;
+      align-self: start;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: var(--fg);
+    }
+    .creature-cap p + p { color: var(--fg-dim); }
     .creature-info {
       min-height: calc(var(--mono-lh) * 3);
       margin-bottom: 2px;
@@ -304,6 +319,76 @@
     .creature.is-hot .creature-n { color: #fff; }
     .creatures:has(.is-hot) .creature:not(.is-hot) img { opacity: 0.2; }
 
+    /* the number of the chapter in its title, in the title's own font: the same [01] as on the step line;
+       it lights up (full white) when the line has reached that chapter */
+    .chap-n {
+      color: var(--fg-dim);
+      transition: color 0.3s ease;
+    }
+    .viz-head.is-current .chap-n { color: #fff; }
+
+    /* ---- the step line: a thin horizontal line fixed at the bottom edge of the menu bar (it does not
+       scroll) that fills up, chapter by chapter, as the page scrolls. One node per chapter, evenly
+       spaced between the two margins; a node fills when its chapter is reached. ---- */
+    .rail {
+      position: fixed;
+      left: var(--margin);
+      right: var(--margin);
+      top: calc(var(--push, 0px) + var(--bar-h, 0px) - 1px);
+      height: 1px;
+      z-index: 41;                        /* over the bar (40), under nothing that matters */
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .rail-fill {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+    .rail-node {
+      position: absolute;
+      top: 0;
+      width: 7px;
+      height: 7px;
+      margin: -3px 0 0 -3.5px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      background: var(--bg);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .rail-node::before { content: ''; position: absolute; inset: -9px; }          /* a bigger target */
+    .rail-node.is-reached { background: #fff; border-color: #fff; }
+    .rail-node.is-upcoming { border-style: dashed; }
+    /* the name of the chapter, under its node: on hover / focus, and for a moment when a chapter is
+       reached. The first one hangs from the left margin, the last from the right one. */
+    .rail-label {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1px 6px;
+      white-space: nowrap;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh, 1.2);
+      color: #fff;
+      background: var(--bg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .rail-node:first-of-type .rail-label { left: 3.5px; transform: none; padding-left: 0; }
+    .rail-node:last-of-type .rail-label { left: auto; right: 3.5px; transform: none; padding-right: 0; }
+    .rail-node:hover .rail-label,
+    .rail-node:focus-visible .rail-label,
+    .rail-node.is-flash .rail-label { opacity: 1; }
+
     @media (orientation: landscape) {
       html, body { height: auto; }
       html { overflow-y: auto; }
@@ -330,8 +415,11 @@
       .viz-cap-stage .cap-right { margin-left: 0; text-align: left; }
       .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
       /* the enlarged creature stays at the top of the screen while the grid scrolls under it */
-      .creature-layout { display: flex; flex-direction: column-reverse; }
-      .creature-view { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 8px 0 10px; }
+      .rail { top: 8px; }
+      .rail::before { content: ''; position: fixed; left: 0; right: 0; top: 0; height: 18px; background: var(--bg); z-index: -1; }
+      .creature-layout { display: flex; flex-direction: column-reverse; align-items: stretch; }
+      .creature-cap { margin: 12px 0 2px; }
+      .creature-view { position: sticky; top: 18px; z-index: 3; background: var(--bg); padding: 8px 0 10px; }
       .creature-stage { width: min(100%, 36vh); }
       .creatures { margin-top: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-top: 12px; }
     }
@@ -364,7 +452,7 @@
     </nav>
 
     <div class="stack-item viz-page" style="min-width:0;width:100%">
-      <div class="viz-head"><h2>Data Source / Aquascope Eawag / Lake Greifensee</h2></div>
+      <div class="viz-head" data-step="Data Source"><h2><span class="chap-n">[01]</span> Data Source / Aquascope Eawag / Lake Greifensee</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -394,7 +482,7 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-next"><h2>From Data to Image / Frequency, Size and Flow</h2></div>
+      <div class="viz-head viz-head-next" data-step="From Data to Image"><h2><span class="chap-n">[02]</span> From Data to Image / Frequency, Size and Flow</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -411,13 +499,17 @@
 
       <div class="creature-layout">
         <div class="creatures" id="creatures" aria-label="The 52 animated creatures of the installation"></div>
+        <div class="creature-cap">
+          <p>The 52 creatures of the installation, numbered as in the software.</p>
+          <p>Brighter: the class was detected in the latest hour. Fainter: it was not, so it would not appear.</p>
+        </div>
         <div class="creature-view">
           <div class="creature-info is-idle" id="creatureInfo"></div>
           <div class="creature-stage" id="creatureStage"><img id="creatureBig" alt="" hidden></div>
         </div>
       </div>
 
-      <div class="viz-head viz-head-more"><h2>More documentation is under construction</h2></div>
+      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[03]</span> More documentation is under construction</h2></div>
     </div>
     </div>
 
@@ -778,6 +870,17 @@
       'closterium': 43, 'cosmarium': 29, 'staurastrum': 27, 'pediastrum': 34, 'aphanizomenon': 48,
       'cyanobacteria filament': 43, 'hormidium like': 39, 'cyanobacteria colonial': 29, 'chroococcales': 5,
       'mallomonas': 27, 'synura': 29, 'chlorophyte': 29 };
+    // sizes in µm: a few are given, the others are worked back from the percentage with the same formula;
+    // all of them are shown as approximate (≈)
+    const SIZE_UM_KNOWN = { 'leptodora': 12000, 'chroococcales': 5, 'mallomonas': 40, 'synura': 50, 'chlorophyte': 50 };
+    const sig2 = (v) => { const m = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / m) * m; };
+    function sizeText(base) {
+      const pct = SIZE_PCT[base];
+      if (pct === undefined) return '';
+      const known = SIZE_UM_KNOWN[base];
+      const um = known !== undefined ? known : sig2(5 * Math.pow(12000 / 5, (pct - 5) / 95));
+      return 'Size ≈ ' + um.toLocaleString('en-US') + ' µm (' + pct + '% on screen)';
+    }
     // a few cells reuse the animation of another class: the size is that of the class the picture comes from
     const SIZE_FROM = { 26: 'peridinium', 46: 'asplanchna', 47: 'tintinnid' };
     const axisOf = {};
@@ -799,7 +902,7 @@
     function infoFor(i) {
       const c = creatureMeta[i], r = data.rates[axisOf[c.key]] || 0;
       return [c.num + ' · ' + c.title + (c.count > 1 ? ' · ' + c.count + ' variants' : ''),
-        SIZE_PCT[SIZE_FROM[i] || c.base] !== undefined ? 'Size on screen ' + SIZE_PCT[SIZE_FROM[i] || c.base] + '%' : '',
+        sizeText(SIZE_FROM[i] || c.base),
         r > 0 ? fmt(r) + ' per second · about one every ' + everyText(1 / r) : 'Not detected in the latest hour'].join('\n');
     }
     // the enlarged creature: the small file shows at once, the large one replaces it when it has loaded
@@ -892,6 +995,71 @@
       });
       if (shownIdx >= 0) creatureInfoEl.textContent = infoFor(shownIdx);
     }
+
+    // ---- the step line ----
+    (function () {
+      const heads = [...document.querySelectorAll('.viz-head[data-step]')];
+      if (heads.length < 2) return;
+      const rail = document.createElement('div');
+      rail.className = 'rail';
+      rail.innerHTML = '<div class="rail-fill"></div>';
+      const fill = rail.firstChild;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const nodes = heads.map((h, k) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rail-node' + (k === heads.length - 1 ? ' is-upcoming' : '');
+        b.style.left = (k / (heads.length - 1) * 100) + '%';
+        b.setAttribute('aria-label', 'Chapter ' + (k + 1) + ': ' + h.dataset.step);
+        b.innerHTML = '<span class="rail-label">[' + String(k + 1).padStart(2, '0') + '] ' + h.dataset.step + '</span>';
+        b.addEventListener('click', () => {
+          const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 0;
+          const y = h.getBoundingClientRect().top + window.scrollY - bar - 30;
+          window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
+        });
+        rail.appendChild(b);
+        return b;
+      });
+      document.body.appendChild(rail);
+
+      let reached = -1, flashTimer = null, ticking = false;
+      function update() {
+        ticking = false;
+        // The line is anchored to the scroll position: it is empty at the very top of the page, and chapter k
+        // (k >= 1) is reached when its title crosses a line a third of the way down the window. In between,
+        // the fill grows evenly. The last chapter is reached at the latest at the bottom of the page.
+        const ref = window.innerHeight * 0.33;
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const y = window.scrollY;
+        const at = [0];
+        heads.forEach((h, k) => {
+          if (k === 0) return;
+          const a = h.getBoundingClientRect().top + y - ref;
+          at.push(Math.min(maxScroll, Math.max(at[k - 1] + 1, a)));
+        });
+        let idx = 0;
+        at.forEach((a, k) => { if (y >= a - 0.5) idx = k; });
+        let p = idx;
+        if (idx < heads.length - 1) p += Math.min(1, Math.max(0, (y - at[idx]) / (at[idx + 1] - at[idx])));
+        fill.style.transform = 'scaleX(' + (p / (heads.length - 1)) + ')';
+        nodes.forEach((n, k) => n.classList.toggle('is-reached', k <= idx));
+        heads.forEach((h, k) => h.classList.toggle('is-current', k === idx));
+        if (idx !== reached) {
+          if (idx > reached && reached >= 0) {
+            nodes[idx].classList.add('is-flash');
+            clearTimeout(flashTimer);
+            const k = idx;
+            flashTimer = setTimeout(() => nodes[k].classList.remove('is-flash'), 2200);
+          }
+          reached = idx;
+        }
+      }
+      const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+      window.addEventListener('scroll', request, { passive: true });
+      window.addEventListener('resize', request);
+      window.addEventListener('load', request);
+      update();
+    })();
 
     resize();
     updateField();
