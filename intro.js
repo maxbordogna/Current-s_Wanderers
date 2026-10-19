@@ -620,7 +620,7 @@
   // Every piece of text keeps its real layout (the not-yet-typed rest is
   // just visibility:hidden), so nothing reflows while it types.
   const UNITS = [
-    '.title .rest', '.credits p', '.credits-toggle', '.site-nav a',
+    '.title .rest', '.credits .cr', '.credits-toggle', '.site-nav a',
     '.media-caption', '.description', '.trailer-link', '.site-footer p', '.portfolio-top', '.utility-nav a', '.utility-nav button'
   ];
 

@@ -14,14 +14,14 @@ if (navToggle && navList) {
   });
 }
 
-// credits drawer (horizontal layout): opens above the menu bar and pushes the
-// page down by its own height (--drawer-h, measured here).
+// credits drawer: in the horizontal layout it opens above the menu bar, in the vertical one under
+// the menu line; either way it pushes the page down by its own height (--drawer-h, measured here).
 (function () {
-  const toggle = document.getElementById('creditsToggle');
+  const toggles = [...document.querySelectorAll('#creditsToggle, #creditsToggleV')];
   const drawer = document.getElementById('credits');
   const inner = document.querySelector('.credits-inner');
   const backdrop = document.getElementById('creditsBackdrop');
-  if (!toggle || !inner || !backdrop) return;
+  if (!toggles.length || !inner || !backdrop) return;
 
   const root = document.documentElement;
   const landscape = window.matchMedia('(orientation: landscape)');
@@ -33,19 +33,19 @@ if (navToggle && navList) {
   function setOpen(open) {
     if (open) measure();
     root.classList.toggle('credits-open', open);
-    toggle.setAttribute('aria-expanded', String(open));
+    toggles.forEach((t) => t.setAttribute('aria-expanded', String(open)));
   }
 
-  toggle.addEventListener('click', () => setOpen(!root.classList.contains('credits-open')));
+  toggles.forEach((t) => t.addEventListener('click', () => setOpen(!root.classList.contains('credits-open'))));
   backdrop.addEventListener('click', () => setOpen(false));
   // a click anywhere inside the open drawer closes it
-  if (drawer) drawer.addEventListener('click', () => setOpen(false));
+  if (drawer) drawer.addEventListener('click', (e) => { if (!e.target.closest('a')) setOpen(false); });   // (a link keeps it open)
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && root.classList.contains('credits-open')) setOpen(false);
   });
-  // turning the device to portrait shows the credits as plain text again
+  // turning the device closes the drawer, which is laid out again for the new orientation
   landscape.addEventListener('change', () => {
-    if (!landscape.matches) setOpen(false);
+    setOpen(false);
     measure();
   });
 

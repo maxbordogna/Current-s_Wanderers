@@ -15,7 +15,7 @@
       --mono-lh: calc(var(--grot-lh) * 0.75);
       /* the empty space between one chapter and the next: nine lines of the text, against the three that
          separate the blocks inside a chapter */
-      --chapter-gap: calc(var(--grot-lh) * 9);
+      --chapter-gap: calc(var(--grot-lh) * 2);
     }
 
     /* the title of the section: above a line that runs from the left to the right margin */
@@ -549,8 +549,18 @@
     .net-info.is-idle { color: var(--fg-dim); }
 
     /* ---- chapters that fold ---- */
-    .chap-body { display: contents; }
-    .chap-toggle { display: none; }
+    /* a title opens and closes its chapter, one open at a time (in every layout). Folded, the titles are two lines apart;
+       an open chapter is followed by the usual nine lines (the space below it and the title's own two lines overlap) */
+    .viz-head:has(.chap-toggle) { display: flex; justify-content: space-between; align-items: baseline; column-gap: 1em; cursor: pointer; }
+    .viz-head:has(.chap-toggle):not(.is-open) { margin-bottom: 0; }
+    .chap-toggle {
+      display: inline; flex: none;
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono);
+      color: var(--fg-dim); transition: color 0.2s ease;
+    }
+    .viz-head:hover .chap-toggle, .viz-head.is-open .chap-toggle { color: #fff; }
+    .chap-body { display: none; }
+    .chap-body.is-open { display: block; margin-bottom: calc(var(--grot-lh) * 9); }
 
     /* ---- the structure ---- */
     .cube { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
@@ -615,17 +625,7 @@
       .viz-cap-stage .cap-right { margin-left: 0; text-align: left; }
       .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
       /* the enlarged creature stays at the top of the screen while the grid scrolls under it */
-      .viz-page { --chapter-gap: calc(var(--grot-lh) * 2); }
-      .viz-head:has(.chap-toggle) { display: flex; justify-content: space-between; align-items: baseline; column-gap: 1em; cursor: pointer; }
-      .viz-head:has(.chap-toggle):not(.is-open) { margin-bottom: 0; }
-      .chap-toggle {
-        display: inline; flex: none;
-        font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono);
-        color: var(--fg-dim); transition: color 0.2s ease;
-      }
-      .viz-head:hover .chap-toggle, .viz-head.is-open .chap-toggle { color: #fff; }
-      .chap-body { display: none; }
-      .chap-body.is-open { display: block; margin-bottom: calc(var(--grot-lh) * 4); }
+      .chap-body.is-open { margin-bottom: calc(var(--grot-lh) * 4); }
       .cube { display: block; }
       .cube-draw canvas { height: 62vh; }
       .cube-side { position: static; margin-top: 1rem; }
@@ -640,6 +640,7 @@
       .flow { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .flow-states { margin-top: 1.5rem; }
       .rail { top: 8px; }
+      .page { padding-top: 26px; }                    /* under the step line, so that the menu line ([Menu] / [Credits]) is not covered by it */
       .rail::before { content: ''; position: fixed; left: 0; right: 0; top: 0; height: 18px; background: var(--bg); z-index: -1; }
       .creature-layout { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .creature-cap { margin: 12px 0 2px; }
@@ -653,25 +654,29 @@
 
   <div class="page">
 
-    <div class="credits" id="credits" role="region" aria-label="Credits">
-      <div class="credits-inner">
-        <p>Massimo Bordogna · Master Thesis Project · 2024-2026 · Interaction Design ZHdK · Department of Design</p>
-        <p><span class="credits-sep"> / </span>Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher</p>
-        <p><span class="credits-sep"> / </span>Teaching Assistant · Duy Bui</p>
-        <p><span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</p>
-      </div>
-    </div>
     <div class="credits-backdrop" id="creditsBackdrop"></div>
 
     <div class="content-row">
     <nav class="site-nav">
       <button class="nav-toggle" id="navToggle" type="button">[Menu]</button>
+      <button class="credits-toggle-v" id="creditsToggleV" type="button" aria-expanded="false" aria-controls="credits">[Credits]</button>
       <div class="nav-list" id="navList">
         <a href="index.html"><span class="nav-num">[01]·</span>[Current’s Wanderers]</a>
         <a href="video-essays.html"><span class="nav-num">[02]·</span>[Video Essays]</a>
         <a href="written-thesis.html"><span class="nav-num">[03]·</span>[Written Thesis]</a>
         <a href="documentation.html" class="active"><span class="nav-num">[04]·</span>[Documentation]</a>
         <button class="credits-toggle" id="creditsToggle" type="button" aria-expanded="false" aria-controls="credits">[Credits]</button>
+      </div>
+      <div class="credits" id="credits" role="region" aria-label="Credits">
+        <div class="credits-inner">
+          <div class="cr cr-id">Massimo Bordogna<br>Master Thesis Project<br>2024-2026</div>
+          <div class="cr cr-dept">Interaction Design ZHdK<br>Department of Design</div>
+          <div class="cr cr-team">Mentors · Prof. Dr. Karmen Franinović, Luke Franzke and Anthea Oestreicher<span class="credits-sep"> / </span>Teaching Assistant · Duy Bui<span class="credits-sep"> / </span>External collaborators · Marta Reyes and Stefanie Eyring · Eawag «Swiss Federal Institute of Aquatic Science and Technology» · Aquascope</div>
+          <div class="cr cr-exh">Exhibitions<br><a href="https://www.zhdk.ch/en/event/61449" target="_blank" rel="noopener noreferrer">2026 Hybrid Affections</a><br><a href="https://design.zhdk.ch/en/diploma-archive/2026/?special_field=interaction-design" target="_blank" rel="noopener noreferrer">2026 ZHdK Diploma Exhibition</a><br><a href="https://fantoche.ch/en/gramme/REFRESH-x-Fantoche-%25235~prg3527" target="_blank" rel="noopener noreferrer">2026 REFRESH x Fantoche</a></div>
+          <div class="cr cr-ack">Acknowledgements<br>Winner ZHdK Förderpreis<br>Nominee ZHdK Punch Preis</div>
+          <div class="cr cr-fp">Fonts used in the project<br><a href="https://www.collletttivo.it/typefaces/apfel-grotezk" target="_blank" rel="noopener noreferrer">Apfel Grotezk</a><br><a href="https://pangrampangram.com/products/kyoto" target="_blank" rel="noopener noreferrer">PP Kyoto</a><br><a href="https://www.collletttivo.it/typefaces/necto-mono" target="_blank" rel="noopener noreferrer">Necto Mono</a></div>
+          <div class="cr cr-fw">Fonts used in the website<br><a href="https://lokalcontainer.com" target="_blank" rel="noopener noreferrer">BDO Grotesk</a><br><a href="https://www.collletttivo.it/typefaces/apfel-grotezk" target="_blank" rel="noopener noreferrer">Apfel Grotezk</a><br><a href="https://github.com/paper-design/paper-mono" target="_blank" rel="noopener noreferrer">Paper Mono</a></div>
+        </div>
       </div>
     </nav>
 
@@ -2512,9 +2517,8 @@
       requestAnimationFrame(loop);
     })();
 
-    // ---- chapters that fold (vertical window only): the title opens and closes its chapter, one at a time ----
+    // ---- chapters that fold: the title opens and closes its chapter, one at a time ----
     const accordion = (function () {
-      const portrait = window.matchMedia('(orientation: portrait)');
       const heads = [...document.querySelectorAll('.viz-head[data-step]')];
       // everything between one title and the next goes into a body that can be hidden
       const bodies = heads.map((h, k) => {
@@ -2547,19 +2551,12 @@
         t.className = 'chap-toggle';
         t.setAttribute('aria-hidden', 'true');
         h.appendChild(t);
-        const toggle = () => { if (portrait.matches) set(k, !h.classList.contains('is-open'), true); };
+        const toggle = () => set(k, !h.classList.contains('is-open'), true);
         h.addEventListener('click', toggle);
-        h.addEventListener('keydown', (e) => { if (portrait.matches && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(); } });
+        h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        h.setAttribute('role', 'button'); h.tabIndex = 0;                  // the titles are buttons
       });
-      // the titles are buttons only while the chapters can fold
-      const sync = () => heads.forEach((h, k) => {
-        if (!bodies[k]) return;
-        if (portrait.matches) { h.setAttribute('role', 'button'); h.tabIndex = 0; } else { h.removeAttribute('role'); h.removeAttribute('tabindex'); h.removeAttribute('aria-expanded'); }
-        if (portrait.matches) h.setAttribute('aria-expanded', String(h.classList.contains('is-open')));
-      });
-      portrait.addEventListener('change', sync);
       set(0, true, false);                                   // the first chapter starts open, the others folded
-      sync();
       return { open: (k) => set(k, true, false) };
     })();
 
@@ -2639,7 +2636,7 @@
         b.setAttribute('aria-label', 'Chapter ' + (k + 1) + ': ' + h.dataset.step);
         b.innerHTML = '<span class="rail-label">[' + String(k + 1).padStart(2, '0') + '] ' + h.dataset.step + '</span>';
         b.addEventListener('click', () => {
-          if (window.matchMedia('(orientation: portrait)').matches && k < heads.length - 1) accordion.open(k);
+          if (k < heads.length - 1) accordion.open(k);
           const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 0;
           const y = h.getBoundingClientRect().top + window.scrollY - bar - 30;
           window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
