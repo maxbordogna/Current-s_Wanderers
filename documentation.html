@@ -1090,6 +1090,7 @@
     function resize() {
       dpr = window.devicePixelRatio || 1;
       const r = stage.getBoundingClientRect();
+      if (r.width < 20 || r.height < 20) return;        // folded chapter: it has no size, so keep the last one (squeezing everything into 1 px made the page crawl)
       const ow = W, oh = H;
       W = Math.max(1, r.width - 2); H = Math.max(1, r.height - 2);
       const oldK = K;
@@ -1208,7 +1209,10 @@
     }
 
     let last = performance.now();
+    let stageSeen = true;                                // the sphere field only moves while it can be seen
+    new IntersectionObserver((e) => { stageSeen = e[0].isIntersecting; }).observe(stage);
     function frame(now) {
+      if (!stageSeen || document.hidden) { last = now; requestAnimationFrame(frame); return; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       if (dt > 0 && !reduce) {
         zoff += dt * FIELD_SPEED;
