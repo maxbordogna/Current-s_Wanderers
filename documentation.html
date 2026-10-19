@@ -463,6 +463,7 @@
     .w-ch .w-sig { opacity: 0.55; transition: opacity 0.15s ease; }
     .w-ch.is-on .w-sig { opacity: 1; stroke-width: 2; }
     .w-ch.is-on .w-hp { fill: #fff; }
+    .w-ch.is-on .w-res { stroke-width: 2; }
     .w-ch .w-mot { transition: fill 0.15s ease; }
     .w-ch.is-on .w-mot { fill: #fff; fill-opacity: 0.45; animation: w-shake 0.08s linear infinite; }
     .w-ch.is-on .w-nm { fill-opacity: 1; }
@@ -474,18 +475,18 @@
     .w-src { color: var(--fg); margin-bottom: var(--mono-lh); }
     .w-row {
       display: grid;
-      grid-template-columns: 2.8em minmax(6px, 1fr) 3.4em minmax(6px, 1fr) 3.2em 8.4em 2.4em;
+      grid-template-columns: 2.8em minmax(4px, 1fr) 1.7em minmax(4px, 1fr) 3.4em minmax(4px, 1fr) 3.2em 8.4em 2.4em;
       align-items: center;
     }
     .w-head { margin-bottom: calc(var(--mono-lh) * 0.5); }
     .w-h1 { grid-column: 1 / 3; }
-    .w-h2 { grid-column: 3 / 5; }
-    .w-h3 { grid-column: 5 / 8; }
+    .w-h2 { grid-column: 3 / 7; }
+    .w-h3 { grid-column: 7 / 10; }
     .w-group { margin-top: calc(var(--mono-lh) * 0.75); margin-bottom: calc(var(--mono-lh) * 0.25); color: var(--fg); }
     .w-group { display: flex; justify-content: space-between; align-items: center; column-gap: 1em; }
     .w-r { color: var(--fg-dim); display: inline-flex; align-items: center; gap: 0.6em; }
     .w-rbox { display: inline-block; min-width: 2em; text-align: center; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 2px; }
-    .w-pin, .w-q {
+    .w-pin, .w-q, .w-res {
       text-align: center;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 2px;
@@ -497,13 +498,45 @@
     .w-name { padding-left: 0.9em; }
     .w-pow { text-align: right; font-variant-numeric: tabular-nums; }
     .w-row.is-on { color: #fff; }
-    .w-row.is-on .w-pin, .w-row.is-on .w-q { border-color: #fff; }
+    .w-row.is-on .w-pin, .w-row.is-on .w-q, .w-row.is-on .w-res { border-color: #fff; }
     .w-row.is-on .w-line { background: #fff; }
     .w-row.is-on .w-m b { background: #fff; border-color: #fff; animation: w-shake 0.08s linear infinite; }
     @keyframes w-shake { 0% { transform: translate(0.7px, 0); } 50% { transform: translate(-0.7px, 0.7px); } 100% { transform: translate(0.7px, -0.7px); } }
     @media (prefers-reduced-motion: reduce) { .w-row.is-on .w-m b { animation: none; } }
     .haptic-log-title { margin-top: var(--mono-lh); color: var(--fg-dim); }
     .haptic-log { white-space: pre; color: var(--fg); min-height: calc(var(--mono-lh) * 8); }
+
+    /* ---- the network map ---- */
+    .net-legend { display: flex; flex-wrap: wrap; gap: 6px 1.2em; margin: 0 0 var(--mono-lh); }
+    .net-fam {
+      display: inline-flex; align-items: center; gap: 0.6em;
+      background: none; border: none; padding: 0; cursor: pointer;
+      font: inherit; color: var(--fg-dim); transition: color 0.2s ease;
+    }
+    .net-fam canvas { display: block; }
+    .net-fam:hover, .net-fam.is-on { color: #fff; }
+    .net-groups {
+      display: flex; flex-wrap: wrap; gap: 0 1.2em; margin-bottom: 6px;
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh);
+    }
+    .net-grp { background: none; border: none; padding: 0; font: inherit; color: rgba(255, 255, 255, 0.7); cursor: pointer; transition: color 0.2s ease; }
+    .net-grp:hover, .net-grp.is-on { color: #fff; }
+    .net-bar {
+      display: flex; justify-content: space-between; align-items: baseline; column-gap: 1.5em;
+      margin-bottom: 2px;
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh);
+      color: var(--fg);
+    }
+    .net-btns button { background: none; border: none; padding: 0 0 0 1em; font: inherit; color: rgba(255, 255, 255, 0.7); cursor: pointer; transition: color 0.2s ease; }
+    .net-btns button:hover { color: #fff; }
+    .net-stage { border: 1px solid rgba(255, 255, 255, 0.25); height: min(80vh, 860px); }
+    .net-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+    .net-info {
+      min-height: calc(var(--mono-lh) * 3); margin-top: 6px; white-space: pre-line;
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh);
+      color: var(--fg);
+    }
+    .net-info.is-idle { color: var(--fg-dim); }
 
     @media (orientation: landscape) {
       html, body { height: auto; }
@@ -531,6 +564,7 @@
       .viz-cap-stage .cap-right { margin-left: 0; text-align: left; }
       .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
       /* the enlarged creature stays at the top of the screen while the grid scrolls under it */
+      .net-stage { height: 60vh; }
       .flow { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .flow-states { margin-top: 1.5rem; }
       .rail { top: 8px; }
@@ -669,14 +703,14 @@
       <div class="viz-intro">
         <div class="intro-text">
           <p>Plankton cannot be heard, smelled or touched. The gloves add the missing sense: when a creature on the screen is also felt on the hand, the two read as one contact. In an early test with two daphnia on the screen, only one of them wired to a vibrating motor, the visitor’s attention went almost entirely to that one.</p>
-          <p>Every frame, the software checks each of the twelve points tracked on the two hands, the palm and the five fingertips of each. A point is in contact when it is within 150 px of a living creature. For every point in contact, TouchDesigner sends the Arduino one line of text: the pin that drives that point’s motor, a colon and a power from 0 to 255, for instance 8:27. While the contact lasts a new value is sent every frame; when it ends, the pin gets a single 0. The Arduino reads each line and sets that pin to the power it was given: through an NMOS transistor on a breadboard, the pin drives two coin motors wired in parallel, so each glove has twelve motors and the pair has twenty-four. For safety, each glove also has a resistor.</p>
+          <p>Every frame, the software checks each of the twelve points tracked on the two hands, the palm and the five fingertips of each. A point is in contact when it is within 150 px of a living creature. For every point in contact, TouchDesigner sends the Arduino one line of text: the pin that drives that point’s motor, a colon and a power from 0 to 255, for instance 8:27. While the contact lasts a new value is sent every frame; when it ends, the pin gets a single 0. The Arduino reads each line and sets that pin to the power it was given: through an NMOS transistor on a breadboard, the pin drives two coin motors wired in parallel, so each glove has twelve motors and the pair has twenty-four. For safety, every pin goes through a resistor on its way to the transistor.</p>
           <p>The power is never constant. It oscillates around 25, a little either side, along a slow wave with some noise, and every pin has its own phase. The first prototype, a coin motor on each fingertip of a cycling glove built after a public tutorial <a class="cite" data-ref="f" href="https://www.youtube.com/watch?v=ZAsGHhWxwpM" target="_blank" rel="noopener noreferrer">[F]</a>, showed that the vibrations felt most alive close to the minimum power at which the motors start, almost like a living body, so that is where they are kept.</p>
           <p>Below, the same rule runs in the browser. Move the pointer over the creatures: it moves a pair of hands, twelve points, mirrored about the middle. When a point touches a creature, its channel lights up in the diagram, its two motors shake, and the line that would go to the Arduino appears in the log.</p>
         </div>
         <div class="intro-sources is-formula">
           <p>Serial link<br><span class="dim">USB serial, 500,000 baud. One line per pin, pin:power, power from 0 to 255. Each line is sent twice, to avoid a problem in which the Arduino blocked the vibration of a pin.</span></p>
           <p>Contact<br><span class="dim">A point within 150 px (on the 1920 px canvas) of a living creature.</span></p>
-          <p>Circuit<br><span class="dim">The Arduino’s 5 V and ground feed the rails of the breadboard. Each pin goes to the gate of an NMOS transistor, which switches the ground of its two motors. A safety resistor protects each glove.</span></p>
+          <p>Circuit<br><span class="dim">The Arduino’s 5 V and ground feed the rails of the breadboard. Each pin goes to the gate of an NMOS transistor, which switches the ground of its two motors. A safety resistor sits on every pin, before the transistor.</span></p>
           <p>Power value<br><span class="dim">About 25 while in contact, with a slow wave and a little noise. 0 otherwise.</span></p>
           <p>Pins<br><span class="dim">Right glove: palm 10 · thumb 9 · index 8 · middle 13 · ring 12 · pinky 11<br>Left glove: palm 4 · thumb 3 · index 2 · middle 7 · ring 6 · pinky 5</span></p>
           <a class="src" id="src-f" data-ref="f" href="https://www.youtube.com/watch?v=ZAsGHhWxwpM" target="_blank" rel="noopener noreferrer">[F] Science Buddies. 2025. ‘Arduino Science Project: Build a Haptic Glove’. youtube.com/watch?v=ZAsGHhWxwpM</a>
@@ -700,7 +734,31 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[05]</span> More documentation is under construction</h2></div>
+      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[05]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>Everything described in this documentation runs in a single TouchDesigner project. Below is its network as it stood when the installation was shown: 392 nodes joined by 270 connections, redrawn as a map to move around in. It is a reference, not a tutorial, and it keeps the original layout.</p>
+          <p>Much of it is repetition. Every creature has a movie node and a level node, and the creatures that make a sound have an audio node and an audio output as well, which is why the long rows of identical nodes are there. The rest is the logic of the previous chapters: the data and its JSON, the Python scripts that give birth to the creatures and compute the flow, the Leap Motion input, the serial link to the Arduino, and the shaders that draw the final image.</p>
+          <p>Drag to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Move the pointer over a node to follow its connections (a click keeps it). The groups, like the families, light up the parts of the patch that do one job while the pointer is on them (a click keeps them lit), and the entries and exits mark what comes into the patch from outside (the data, the hands, the files) and where it leaves (the Arduino, the projectors, the speakers); hover one of them to see every node it reaches.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Families<br><span class="dim">Each family has its own outline: plain, dashed, shaded, double, dotted or heavy on top. Click one to light up all its nodes.</span></p>
+          <div class="net-legend" id="netLegend"></div>
+          <p>Connections<br><span class="dim">They run from left to right: outputs on the right of a node, inputs on its left. Only direct wires are drawn, not the links a script makes by naming another node.</span></p>
+          <p>Not drawn<br><span class="dim">The inside of the components (geometries, cameras, lights, windows).</span></p>
+        </div>
+      </div>
+
+      <div class="net-bar">
+        <span class="net-hint">TouchDesigner · main network</span>
+        <span class="net-btns"><button type="button" id="netPorts"></button><button type="button" id="netOut" aria-label="Zoom out">[−]</button><button type="button" id="netIn" aria-label="Zoom in">[+]</button><button type="button" id="netFit">[Fit]</button></span>
+      </div>
+      <div class="net-groups" id="netGroups"></div>
+      <div class="net-stage"><canvas id="netCanvas" aria-label="The TouchDesigner network of the installation"></canvas></div>
+      <div class="net-info is-idle" id="netInfo"></div>
+
+      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[06]</span> More documentation is under construction</h2></div>
     </div>
     </div>
 
@@ -1438,34 +1496,31 @@
         keys.forEach((key, i) => {
           const y = rowY(i), hand = key.split('_')[0], name = key.split('_')[1];
           if (i % 6 === 0) list += '<div class="w-group">' + (hand === 'left' ? 'Left glove' : 'Right glove') +
-            '<span class="w-r"><span class="w-rbox">R</span> safety resistor</span></div>';
+            '</div>';
           list += '<div class="w-row" data-key="' + key + '"><span class="w-pin">' + PIN[key] + '</span><i class="w-line"></i>' +
+            '<span class="w-res" title="safety resistor">R</span><i class="w-line"></i>' +
             '<span class="w-q" title="NMOS transistor: the pin is its gate, it switches the ground of the two motors">NMOS</span><i class="w-line"></i>' +
             '<span class="w-m"><b></b><b></b></span><span class="w-name">' + hand + ' ' + name + '</span><span class="w-pow"></span></div>';
           art += '<g class="w-ch" data-key="' + key + '">' +
             '<rect class="w-hp" x="128" y="' + (y - 11) + '" width="12" height="10" fill="#fff" fill-opacity="0.55"/>' +
             '<text x="120" y="' + (y - 2) + '" text-anchor="end" font-size="11" fill="#fff" fill-opacity="0.85" font-family="\'Paper Mono\', monospace">' + PIN[key] + '</text>' +
-            '<path class="w-sig" d="M140 ' + (y - 6) + ' H226" stroke="#fff" stroke-width="1" fill="none"/>' +
+            '<path class="w-sig" d="M140 ' + (y - 6) + ' H152 M174 ' + (y - 6) + ' H226" stroke="#fff" stroke-width="1" fill="none"/>' +
+            '<rect class="w-res" x="152" y="' + (y - 10) + '" width="22" height="8" fill="#000" stroke="#fff"/>' +
             '<path d="M226 ' + (y + 6) + ' H200" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 3" fill="none"/>' +
             '<rect x="226" y="' + (y - 12) + '" width="36" height="24" rx="3" fill="#000" stroke="#fff" stroke-opacity="0.6"/>' +
             '<text x="244" y="' + (y + 3) + '" text-anchor="middle" font-size="8" fill="#ddd" font-family="\'Paper Mono\', monospace">NMOS</text>' +
             '<path d="M262 ' + y + ' H396 M396 ' + y + ' V' + (y - 10) + ' H421 M396 ' + y + ' V' + (y + 10) + ' H421" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 3" fill="none" stroke-linejoin="round"/>' +
-            '<path d="M362 ' + (y + 23) + ' H452 V' + (y - 10) + ' M439 ' + (y - 10) + ' H452 M439 ' + (y + 10) + ' H452" stroke="#fff" stroke-width="1" fill="none" stroke-linejoin="round"/>' +
+            '<path d="M324 ' + (y + 23) + ' H452 V' + (y - 10) + ' M439 ' + (y - 10) + ' H452 M439 ' + (y + 10) + ' H452" stroke="#fff" stroke-width="1" fill="none" stroke-linejoin="round"/>' +
             '<g class="w-motors"><circle class="w-mot" cx="430" cy="' + (y - 10) + '" r="9" fill="#000" stroke="#fff" stroke-opacity="0.8"/><circle cx="430" cy="' + (y - 10) + '" r="3" fill="#fff" fill-opacity="0.4"/>' +
             '<circle class="w-mot" cx="430" cy="' + (y + 10) + '" r="9" fill="#000" stroke="#fff" stroke-opacity="0.8"/><circle cx="430" cy="' + (y + 10) + '" r="3" fill="#fff" fill-opacity="0.4"/></g>' +
             '<text class="w-nm" x="466" y="' + (y + 4) + '" font-size="12" fill="#fff" fill-opacity="0.55" font-family="\'Paper Mono\', monospace">' + name + '</text>' +
             '<text class="w-pw" x="546" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="#fff" font-family="\'Paper Mono\', monospace"></text></g>';
         });
-        // the two gloves, and the safety resistor of each, in the 5 V line that feeds it
+        // the two gloves
         hands.forEach((hand, g) => {
           const top = rowY(g * 6) - 22, bottom = rowY(g * 6 + 5) + 22, mid = (top + bottom) / 2;
-          const bus0 = rowY(g * 6) + 23, bus1 = rowY(g * 6 + 5) + 23;
-          art += '<path d="M324 ' + bus0 + ' H336 M358 ' + bus0 + ' H362 M362 ' + bus0 + ' V' + bus1 + '" stroke="#fff" stroke-width="1" fill="none"/>' +
-            '<rect x="336" y="' + (bus0 - 4) + '" width="22" height="8" fill="#000" stroke="#fff"/>' +
-            '<text x="347" y="' + (bus0 - 9) + '" text-anchor="middle" font-size="10" fill="#fff" font-family="\'Paper Mono\', monospace">R</text>';
           art += '<path d="M556 ' + top + ' V' + bottom + '" stroke="#fff" stroke-opacity="0.45" fill="none"/>' +
-            '<text x="570" y="' + mid + '" transform="rotate(-90 570 ' + mid + ')" text-anchor="middle" font-size="12" fill="#fff" font-family="\'Paper Mono\', monospace">' + (hand === 'left' ? 'Left glove' : 'Right glove') + '</text>' +
-            '<text x="584" y="' + mid + '" transform="rotate(-90 584 ' + mid + ')" text-anchor="middle" font-size="10" fill="#fff" fill-opacity="0.5" font-family="\'Paper Mono\', monospace">R · safety resistor</text>';
+            '<text x="570" y="' + mid + '" transform="rotate(-90 570 ' + mid + ')" text-anchor="middle" font-size="12" fill="#fff" font-family="\'Paper Mono\', monospace">' + (hand === 'left' ? 'Left glove' : 'Right glove') + '</text>' ;
         });
         art += '</svg>';
         mapEl.innerHTML = '<div class="w-src">TouchDesigner → USB serial, 500,000 baud → Arduino</div><div class="w-list">' + list + '</div>' + art;
@@ -1607,6 +1662,310 @@
     }
     makeFlow({ prefix: 'flow', states: '.flow-state', haptics: false });
     makeFlow({ prefix: 'haptic', states: null, haptics: true, handsOnly: true });
+
+    // ---- the network: the TouchDesigner patch of the installation, redrawn as a map ----
+    // TD_NODES: [name, "FAMILY:type", x, y, width, height, bypassed, [indices of the nodes wired to its inputs]],
+    // in TouchDesigner's own network coordinates (y pointing up). Only the main network is included.
+    const TD_NODES = [["Aasplanchna","CHOP:audiomovie",3375,7675,130,90,0,[]],["AasplanchnaO","CHOP:audiodevout",3675,7675,126,87,0,[0]],["Abosmina","CHOP:audiomovie",3375,7025,130,90,0,[]],["AbosminaO","CHOP:audiodevout",3675,7025,126,87,0,[2]],["Aceratium","CHOP:audiomovie",3375,6775,130,90,0,[]],["AceratiumO","CHOP:audiodevout",3675,6775,126,87,0,[4]],["Achaoborus","CHOP:audiomovie",3200,6650,130,90,0,[]],["AchaoborusO","CHOP:audiodevout",3500,6650,126,87,0,[6]],["Achydorus","CHOP:audiomovie",3375,6250,130,90,0,[]],["AchydorusO","CHOP:audiodevout",3675,6250,126,87,0,[8]],["Aciliate","CHOP:audiomovie",3375,6125,130,90,0,[]],["AciliateO","CHOP:audiodevout",3675,6125,126,87,0,[10]],["Acoleps","CHOP:audiomovie",3375,5875,130,90,0,[]],["AcolepsO","CHOP:audiodevout",3675,5875,126,87,0,[12]],["Acryptophyte","CHOP:audiomovie",3375,5625,130,90,0,[]],["AcryptophyteO","CHOP:audiodevout",3675,5575,126,87,0,[14]],["Acyclops1","CHOP:audiomovie",3400,5125,130,90,0,[]],["Acyclops2","CHOP:audiomovie",3400,5000,130,90,0,[]],["AcyclopsO1","CHOP:audiodevout",3700,5125,126,87,0,[16]],["AcyclopsO2","CHOP:audiodevout",3700,5000,126,87,0,[17]],["Adaphnia","CHOP:audiomovie",3400,4875,130,90,0,[]],["AdaphniaO","CHOP:audiodevout",3700,4875,126,87,0,[20]],["Adiaphanosoma","CHOP:audiomovie",3400,4750,130,90,0,[]],["AdiaphanosomaO","CHOP:audiodevout",3700,4750,126,87,0,[22]],["Adinoflagellate","CHOP:audiomovie",3400,4400,130,90,0,[]],["AdinoflagellateO","CHOP:audiodevout",3700,4400,126,87,0,[24]],["Aeudiaptomus1","CHOP:audiomovie",3400,4275,130,90,0,[]],["Aeudiaptomus2","CHOP:audiomovie",3400,4150,130,90,0,[]],["AeudiaptomusO1","CHOP:audiodevout",3700,4275,126,87,0,[26]],["AeudiaptomusO2","CHOP:audiodevout",3700,4150,126,87,0,[27]],["Agymnodinium","CHOP:audiomovie",3400,3800,130,90,0,[]],["AgymnodiniumO","CHOP:audiodevout",3700,3800,126,87,0,[30]],["Akellicottia","CHOP:audiomovie",3350,3400,130,90,0,[]],["AkellicottiaO","CHOP:audiodevout",3675,3400,126,87,0,[32]],["Akeratella","CHOP:audiomovie",3350,3275,130,90,0,[]],["AkeratellaO","CHOP:audiodevout",3675,3275,126,87,0,[34]],["Aleptodora","CHOP:audiomovie",3350,3154,130,86,0,[]],["AleptodoraO","CHOP:audiodevout",3675,3150,126,87,0,[36]],["Amallomonas","CHOP:audiomovie",3346,3025,134,95,0,[]],["AmallomonasO","CHOP:audiodevout",3675,3025,126,87,0,[38]],["Anauplius1","CHOP:audiomovie",3350,2900,130,90,0,[]],["Anauplius2","CHOP:audiomovie",3350,2775,130,90,0,[]],["Anauplius3","CHOP:audiomovie",3350,2650,130,90,0,[]],["AnaupliusO1","CHOP:audiodevout",3650,2900,126,87,0,[40]],["AnaupliusO2","CHOP:audiodevout",3650,2775,126,87,0,[41]],["AnaupliusO3","CHOP:audiodevout",3650,2650,126,87,0,[42]],["Aparadileptus","CHOP:audiomovie",3350,2375,130,90,0,[]],["AparadileptusO","CHOP:audiodevout",3650,2375,126,87,0,[46]],["Aperidinium","CHOP:audiomovie",3350,2000,130,90,0,[]],["AperidiniumO","CHOP:audiodevout",3650,2000,126,87,0,[48]],["Arotifer1","CHOP:audiomovie",3350,1875,130,90,0,[]],["Arotifer2","CHOP:audiomovie",3350,1750,130,90,0,[]],["ArotiferO1","CHOP:audiodevout",3650,1750,126,87,0,[51]],["ArotiferO2","CHOP:audiodevout",3650,1875,126,87,0,[50]],["Atintinnid","CHOP:audiomovie",3350,1375,130,90,0,[]],["AtintinnidO","CHOP:audiodevout",3650,1375,126,87,0,[54]],["Hands_Check","CHOP:constant",7400,1975,130,90,0,[]],["Hands_Transition","DAT:execute",7700,2150,130,90,0,[]],["K_Transition","DAT:chopexec",7425,2250,130,90,0,[]],["S3","TOP:over",7500,850,130,90,0,[182,136]],["S4","TOP:over",5250,2450,130,90,0,[299,137]],["aphanizomenon","TOP:moviefilein",3025,7800,130,105,0,[]],["aphanizomenon_0_5x","TOP:level",3175,7800,130,105,0,[61]],["arduino","DAT:serial",2700,900,130,90,0,[]],["asplanchna","TOP:moviefilein",3025,7675,130,105,0,[]],["asplanchna_0_5x","TOP:level",3175,7675,130,105,0,[64]],["asterionella","TOP:moviefilein",3025,7550,130,105,0,[]],["asterionella1","TOP:moviefilein",3025,7425,130,105,0,[]],["asterionella_0_5x","TOP:level",3175,7550,130,105,0,[66]],["asterionella_0_5x1","TOP:level",3175,7425,130,105,0,[67]],["audiodevout1","CHOP:audiodevout",10350,225,130,90,0,[71]],["audiofilein1","CHOP:audiofilein",10075,225,130,90,1,[]],["aulacoseira","TOP:moviefilein",3025,7150,130,105,0,[]],["aulacoseira_5x","TOP:level",3175,7150,130,105,0,[72]],["bloom2","TOP:bloom",2850,-325,130,105,0,[257]],["bloom3","TOP:bloom",5150,900,130,105,0,[122]],["bloom4","TOP:bloom",7225,2575,130,105,0,[123]],["blur1","TOP:blur",6800,1850,115,90,0,[378]],["blur2","TOP:blur",6775,1225,130,90,1,[254]],["blur3","TOP:blur",8375,2450,130,90,0,[367]],["blur4","TOP:blur",8375,2250,130,90,0,[368]],["blur5","TOP:blur",1800,225,130,90,0,[328]],["bosmina","TOP:moviefilein",3025,7025,130,105,0,[]],["bosmina_0_5x","TOP:level",3175,7025,130,105,0,[82]],["box1","SOP:box",3825,550,130,90,0,[]],["bufferA","TOP:glsl",8500,75,130,90,0,[]],["bufferB","TOP:glsl",8850,75,130,90,0,[85]],["bufferC","TOP:glsl",9175,75,292,163,0,[86]],["cam1","COMP:cam",1525,0,160,130,0,[]],["cam2","COMP:cam",4825,100,495,415,0,[]],["centric_diatom","TOP:moviefilein",3025,6900,130,105,0,[]],["centric_diatom_5x","TOP:level",3175,6900,130,105,0,[90]],["ceratium","TOP:moviefilein",3025,6775,130,105,0,[]],["ceratium_0_5x","TOP:level",3175,6775,130,105,0,[92]],["chaoborus","TOP:moviefilein",2875,6650,130,105,0,[]],["chaoborus_0_5x","TOP:level",3025,6650,130,105,0,[94]],["chlorophyte","TOP:moviefilein",3025,6500,130,105,0,[]],["chlorophyte_5x","TOP:level",3175,6500,130,105,0,[96]],["chopexec1","DAT:chopexec",4225,1200,183,181,0,[]],["chopexec2","DAT:chopexec",6200,2000,130,90,0,[]],["chopexec3","DAT:chopexec",6700,1325,130,90,0,[]],["chopexec4","DAT:chopexec",6850,1325,130,90,0,[]],["chopexec5","DAT:chopexec",8025,900,130,90,0,[]],["chroma1","TOP:chroma",6025,1550,130,105,0,[285]],["chroococcales","TOP:moviefilein",3025,6375,130,105,0,[]],["chroococcales_5x","TOP:level",3175,6375,130,105,0,[104]],["chydorus","TOP:moviefilein",3025,6250,130,105,0,[]],["chydorus_0_5x","TOP:level",3175,6250,130,105,0,[106]],["ciliate","TOP:moviefilein",3025,6125,130,105,0,[]],["ciliate_5x","TOP:level",3175,6125,130,105,0,[108]],["circle1","TOP:circle",7525,2625,130,90,0,[]],["circle1_data","CHOP:constant",7875,2675,130,90,0,[]],["circle2","TOP:circle",7525,2500,130,90,0,[]],["circle2_data","CHOP:constant",7875,2425,130,90,0,[]],["circle3","TOP:circle",8050,2400,107,82,0,[]],["circle4","TOP:circle",8050,2275,130,90,0,[]],["closterium","TOP:moviefilein",3025,6000,130,105,0,[]],["closterium_5x","TOP:level",3175,6000,130,105,0,[116]],["col","TOP:math",3700,-400,130,105,0,[227]],["coleps","TOP:moviefilein",3025,5875,130,105,0,[]],["coleps_5x","TOP:level",3175,5877,128,103,0,[119]],["comp1","TOP:comp",4125,100,130,105,0,[330,246]],["comp2","TOP:comp",4975,1450,130,90,0,[377,298,355,354,375]],["comp3","TOP:comp",7075,2575,130,90,0,[358,361,249,346,347,324,250,353]],["comp4","TOP:comp",6975,1600,130,90,0,[76,75]],["comp5","TOP:comp",8600,2350,130,90,0,[79,80,357,359,360,345]],["comp6","TOP:comp",4700,2425,130,90,0,[348,349,351,369,373]],["comp7","TOP:comp",7975,1250,130,90,0,[259,247,248]],["constant1","MAT:constant",1525,525,130,90,0,[]],["constant1_top","TOP:constant",2200,0,130,105,0,[]],["constant2","MAT:constant",1525,-475,130,90,0,[]],["constant3","CHOP:constant",3900,2325,130,90,0,[]],["constant4","CHOP:constant",3350,350,130,90,0,[]],["constant5","MAT:constant",4300,550,130,90,0,[]],["constant6","TOP:constant",2925,-100,310,285,0,[387]],["constant7","MAT:constant",1250,350,130,90,0,[]],["constant8","TOP:constant",7225,750,130,90,0,[]],["constant9","TOP:constant",5000,2275,130,90,0,[]],["cosmarium","TOP:moviefilein",3025,5750,130,105,0,[]],["cosmarium_5x","TOP:level",3175,5750,130,105,0,[138]],["count1","CHOP:count",7525,2100,130,90,0,[241]],["creature_mat","MAT:glsl",3325,825,130,90,0,[]],["creature_mat_pixel","DAT:text",3485,705,130,90,0,[]],["creature_mat_vert","DAT:text",3309,705,146,111,0,[]],["creatures_script","CHOP:script",3325,1094,130,96,0,[]],["creatures_script_callbacks","DAT:text",3325,980,130,90,0,[]],["crop1","TOP:crop",10450,525,130,90,0,[226]],["crop2","TOP:crop",10450,400,130,90,0,[226]],["cross2","TOP:cross",7050,1750,130,90,0,[378,379]],["cryptophyte","TOP:moviefilein",3025,5625,130,105,0,[]],["cryptophyte_5x","TOP:level",3175,5625,130,105,0,[149]],["cyanobacteria_colonial","TOP:moviefilein",3025,5500,130,105,0,[]],["cyanobacteria_colonial_5x","TOP:level",3175,5500,130,105,0,[151]],["cyanobacteria_filament","TOP:moviefilein",3025,5375,130,105,0,[]],["cyanobacteria_filament1","TOP:moviefilein",3025,5250,130,105,0,[]],["cyanobacteria_filament_0_5x","TOP:level",3175,5375,130,105,0,[153]],["cyanobacteria_filament_5x","TOP:level",3175,5250,130,105,0,[154]],["cyclops1","TOP:moviefilein",3025,5125,130,105,0,[]],["cyclops2","TOP:moviefilein",3025,5000,130,105,0,[]],["cyclops_0_5x1","TOP:level",3175,5125,130,105,0,[157]],["cyclops_0_5x2","TOP:level",3175,5000,130,105,0,[158]],["daphnia","TOP:moviefilein",3025,4875,130,105,0,[]],["daphnia_0_5x","TOP:level",3175,4875,130,105,0,[161]],["diaphanosoma","TOP:moviefilein",3025,4750,130,105,0,[]],["diaphanosoma_0_5x","TOP:level",3175,4750,130,105,0,[163]],["diatom","TOP:moviefilein",3025,4650,130,105,0,[]],["diatom_0_5x","TOP:level",3175,4650,130,105,0,[165]],["dinobryon","TOP:moviefilein",3025,4525,130,105,0,[]],["dinobryon_0_5x","TOP:level",3175,4525,130,105,0,[167]],["dinoflagellate","TOP:moviefilein",3025,4400,130,105,0,[]],["dinoflagellate_5x","TOP:level",3175,4400,130,105,0,[169]],["displace1","TOP:displace",6025,1050,130,105,0,[296,275]],["eudiaptomus1","TOP:moviefilein",3025,4275,130,105,0,[]],["eudiaptomus2","TOP:moviefilein",3025,4150,130,105,0,[]],["eudiaptomus_0_5x1","TOP:level",3175,4275,130,105,0,[172]],["eudiaptomus_0_5x2","TOP:level",3175,4150,130,105,0,[173]],["execute1","DAT:execute",3025,1025,130,90,0,[]],["execute2","DAT:execute",3975,1000,130,90,0,[]],["field_script","CHOP:script",500,250,130,90,0,[]],["field_script_callbacks","DAT:text",500,130,130,90,0,[]],["fit1","TOP:fit",7550,1325,130,90,0,[273]],["fit2","TOP:fit",7575,1225,130,90,0,[184]],["flip1","TOP:flip",6925,1050,130,90,0,[78]],["flip2","TOP:flip",6200,525,130,90,0,[286]],["flip3","TOP:flip",7425,1225,130,90,0,[274]],["flip4","TOP:flip",2200,325,130,90,1,[295]],["flow_blur","TOP:blur",2150,-750,168,143,0,[187]],["flow_tex","TOP:chopto",1350,-750,130,105,0,[]],["flow_tex_chop","CHOP:script",1150,-800,130,90,0,[]],["flow_tex_chop_callbacks","DAT:text",1150,-920,130,90,0,[]],["fragilaria","TOP:moviefilein",3025,4025,130,105,0,[]],["fragilaria1","TOP:moviefilein",3025,3900,130,105,0,[]],["fragilaria_0_5x","TOP:level",3175,4025,130,105,0,[190]],["fragilaria_0_5x1","TOP:level",3175,3900,130,105,0,[191]],["geo1","COMP:geo",1600,175,160,130,0,[]],["geo2","COMP:geo",1575,-300,160,130,0,[]],["geo3","COMP:geo",3500,1100,160,130,0,[]],["geo4","COMP:geo",4500,575,160,130,0,[]],["geo5","COMP:geo",1300,200,160,130,0,[]],["glsl1","TOP:glsl",6150,1800,130,90,1,[]],["glsl1_compute","DAT:text",2995,-770,130,90,0,[]],["glsl1_compute1","DAT:text",6470,1680,130,90,0,[]],["glsl1_compute2","DAT:text",9175,-25,130,90,0,[]],["glsl1_compute3","DAT:text",9500,-50,130,90,0,[]],["glsl1_compute4","DAT:text",9825,-50,130,90,0,[]],["glsl1_info","DAT:info",2835,-770,130,90,0,[]],["glsl1_info1","DAT:info",3645,705,130,90,0,[]],["glsl1_info2","DAT:info",6310,1680,109,83,0,[]],["glsl1_info3","DAT:info",9000,-50,130,90,0,[]],["glsl1_info4","DAT:info",9325,-50,130,90,0,[]],["glsl1_info5","DAT:info",9650,-50,130,90,0,[]],["glsl1_pixel","DAT:text",2675,-770,130,90,0,[]],["glsl1_pixel1","DAT:text",6150,1680,130,90,0,[]],["glsl1_pixel2","DAT:text",8850,-25,130,90,0,[]],["glsl1_pixel3","DAT:text",9175,-50,130,90,0,[]],["glsl1_pixel4","DAT:text",9500,-50,130,90,0,[]],["glsl2_compute","DAT:text",8825,-25,130,90,0,[]],["glsl2_info","DAT:info",8675,-25,130,90,0,[]],["glsl2_pixel","DAT:text",8450,-150,238,215,0,[]],["gymnodinium","TOP:moviefilein",3025,3775,130,105,0,[]],["gymnodinium_5x","TOP:level",3175,3775,130,105,0,[219]],["hormidium_like","TOP:moviefilein",3025,3650,130,105,0,[]],["hormidium_like_5x","TOP:level",3175,3650,130,105,0,[221]],["hsvadj1","TOP:hsvadj",5800,425,130,105,0,[255]],["hsvadj2","TOP:hsvadj",5700,1350,130,105,0,[256]],["hsvadj3","TOP:hsvadj",6450,1850,130,105,0,[258]],["hsvadj4","TOP:hsvadj",10175,425,130,90,0,[251]],["hub","TOP:null",3500,-175,126,101,0,[134]],["hydra","TOP:moviefilein",3025,3525,130,105,0,[]],["hydra_0_5x","TOP:level",3175,3525,130,105,0,[228]],["image","TOP:glsl",9500,75,130,90,0,[85,86,87]],["inbackground1","CHOP:audiofilein",2500,7825,130,90,0,[]],["inbackground2","CHOP:audiofilein",2500,7700,130,90,0,[]],["info1","DAT:info",8500,200,130,90,0,[]],["info2","DAT:info",9500,200,130,90,0,[]],["joint_status","DAT:text",500,-625,130,90,0,[]],["json1","DAT:json",3500,1250,384,91,0,[312]],["kellicottia","TOP:moviefilein",3025,3400,130,105,0,[]],["kellicottia_0_5x","TOP:level",3175,3400,130,105,0,[237]],["keratella","TOP:moviefilein",3025,3275,130,105,0,[]],["keratella_0_5x","TOP:level",3175,3275,130,105,0,[239]],["keyboardin1","CHOP:keyboardin",7325,2100,130,90,0,[]],["keyboardin2","CHOP:keyboardin",7850,1000,130,90,0,[]],["lag1","CHOP:lag",7825,1850,130,90,0,[268]],["leptodora","TOP:moviefilein",3025,3150,130,105,0,[]],["leptodora_0_5x","TOP:level",3175,3150,130,105,0,[244]],["level1","TOP:level",4200,-75,130,105,0,[283]],["level10","TOP:level",7700,1325,130,90,0,[180]],["level11","TOP:level",7700,1125,130,90,0,[370]],["level13","TOP:level",7075,2300,130,90,0,[371]],["level14","TOP:level",7150,2425,130,90,0,[372]],["level15","TOP:level",9975,400,130,90,0,[287]],["level2","TOP:level",3900,-275,130,105,0,[267]],["level3","TOP:level",3900,-150,130,105,0,[266]],["level4","TOP:level",6500,1275,130,105,0,[284]],["level5","TOP:level",5650,525,130,105,0,[327]],["level6","TOP:level",5550,1450,130,105,0,[329]],["level7","TOP:level",6200,1525,130,90,0,[103]],["level8","TOP:level",6300,1800,130,90,1,[199]],["level9","TOP:level",7700,1225,130,90,0,[181]],["light1","COMP:light",1725,350,160,130,0,[]],["light2","COMP:light",4725,575,160,130,0,[]],["mallomonas","TOP:moviefilein",3025,3025,130,105,0,[]],["mallomonas_5x","TOP:level",3175,3025,130,105,0,[262]],["math1","TOP:math",3700,175,130,105,0,[319]],["math2","TOP:math",3700,50,130,105,0,[321]],["math3","TOP:math",3700,-150,130,105,0,[227]],["math4","TOP:math",3700,-275,130,105,0,[227]],["math5","CHOP:math",7575,1750,130,90,0,[56]],["monitors1","DAT:monitors",10300,700,130,90,0,[]],["monitors1_callbacks","DAT:text",10300,580,130,90,0,[]],["motor_controller","DAT:execute",2900,900,130,90,0,[]],["mousein1","CHOP:mousein",225,300,130,90,0,[]],["moviefilein1","TOP:moviefilein",7425,1325,107,104,0,[]],["moviefilein2","TOP:moviefilein",7275,1225,130,90,0,[]],["moviefilein3","TOP:moviefilein",5850,950,130,72,0,[]],["moviefilein4","TOP:moviefilein",7425,1125,130,90,1,[]],["nauplius","TOP:moviefilein",3025,2900,130,105,0,[]],["nauplius1","TOP:moviefilein",3025,2775,130,105,0,[]],["nauplius2","TOP:moviefilein",3025,2650,130,105,0,[]],["nauplius_0_5x","TOP:level",3175,2900,130,105,0,[277]],["nauplius_0_5x1","TOP:level",3175,2775,130,105,0,[278]],["nauplius_0_5x2","TOP:level",3175,2650,130,105,0,[279]],["noise2","TOP:noise",4075,-206,136,111,0,[]],["noise47","TOP:noise",6425,1400,130,105,0,[294]],["noise48","TOP:noise",5850,1500,130,105,0,[224]],["noise49","TOP:noise",6000,425,130,105,0,[223]],["noise50","TOP:noise",9800,475,130,105,0,[230]],["null1","CHOP:null",3525,350,130,90,0,[132]],["organisms_CHOP","CHOP:datto",3925,1209,130,254,0,[]],["oscin1","CHOP:oscin",2375,725,130,90,0,[]],["outbackground1","CHOP:audiodevout",2675,7825,126,87,0,[231]],["outbackground2","CHOP:audiodevout",2675,7700,126,87,0,[232]],["over1","TOP:over",2375,175,130,105,0,[185,129]],["over2","TOP:over",7550,1525,130,90,0,[125,300]],["over3","TOP:over",2025,175,130,90,0,[81,326]],["over4","TOP:over",5700,1075,130,105,0,[74,183]],["over5","TOP:over",7300,1600,130,90,0,[124,148]],["over6","TOP:over",4875,950,130,105,0,[354,343]],["over7","TOP:over",4875,2425,130,90,0,[126,379]],["over8","TOP:over",7400,1450,117,119,0,[127,297]],["pandorina","TOP:moviefilein",3025,2525,130,105,0,[]],["pandorina_5x","TOP:level",3175,2525,130,105,0,[301]],["paradileptus","TOP:moviefilein",3025,2375,130,105,0,[]],["paradileptus_0_5x","TOP:level",3175,2375,130,105,0,[303]],["particles_script","CHOP:script",875,-300,130,90,0,[]],["pediastrum","TOP:moviefilein",3025,2250,130,105,0,[]],["pediastrum_5x","TOP:level",3175,2250,130,105,0,[306]],["pennate_diatom","TOP:moviefilein",3025,2125,130,105,0,[]],["pennate_diatom_5x","TOP:level",3175,2125,130,105,0,[308]],["peridinium","TOP:moviefilein",3025,2000,130,105,0,[]],["peridinium_5x","TOP:level",3175,2000,130,105,0,[310]],["plankton_data","DAT:filein",3325,1253,130,87,0,[]],["plankton_worker","DAT:text",3025,1125,130,90,0,[]],["pos","TOP:null",4325,125,130,105,0,[121]],["ramp1","TOP:ramp",1375,-200,130,105,0,[]],["ramp1_keys","DAT:table",1375,-320,130,90,0,[]],["ramp2","TOP:ramp",1450,675,130,105,0,[]],["ramp2_keys","DAT:table",1450,555,130,90,0,[]],["ramp3","TOP:ramp",3525,175,130,105,0,[]],["ramp3_keys","DAT:table",3525,50,130,90,0,[]],["ramp4","TOP:ramp",3525,50,130,105,0,[]],["ramp4_keys","DAT:table",3525,-75,130,90,0,[]],["rectangle1","TOP:rectangle",4725,1600,130,90,0,[]],["rectangle2","TOP:rectangle",6750,2725,130,90,0,[]],["rectangle3","TOP:rectangle",4525,2725,130,90,0,[]],["render1","TOP:render",1875,25,130,105,0,[]],["render2","TOP:render",5450,400,130,105,0,[]],["render3","TOP:render",1425,375,130,90,0,[]],["render_creatures","TOP:render",5175,1225,130,105,0,[]],["reorder1","TOP:reorder",3925,125,130,105,0,[264,265,253,252]],["rotifer1","TOP:moviefilein",3025,1875,130,105,0,[]],["rotifer2","TOP:moviefilein",3025,1750,130,105,0,[]],["rotifer_0_5x1","TOP:level",3175,1875,130,105,0,[331]],["rotifer_5x","TOP:level",3175,1750,130,105,0,[332]],["sampler2D","TOP:layout",3875,2150,155,130,0,[62,65,69,68,73,83,91,93,95,97,105,107,109,117,120,139,150,152,155,156,159,160,162,164,166,168,170,174,175,193,192,220,222,229,238,240,245,263,280,281,282,302,304,307,309,311,333,334,340,342,365,384]],["script1_callbacks","DAT:text",875,-420,130,90,0,[]],["serial1_callbacks","DAT:text",2700,800,130,90,0,[]],["shared_module","DAT:text",500,-525,130,90,0,[]],["staurastrum","TOP:moviefilein",3025,1625,130,105,0,[]],["staurastrum_5x","TOP:level",3175,1625,130,105,0,[339]],["synura","TOP:moviefilein",3025,1500,130,105,0,[]],["synura_5x","TOP:level",3175,1500,130,105,0,[341]],["text1","TOP:text",4400,950,130,105,0,[]],["text10","TOP:text",6775,2300,130,105,0,[]],["text11","TOP:text",8375,2800,130,90,0,[]],["text12","TOP:text",6925,2050,130,105,0,[]],["text13","TOP:text",7050,1850,130,105,0,[]],["text14","TOP:text",4525,2425,130,105,0,[]],["text15","TOP:text",4525,2300,130,105,0,[]],["text16","TOP:text",6850,2425,130,105,0,[]],["text17","TOP:text",4525,2550,130,105,0,[]],["text18","TOP:text",4950,2600,130,105,0,[]],["text19","TOP:text",7075,2000,130,105,0,[]],["text2","TOP:text",4625,1175,130,105,0,[]],["text3","TOP:text",4700,1050,130,105,0,[]],["text4","TOP:text",4625,1350,130,105,0,[]],["text5","TOP:text",8375,2925,130,90,0,[]],["text6","TOP:text",6625,2250,130,105,0,[]],["text7","TOP:text",8375,2675,130,90,0,[]],["text8","TOP:text",8375,2575,130,90,0,[]],["text9","TOP:text",6625,2125,130,105,0,[]],["text_transition","CHOP:constant",7300,1725,130,90,0,[]],["textboard","DAT:text",3075,800,195,171,0,[]],["tintinnid","TOP:moviefilein",3025,1375,130,105,0,[]],["tintinnid_5x","TOP:level",3175,1375,130,105,0,[364]],["transform1","SOP:transform",4025,550,130,90,0,[84]],["transform10","TOP:transform",8225,2450,130,90,0,[114]],["transform11","TOP:transform",8225,2250,130,90,0,[115]],["transform12","TOP:transform",4700,2725,130,105,0,[325]],["transform13","TOP:transform",7575,1125,130,90,0,[276]],["transform14","TOP:transform",6925,2300,130,90,0,[344]],["transform15","TOP:transform",7000,2425,130,90,0,[350]],["transform16","TOP:transform",5050,2750,130,90,0,[352]],["transform2","TOP:transform",10650,525,130,90,0,[146]],["transform3","TOP:transform",4900,1600,130,105,0,[323]],["transform4","TOP:transform",10650,400,130,90,0,[147]],["transform5","TOP:transform",4750,1475,130,90,0,[356]],["transform6","TOP:transform",6625,1850,130,90,0,[225]],["transform7","TOP:transform",6450,1700,130,90,0,[171]],["transform8","TOP:transform",7675,2625,130,90,0,[110]],["transform9","TOP:transform",7675,2500,130,90,0,[112]],["transition_ctrl","CHOP:constant",7275,1850,130,90,0,[]],["uroglena","TOP:moviefilein",3025,1250,130,105,0,[]],["uroglena_0_5x","TOP:level",3175,1250,130,105,0,[383]],["viewer","COMP:container",2425,375,160,155,0,[]],["visible_species","DAT:text",3975,900,130,90,0,[]],["water_shader","TOP:glsl",2675,-650,130,105,0,[293,186]],["window1","COMP:window",5325,2625,160,130,0,[]],["window4","COMP:window",7675,775,160,130,0,[]],["windowLeft","COMP:window",10825,525,160,130,0,[]],["windowRight","COMP:window",10825,375,160,130,0,[]]];
+    (function () {
+      const canvas = document.getElementById('netCanvas');
+      const g = canvas.getContext('2d');
+      const infoEl = document.getElementById('netInfo');
+      const FAMS = ['TOP', 'CHOP', 'DAT', 'COMP', 'MAT', 'SOP'];
+      const NAME = TD_NODES.map((n) => n[0]);
+      const at = {}; NAME.forEach((n, i) => { at[n] = i; });
+      const fam = TD_NODES.map((n) => n[1].split(':')[0]);
+      const outs = TD_NODES.map(() => []);
+      TD_NODES.forEach((n, i) => n[7].forEach((s) => outs[s].push(i)));
+      const wires = [];                                            // [from, to, input number, number of inputs]
+      TD_NODES.forEach((n, i) => n[7].forEach((s, k) => wires.push([s, i, k, n[7].length])));
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      TD_NODES.forEach((n) => { minX = Math.min(minX, n[2]); maxX = Math.max(maxX, n[2] + n[4]); minY = Math.min(minY, n[3]); maxY = Math.max(maxY, n[3] + n[5]); });
+
+      // ---- the functional groups (my reading of the names and of the scripts) ----
+      const names = (list) => list.map((n) => at[n]).filter((i) => i !== undefined);
+      const spriteSet = new Set([at.sampler2D]);
+      TD_NODES[at.sampler2D][7].forEach((l) => { spriteSet.add(l); TD_NODES[l][7].forEach((m) => spriteSet.add(m)); });
+      const GROUPS = [
+        { id: 'data', label: 'Data', text: 'A thread downloads the latest Aquascope record every five minutes; the JSON is read here and becomes one channel per class.',
+          set: new Set(names(['plankton_worker', 'execute1', 'plankton_data', 'json1', 'organisms_CHOP', 'visible_species', 'execute2'])) },
+        { id: 'sprites', label: 'Sprites', text: 'The 52 animated creatures: a movie file for each, a level node to set its brightness, and one layout that gathers them into the sprite sheet.',
+          set: spriteSet },
+        { id: 'creatures', label: 'Creatures', text: 'Birth, motion and drawing of the creatures: a script decides who is born and where each one swims, and a material draws the right sprite.',
+          set: new Set(names(['creatures_script', 'creatures_script_callbacks', 'creature_mat', 'creature_mat_pixel', 'creature_mat_vert', 'geo3', 'constant3', 'render_creatures'])) },
+        { id: 'flow', label: 'Flow', text: 'The flow field and what shapes it: the shared module, the field script, the texture of the current and the two circular obstacles.',
+          set: new Set(names(['shared_module', 'field_script', 'field_script_callbacks', 'flow_tex_chop', 'flow_tex_chop_callbacks', 'flow_tex', 'flow_blur', 'particles_script', 'script1_callbacks', 'joint_status', 'circle1', 'circle1_data', 'circle2', 'circle2_data', 'transform8', 'transform9'])) },
+        { id: 'hands', label: 'Hands', text: 'Hand tracking from the Leap Motion (and the mouse as a stand-in), and the state of the scene: it wakes when both hands move for about two seconds and rests after about fifteen without them; the keyboard can force it.',
+          set: new Set(names(['oscin1', 'mousein1', 'viewer', 'keyboardin1', 'keyboardin2', 'count1', 'Hands_Check', 'Hands_Transition', 'K_Transition', 'math5', 'lag1', 'transition_ctrl', 'text_transition', 'chopexec2', 'chopexec3', 'chopexec4', 'chopexec5'])) },
+        { id: 'haptics', label: 'Haptics', text: 'The serial link to the Arduino, the script that sends a power to each pin when a point of the hands touches a creature, and the text panel that lists the contacts.',
+          set: new Set(names(['arduino', 'serial1_callbacks', 'motor_controller', 'textboard'])) },
+        { id: 'sound', label: 'Sound', text: 'One sound per species, played while at least one creature of that species is alive and only while the scene is active, plus the background sound.',
+          set: new Set(TD_NODES.map((n, i) => i).filter((i) => TD_NODES[i][1].startsWith('CHOP:audio'))) },
+        { id: 'image', label: 'Image', text: 'Everything that draws: the water shader, the renders, blurs and glows, the introductory texts and the outputs to the screens.', set: new Set() }
+      ];
+      const groupOf = TD_NODES.map(() => GROUPS.length - 1);
+      GROUPS.forEach((gr, k) => { if (gr.id !== 'image') gr.set.forEach((i) => { groupOf[i] = k; }); });
+      GROUPS[GROUPS.length - 1].set = new Set(groupOf.map((k, i) => (k === GROUPS.length - 1 ? i : -1)).filter((i) => i >= 0));
+
+      // ---- entries and exits: what comes into the patch from outside, and where it goes out ----
+      const PORTS = [
+        { io: 'in', label: 'Aquascope data · Datalakes', text: 'Data in: the latest record of the Aquascope dataset, downloaded from the Datalakes API.', nodes: names(['plankton_worker']) },
+        { io: 'in', label: 'Hands · Leap Motion (OSC)', text: 'Hands in: the position of the palm and fingers of both hands, sent as OSC messages on port 7000.', nodes: names(['oscin1']) },
+        { io: 'in', label: 'Mouse and keyboard', text: 'The mouse stands in for the hands, and the keyboard can force the state of the scene or spawn every creature.', nodes: names(['mousein1', 'keyboardin1', 'keyboardin2']) },
+        { io: 'in', label: 'Animations and sounds · files', text: 'The 52 animated creatures, video files that also carry their sound.', nodes: [...spriteSet].filter((i) => TD_NODES[i][1] === 'TOP:moviefilein') },
+        { io: 'in', label: 'Background sound · files', text: 'The ambient underwater sound, read from audio files.', nodes: names(['audiofilein1', 'inbackground1', 'inbackground2']) },
+        { io: 'out', label: 'Gloves · Arduino (USB serial)', text: 'Out to the Arduino: one line per pin, pin:power, at 500,000 baud.', nodes: names(['arduino']) },
+        { io: 'out', label: 'Projectors · windows', text: 'Out to the projectors: four windows, one per output of the projection.', nodes: names(['window1', 'window4', 'windowLeft', 'windowRight']) },
+        { io: 'out', label: 'Sound · speakers', text: 'Out to the speakers and headphones: one audio output per creature sound, plus the background.',
+          nodes: TD_NODES.map((n, i) => i).filter((i) => TD_NODES[i][1] === 'CHOP:audiodevout') }
+      ];
+
+      let W = 1, H = 1, dpr = 1, sc = 0.1, tx = 0, ty = 0, hover = -1, hoverPort = -1, hoverSet = null, sel = -1, filter = null, showPorts = true, fitted = true, dirty = true;
+      const toX = (x) => x * sc + tx, toY = (y) => ty - y * sc;           // network -> screen
+      const portBoxes = [];
+
+      // When the window is resized the view follows: if it still shows the whole patch it is fitted again, otherwise
+      // the point at the centre stays at the centre and the scale changes with the size, so you never get lost.
+      function resize() {
+        const r = canvas.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return;
+        const oldW = W, oldH = H, first = oldW === 1;
+        dpr = window.devicePixelRatio || 1;
+        W = r.width; H = r.height;
+        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (first || fitted) fit();
+        else {
+          const cx = (oldW / 2 - tx) / sc, cy = (ty - oldH / 2) / sc, k = Math.min(W / oldW, H / oldH);
+          sc = Math.min(3, Math.max(0.03, sc * k));
+          tx = W / 2 - cx * sc; ty = H / 2 + cy * sc;
+        }
+        dirty = true;
+      }
+      function fit() {
+        const m = 24, bw = maxX - minX, bh = maxY - minY;
+        const room = showPorts ? Math.min(240, W * 0.22) : 0;           // the labels of the entries and exits need room at the sides
+        sc = Math.min((W - 2 * m - 2 * room) / bw, (H - 2 * m) / bh);
+        tx = (W - bw * sc) / 2 - minX * sc;
+        ty = (H + bh * sc) / 2 + minY * sc;
+        fitted = true; dirty = true;
+      }
+      function zoomAt(px, py, f) {
+        const ns = Math.min(3, Math.max(0.03, sc * f)), k = ns / sc;
+        tx = px - (px - tx) * k; ty = py - (py - ty) * k; sc = ns; fitted = false; dirty = true;
+      }
+
+      // one node in the style of its family (black and white): TOP plain, CHOP dashed, DAT shaded, COMP double,
+      // MAT dotted, SOP with a heavy top edge. A bypassed node has a slash through it.
+      function nodeShape(c, f, x, y, w, h, alpha, bypass) {
+        c.globalAlpha = alpha;
+        c.lineWidth = 1;
+        c.fillStyle = '#141414'; c.fillRect(x, y, w, h);
+        if (f === 'DAT') { c.fillStyle = 'rgba(255,255,255,0.2)'; c.fillRect(x, y, w, h); }
+        c.strokeStyle = '#fff';
+        c.setLineDash(f === 'CHOP' ? [3, 2] : f === 'MAT' ? [1, 2] : []);
+        c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+        c.setLineDash([]);
+        if (f === 'COMP' && w > 10 && h > 8) c.strokeRect(x + 3.5, y + 3.5, w - 7, h - 7);
+        if (f === 'SOP') { c.lineWidth = 2.5; c.beginPath(); c.moveTo(x, y + 1.25); c.lineTo(x + w, y + 1.25); c.stroke(); c.lineWidth = 1; }
+        if (bypass) { c.beginPath(); c.moveTo(x, y + h); c.lineTo(x + w, y); c.stroke(); }
+        c.globalAlpha = 1;
+      }
+      const center = (i) => [toX(TD_NODES[i][2] + TD_NODES[i][4] / 2), toY(TD_NODES[i][3] + TD_NODES[i][5] / 2)];
+
+      function draw() {
+        dirty = false;
+        g.clearRect(0, 0, W, H);
+        const foc = hover >= 0 ? hover : sel;
+        const near = new Set();
+        if (foc >= 0) { near.add(foc); TD_NODES[foc][7].forEach((s) => near.add(s)); outs[foc].forEach((t) => near.add(t)); }
+        const lit = hoverSet ? hoverSet.set : filter ? filter.set : (hoverPort >= 0 ? new Set(PORTS[hoverPort].nodes) : null);
+        // the wires: left to right, from the right side of a node to the left side of the next
+        const quiet = new Path2D(), strong = new Path2D();
+        for (const [a, b, k, n] of wires) {
+          const A = TD_NODES[a], B = TD_NODES[b];
+          const x1 = toX(A[2] + A[4]), y1 = toY(A[3] + A[5] / 2), x2 = toX(B[2]), y2 = toY(B[3] + B[5] / 2 + (n > 1 ? (k - (n - 1) / 2) * Math.min(14, B[5] * 0.8 / (n - 1)) : 0));
+          if (Math.max(x1, x2) < -20 || Math.min(x1, x2) > W + 20 || Math.max(y1, y2) < -20 || Math.min(y1, y2) > H + 20) continue;
+          const d = Math.max(16, Math.abs(x2 - x1) * 0.4);
+          const on = (foc >= 0 && (a === foc || b === foc)) || (lit && lit.has(a) && lit.has(b));
+          const p = on ? strong : quiet;
+          p.moveTo(x1, y1); p.bezierCurveTo(x1 + d, y1, x2 - d, y2, x2, y2);
+        }
+        g.lineWidth = 1;
+        g.strokeStyle = 'rgba(255,255,255,' + (foc >= 0 || lit ? 0.07 : 0.2) + ')'; g.stroke(quiet);
+        g.strokeStyle = 'rgba(255,255,255,0.9)'; g.stroke(strong);
+        // the nodes
+        const labels = TD_NODES[0][4] * sc >= 62;
+        for (let i = 0; i < TD_NODES.length; i++) {
+          const n = TD_NODES[i], x = toX(n[2]), y = toY(n[3] + n[5]), w = n[4] * sc, h = n[5] * sc;
+          if (x > W || y > H || x + w < 0 || y + h < 0) continue;
+          let alpha = 0.7;
+          if (lit) alpha = lit.has(i) ? 1 : 0.13;
+          else if (foc >= 0) alpha = near.has(i) ? 1 : 0.25;
+          if (i === hover) alpha = 1;
+          nodeShape(g, fam[i], x, y, Math.max(w, 3), Math.max(h, 3), alpha, n[6]);
+          if (i === sel) { g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, y, w, h); }
+          if (labels && w > 40) {
+            g.globalAlpha = alpha; g.fillStyle = '#fff';
+            g.font = Math.min(12, Math.max(9, h * 0.16)) + "px 'Paper Mono', monospace";
+            let t = n[0], max = Math.floor((w - 8) / (g.measureText('0').width || 6));
+            if (t.length > max) t = t.slice(0, Math.max(1, max - 1)) + '…';
+            g.fillText(t, x + 4, y + h / 2 + 3);
+            g.globalAlpha = 1;
+          }
+        }
+        // the entries (a column on the left) and the exits (a column on the right), each tied to its nodes by a thin line
+        portBoxes.length = 0;
+        if (showPorts) {
+          g.font = "11px 'Paper Mono', monospace";
+          const step = 24;
+          ['in', 'out'].forEach((io) => {
+            const list = PORTS.map((p, k) => [p, k]).filter(([p]) => p.io === io);
+            g.globalAlpha = 1; g.fillStyle = 'rgba(255,255,255,0.55)';
+            g.textAlign = io === 'in' ? 'left' : 'right';
+            g.fillText(io === 'in' ? 'IN' : 'OUT', io === 'in' ? 12 : W - 12, 22);
+            list.forEach(([p, k], j) => {
+              const label = p.label, tw = g.measureText(label).width + 14;
+              const bx = io === 'in' ? 10 : W - 10 - tw, by = 34 + j * step;
+              const isOn = (filter && filter.port === k) || hoverPort === k;
+              // leader lines
+              if (hoverPort === k) {
+                g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 1; g.setLineDash([2, 3]);
+                g.beginPath();
+                p.nodes.map(center).forEach(([x, y]) => { g.moveTo(io === 'in' ? bx + tw : bx, by + 9); g.lineTo(x, y); });
+                g.stroke(); g.setLineDash([]);
+              }
+              // the label
+              g.fillStyle = '#141414'; g.fillRect(bx, by, tw, 18);
+              g.strokeStyle = 'rgba(255,255,255,' + (isOn ? 1 : 0.55) + ')'; g.strokeRect(bx + 0.5, by + 0.5, tw - 1, 17);
+              g.fillStyle = isOn ? '#fff' : 'rgba(255,255,255,0.85)'; g.textAlign = 'left';
+              g.fillText(label, bx + 7, by + 13);
+              portBoxes.push([bx, by, tw, 18, k]);
+            });
+          });
+          g.textAlign = 'left';
+        }
+      }
+      const loop = () => { if (dirty) draw(); requestAnimationFrame(loop); };
+
+      function nodeAt(px, py) {
+        let best = -1;
+        for (let i = 0; i < TD_NODES.length; i++) {
+          const n = TD_NODES[i], x = toX(n[2]), y = toY(n[3] + n[5]), w = Math.max(n[4] * sc, 4), h = Math.max(n[5] * sc, 4);
+          if (px >= x - 1 && px <= x + w + 1 && py >= y - 1 && py <= y + h + 1) best = i;
+        }
+        return best;
+      }
+      const portAt = (px, py) => { for (const [x, y, w, h, k] of portBoxes) if (px >= x && px <= x + w && py >= y && py <= y + h) return k; return -1; };
+      const nm = (i) => TD_NODES[i][0];
+      function say() {
+        const i = hover >= 0 ? hover : sel;
+        if (hoverPort >= 0 && hover < 0) {
+          const p = PORTS[hoverPort];
+          infoEl.classList.remove('is-idle');
+          infoEl.textContent = (p.io === 'in' ? 'In · ' : 'Out · ') + p.label + ' · ' + p.nodes.length + (p.nodes.length === 1 ? ' node' : ' nodes') + '\n' + p.text;
+        } else if (i >= 0) {
+          infoEl.classList.remove('is-idle');
+          const n = TD_NODES[i];
+          let t = n[0] + ' · ' + n[1] + (n[6] ? ' · bypassed' : '') + ' · ' + GROUPS[groupOf[i]].label;
+          const cut = (l) => (l.length > 6 ? l.slice(0, 6).map(nm).join(', ') + ' … (' + l.length + ')' : l.map(nm).join(', '));
+          t += '\n' + (n[7].length ? 'from ' + cut(n[7]) : 'no inputs') + '\n' + (outs[i].length ? 'to ' + cut(outs[i]) : 'no outputs');
+          infoEl.textContent = t;
+        } else if (hoverSet || filter) {
+          const f = hoverSet || filter;
+          infoEl.classList.remove('is-idle');
+          infoEl.textContent = f.title + ' · ' + f.set.size + (f.set.size === 1 ? ' node' : ' nodes') + '\n' + f.text;
+        } else { infoEl.textContent = 'Move the pointer over a node to follow its connections, or pick a family or a group'; infoEl.classList.add('is-idle'); }
+      }
+      function setFilter(f) {
+        filter = f; sel = -1;
+        document.querySelectorAll('.net-fam, .net-grp').forEach((b) => b.classList.toggle('is-on', !!f && b.dataset.key === f.key));
+        dirty = true; say();
+      }
+
+      // ---- pointer: drag to move, click to select, ctrl/cmd + wheel (or pinch) to zoom ----
+      let drag = null;
+      canvas.addEventListener('pointerdown', (e) => {
+        canvas.setPointerCapture(e.pointerId);
+        drag = { x: e.clientX, y: e.clientY, tx, ty, moved: false };
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        const r = canvas.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+        if (drag) {
+          const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+          if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+          if (drag.moved) { tx = drag.tx + dx; ty = drag.ty + dy; fitted = false; dirty = true; canvas.style.cursor = 'grabbing'; }
+        } else {
+          const pk = portAt(px, py), h = pk >= 0 ? -1 : nodeAt(px, py);
+          canvas.style.cursor = pk >= 0 ? 'pointer' : '';
+          if (h !== hover || pk !== hoverPort) { hover = h; hoverPort = pk; dirty = true; say(); }
+        }
+      });
+      canvas.addEventListener('pointerup', (e) => {
+        const r = canvas.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+        if (drag && !drag.moved) {
+          const k = portAt(px, py);
+          if (k >= 0) { const p = PORTS[k]; setFilter(filter && filter.port === k ? null : { key: 'port' + k, port: k, set: new Set(p.nodes), title: (p.io === 'in' ? 'In · ' : 'Out · ') + p.label, text: p.text }); }
+          else { sel = nodeAt(px, py); if (sel >= 0) { filter = null; document.querySelectorAll('.net-fam, .net-grp').forEach((b) => b.classList.remove('is-on')); } dirty = true; say(); }
+        }
+        drag = null; canvas.style.cursor = '';
+      });
+      canvas.addEventListener('pointerleave', () => { if (hover >= 0 || hoverPort >= 0) { hover = -1; hoverPort = -1; dirty = true; say(); } });
+      canvas.addEventListener('wheel', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;                    // a plain scroll still scrolls the page
+        e.preventDefault();
+        const r = canvas.getBoundingClientRect();
+        zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.01));
+      }, { passive: false });
+      document.getElementById('netIn').addEventListener('click', () => zoomAt(W / 2, H / 2, 1.5));
+      document.getElementById('netOut').addEventListener('click', () => zoomAt(W / 2, H / 2, 1 / 1.5));
+      document.getElementById('netFit').addEventListener('click', () => { fit(); });
+      const portsBtn = document.getElementById('netPorts');
+      const portsLabel = () => { portsBtn.textContent = '[Entries and exits: ' + (showPorts ? 'on' : 'off') + ']'; };
+      portsBtn.addEventListener('click', () => { showPorts = !showPorts; portsLabel(); if (!showPorts && filter && filter.port !== undefined) setFilter(null); fit(); });
+      showPorts = window.matchMedia('(orientation: landscape)').matches;      // in a vertical window there is no room for the labels
+      portsLabel();
+
+      // the key lights up what it stands for while the pointer (or the keyboard focus) is on it
+      const preview = (b, info) => {
+        const on = () => { hoverSet = info; dirty = true; say(); };
+        const off = () => { hoverSet = null; dirty = true; say(); };
+        b.addEventListener('mouseenter', on); b.addEventListener('mouseleave', off);
+        b.addEventListener('focus', on); b.addEventListener('blur', off);
+      };
+
+      // ---- the key: the families (by outline) and the functional groups ----
+      const famEl = document.getElementById('netLegend'), grpEl = document.getElementById('netGroups');
+      FAMS.forEach((f) => {
+        const set = new Set(fam.map((x, i) => (x === f ? i : -1)).filter((i) => i >= 0));
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'net-fam'; b.dataset.key = 'fam' + f;
+        const ic = document.createElement('canvas');
+        ic.width = 36 * 2; ic.height = 22 * 2; ic.style.width = '36px'; ic.style.height = '22px';
+        const c = ic.getContext('2d'); c.scale(2, 2);
+        nodeShape(c, f, 3, 3, 30, 16, 0.9, false);
+        b.appendChild(ic);
+        b.appendChild(document.createTextNode(f + ' · ' + set.size));
+        const info = { key: b.dataset.key, set, title: f + ' nodes', text: 'All the ' + f + ' nodes of the patch.' };
+        b.addEventListener('click', () => setFilter(filter && filter.key === b.dataset.key ? null : info));
+        preview(b, info);
+        famEl.appendChild(b);
+      });
+      GROUPS.forEach((gr) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'net-grp'; b.dataset.key = 'grp' + gr.id;
+        b.textContent = '[' + gr.label + ' · ' + gr.set.size + ']';
+        const info = { key: b.dataset.key, set: gr.set, title: gr.label, text: gr.text };
+        b.addEventListener('click', () => setFilter(filter && filter.key === b.dataset.key ? null : info));
+        preview(b, info);
+        grpEl.appendChild(b);
+      });
+
+      new ResizeObserver(resize).observe(canvas);
+      resize();
+      say();
+      requestAnimationFrame(loop);
+    })();
 
     // ---- the step line ----
     (function () {
