@@ -217,6 +217,93 @@
       height: 100%;
     }
 
+    /* ---- from data to image: the 52 animated creatures of the installation ---- */
+    .viz-head-next { margin-top: calc(var(--grot-lh) * 4); }
+    /* the formula over columns 4-6: the same mono block as the sources, in full white */
+    .intro-sources.is-formula { color: var(--fg); }
+    .intro-sources.is-formula p + p { margin-top: var(--mono-lh); }
+    .intro-sources.is-formula .dim { color: var(--fg-dim); }
+
+    /* the creatures (columns 1-4, 8 tracks) and a square that shows the one under the pointer
+       enlarged (columns 5-6) with a few lines about it above it */
+    .creature-layout {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      align-items: start;
+    }
+    .creature-info {
+      min-height: calc(var(--mono-lh) * 3);
+      margin-bottom: 2px;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: var(--fg);
+      white-space: pre-line;
+    }
+    .creature-info.is-idle { color: var(--fg-dim); }
+    .creature-view {
+      grid-column: 5 / 7;
+      grid-row: 1;
+      position: sticky;                   /* stays in view while the grid scrolls */
+      top: calc(var(--bar-h, 0px) + var(--push, 0px) + var(--margin));
+    }
+    .creature-stage {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .creature-stage img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* 8 tracks with the same gutter as the six columns: every second edge is a column edge.
+       The line sits level with the top edge of the square. */
+    .creatures {
+      grid-column: 1 / 5;
+      grid-row: 1;
+      margin-top: calc(var(--mono-lh) * 3 + 2px);
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+      padding-top: var(--gutter);
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: var(--gutter);
+    }
+    .creature {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      outline: none;
+    }
+    .creature img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0.7;                       /* present in the latest hour: 70% */
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+      user-select: none;
+    }
+    .creature.is-none img { opacity: 0.25; }   /* not detected in the latest hour: it would not appear */
+    .creature .creature-n {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: 'Paper Mono', monospace;
+      font-weight: var(--mono-weight);
+      font-size: var(--mono);
+      line-height: var(--mono-lh);
+      color: rgba(255, 255, 255, 0.25);
+      transition: color 0.2s ease;
+    }
+    .creature.is-hot img { opacity: 1; }
+    .creature.is-hot .creature-n { color: #fff; }
+    .creatures:has(.is-hot) .creature:not(.is-hot) img { opacity: 0.2; }
+
     @media (orientation: landscape) {
       html, body { height: auto; }
       html { overflow-y: auto; }
@@ -242,6 +329,11 @@
       .viz-cap-stage { justify-content: flex-start; }
       .viz-cap-stage .cap-right { margin-left: 0; text-align: left; }
       .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(23, 2.4rem); aspect-ratio: auto; }
+      /* the enlarged creature stays at the top of the screen while the grid scrolls under it */
+      .creature-layout { display: flex; flex-direction: column-reverse; }
+      .creature-view { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 8px 0 10px; }
+      .creature-stage { width: min(100%, 36vh); }
+      .creatures { margin-top: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-top: 12px; }
     }
   </style>
 </head>
@@ -299,6 +391,29 @@
         <div class="viz-cap viz-cap-stage"><span id="vizCount"></span><span class="cap-right">Sample size: 1 cm³</span></div>
         <div class="stage" id="stage">
           <canvas id="water"></canvas>
+        </div>
+      </div>
+
+      <div class="viz-head viz-head-next"><h2>From Data to Image / Frequency, Size and Flow</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>In the installation, every class the Aquascope counts becomes a creature: an animation drawn for the project. There are 52 of them, because a few classes have more than one variant and take turns. They are numbered as in the software.</p>
+          <p>The data decides when a creature appears. The installation reads the most recent record and, sixty times a second, gives each class a chance to be born: its frequency divided by sixty. A class seen 0.2 times per second appears about once every five seconds; a class that was not seen never appears. A creature enters from the right edge at a random height, is carried by a flow field and is gone when it leaves the frame. At most fifty are alive at once.</p>
+          <p>The biology decides how big it is. The size follows the longest axis of the organism, from 5 µm to 12,000 µm, on a logarithmic scale: the smallest stays visible at 5%, the largest fills the frame at 100%.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Size on screen<br><span class="dim">scale = 5 + 95 × (log10 x − log10 5) / (log10 12000 − log10 5)</span></p>
+          <p><span class="dim">x: longest axis of the organism, in µm</span></p>
+          <p><span class="dim">Smallest: Chroococcales, 5 µm → 5%<br>Largest: Leptodora, 12000 µm → 100%</span></p>
+        </div>
+      </div>
+
+      <div class="creature-layout">
+        <div class="creatures" id="creatures" aria-label="The 52 animated creatures of the installation"></div>
+        <div class="creature-view">
+          <div class="creature-info is-idle" id="creatureInfo"></div>
+          <div class="creature-stage" id="creatureStage"><img id="creatureBig" alt="" hidden></div>
         </div>
       </div>
 
@@ -394,6 +509,7 @@
         b.classList.toggle('is-none', r <= 0);
         if (r <= 0 && hot === i) { hot = -1; b.classList.remove('is-hot'); }
       });
+      renderCreatures();
     }
 
     // ---- the info lines ----
@@ -647,6 +763,134 @@
     async function refresh() {
       try { await loadLatest(); } catch (e) { data.live = false; console.warn('Datalakes not reachable:', e); }
       renderCells(); syncSpheres(); updateInfo();
+    }
+
+    // ---- from data to image: the 52 creatures of the installation ----
+    // [class, file]: the position is the cell number in the installation. Classes with several
+    // variants (asterionella, cyclops, eudiaptomus, fragilaria, nauplius) take turns when one is born.
+    const CREATURES = [["aphanizomenon 0.5x", "aphanizomenon"], ["asplanchna 0.5x", "asplanchna"], ["asterionella 0.5x", "asterionella-1"], ["asterionella 0.5x", "asterionella-2"], ["aulacoseira 5x", "aulacoseira"], ["bosmina 0.5x", "bosmina"], ["centric diatom 5x", "centric-diatom"], ["ceratium 0.5x", "ceratium"], ["chaoborus 0.5x", "chaoborus"], ["chlorophyte 5x", "chlorophyte"], ["chroococcales 5x", "chroococcales"], ["chydorus 0.5x", "chydorus"], ["ciliate 5x", "ciliate"], ["closterium 5x", "closterium"], ["coleps 5x", "coleps"], ["cosmarium 5x", "cosmarium"], ["cryptophyte 5x", "cryptophyte"], ["cyanobacteria colonial 5x", "cyanobacteria-colonial"], ["cyanobacteria filament 0.5x", "cyanobacteria-filament-05x"], ["cyanobacteria filament 5x", "cyanobacteria-filament-5x"], ["cyclops 0.5x", "cyclops-1"], ["cyclops 0.5x", "cyclops-2"], ["daphnia 0.5x", "daphnia"], ["diaphanosoma 0.5x", "diaphanosoma"], ["diatom 0.5x", "diatom"], ["dinobryon 0.5x", "dinobryon"], ["dinoflagellate 5x", "dinoflagellate"], ["eudiaptomus 0.5x", "eudiaptomus-1"], ["eudiaptomus 0.5x", "eudiaptomus-2"], ["fragilaria 0.5x", "fragilaria-1"], ["fragilaria 0.5x", "fragilaria-2"], ["gymnodinium 5x", "gymnodinium"], ["hormidium like 5x", "hormidium-like"], ["hydra 0.5x", "hydra"], ["kellicottia 0.5x", "kellicottia"], ["keratella 0.5x", "keratella"], ["leptodora 0.5x", "leptodora"], ["mallomonas 5x", "mallomonas"], ["nauplius 0.5x", "nauplius-1"], ["nauplius 0.5x", "nauplius-2"], ["nauplius 0.5x", "nauplius-3"], ["pandorina 5x", "pandorina"], ["paradileptus 0.5x", "paradileptus"], ["pediastrum 5x", "pediastrum"], ["pennate diatom 5x", "pennate-diatom"], ["peridinium 5x", "peridinium"], ["rotifer 0.5x", "rotifer-1"], ["rotifer 5x", "rotifer-2"], ["staurastrum 5x", "staurastrum"], ["synura 5x", "synura"], ["tintinnid 5x", "tintinnid"], ["uroglena 0.5x", "uroglena"]];
+    // size on screen (%), from the logarithmic scale of the longest axis (5 µm -> 5%, 12000 µm -> 100%)
+    const SIZE_PCT = { 'leptodora': 100, 'hydra': 97, 'chaoborus': 94, 'daphnia': 78, 'diaphanosoma': 69, 'eudiaptomus': 69,
+      'cyclops': 64, 'bosmina': 57, 'chydorus': 55, 'nauplius': 48, 'asplanchna': 51, 'rotifer': 46, 'kellicottia': 43,
+      'keratella': 39, 'tintinnid': 39, 'paradileptus': 43, 'ciliate': 39, 'coleps': 34, 'ceratium': 39, 'peridinium': 37,
+      'dinoflagellate': 33, 'gymnodinium': 29, 'dinobryon': 34, 'uroglena': 34, 'pandorina': 33, 'cryptophyte': 22,
+      'asterionella': 31, 'fragilaria': 33, 'aulacoseira': 34, 'centric diatom': 37, 'pennate diatom': 34, 'diatom': 34,
+      'closterium': 43, 'cosmarium': 29, 'staurastrum': 27, 'pediastrum': 34, 'aphanizomenon': 48,
+      'cyanobacteria filament': 43, 'hormidium like': 39, 'cyanobacteria colonial': 29, 'chroococcales': 5,
+      'mallomonas': 27, 'synura': 29, 'chlorophyte': 29 };
+    // a few cells reuse the animation of another class: the size is that of the class the picture comes from
+    const SIZE_FROM = { 26: 'peridinium', 46: 'asplanchna', 47: 'tintinnid' };
+    const axisOf = {};
+    CLASSES.forEach(([axis, full]) => { axisOf[full] = axis; });
+    const creaturesEl = document.getElementById('creatures');
+    const creatureInfoEl = document.getElementById('creatureInfo');
+    const creatureBig = document.getElementById('creatureBig');
+    const IDLE_TEXT = 'Hover a creature to see it enlarged,\nwith its size and how often it is born';
+    const creatureMeta = CREATURES.map(([key, file], i) => {
+      const m = key.match(/^(.*) (0\.5x|5x)$/);
+      const base = m[1], lens = m[2].replace('x', '×');
+      const same = CREATURES.map((c, j) => [c[0], j]).filter((c) => c[0] === key);
+      const variant = same.length > 1 ? ' · variant ' + (same.findIndex((c) => c[1] === i) + 1) + ' of ' + same.length : '';
+      const num = String(i).padStart(2, '0');
+      const title = base.charAt(0).toUpperCase() + base.slice(1) + ' ' + lens;
+      return { key, base, num, file, title, count: same.length, name: title + variant };
+    });
+    // three short lines: who it is, how big it is drawn, how often it is born
+    function infoFor(i) {
+      const c = creatureMeta[i], r = data.rates[axisOf[c.key]] || 0;
+      return [c.num + ' · ' + c.title + (c.count > 1 ? ' · ' + c.count + ' variants' : ''),
+        SIZE_PCT[SIZE_FROM[i] || c.base] !== undefined ? 'Size on screen ' + SIZE_PCT[SIZE_FROM[i] || c.base] + '%' : '',
+        r > 0 ? fmt(r) + ' per second · about one every ' + everyText(1 / r) : 'Not detected in the latest hour'].join('\n');
+    }
+    // the enlarged creature: the small file shows at once, the large one replaces it when it has loaded
+    let shownIdx = -1;
+    // every variant of the class lights up together (the data belongs to the class, not to a variant)
+    function lightClass(i) {
+      const key = i < 0 ? null : creatureMeta[i].key;
+      creatureEls.forEach((el, j) => el.classList.toggle('is-hot', creatureMeta[j].key === key));
+    }
+    function showCreature(i) {
+      lightClass(i);
+      if (i === shownIdx) return;
+      shownIdx = i;
+      const c = creatureMeta[i];
+      creatureInfoEl.classList.remove('is-idle');
+      creatureInfoEl.textContent = infoFor(i);
+      const small = 'Media/Cells/' + c.num + '_' + c.file + '.webp';
+      const large = 'Media/Cells/large/' + c.num + '_' + c.file + '.webp';
+      creatureBig.hidden = false;
+      creatureBig.src = small;
+      const img = new Image();
+      img.onload = () => { if (shownIdx === i) creatureBig.src = large; };
+      img.src = large;
+    }
+    const creatureEls = creatureMeta.map((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'creature';
+      el.tabIndex = 0;
+      el.setAttribute('role', 'img');
+      el.setAttribute('aria-label', c.name);
+      el.innerHTML = '<img src="Media/Cells/' + c.num + '_' + c.file + '.webp" alt="" loading="lazy" decoding="async" width="160" height="160">' +
+        '<span class="creature-n">' + c.num + '</span>';
+      // a mouse highlights while it is over the tile; a touch (or the keyboard) selects, and it stays
+      el.addEventListener('pointerenter', () => showCreature(i));
+      el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') lightClass(-1); });
+      el.addEventListener('click', () => showCreature(i));
+      el.addEventListener('focus', () => showCreature(i));
+      creaturesEl.appendChild(el);
+      return el;
+    });
+    creatureInfoEl.textContent = IDLE_TEXT;
+
+    // When nobody is pointing at a creature, the square goes through all of them, one every two
+    // seconds, in a random order (each shows once before any repeats). It runs only while the
+    // section is on screen, and stops while a mouse is over the grid or after a touch / key press.
+    (function () {
+      const STEP_MS = 2000, TOUCH_HOLD_MS = 8000;
+      const layout = document.querySelector('.creature-layout');
+      let visible = false, mouseOver = false, heldUntil = 0, deck = [], timer = null;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const next = () => {
+        if (!deck.length) {
+          deck = creatureMeta.map((c, i) => i);
+          for (let k = deck.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [deck[k], deck[j]] = [deck[j], deck[k]]; }
+          if (deck[deck.length - 1] === shownIdx) deck.unshift(deck.pop());   // never the same one twice in a row
+        }
+        return deck.pop();
+      };
+      const tick = () => {
+        if (!visible || document.hidden || mouseOver || Date.now() < heldUntil) return;
+        showCreature(next());
+      };
+      const sync = () => {
+        const run = visible && !reduceMotion;
+        if (run && !timer) { tick(); timer = setInterval(tick, STEP_MS); }
+        if (!run && timer) { clearInterval(timer); timer = null; }
+      };
+      new IntersectionObserver((e) => { visible = e[0].isIntersecting; sync(); }).observe(layout);
+      creaturesEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') mouseOver = true; });
+      creaturesEl.addEventListener('pointerleave', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        mouseOver = false;
+        heldUntil = Date.now() + 500;     // a short pause before the rotation starts again
+        lightClass(-1);
+      });
+      creaturesEl.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') heldUntil = Date.now() + TOUCH_HOLD_MS; });
+      creaturesEl.addEventListener('focusin', () => { heldUntil = Date.now() + TOUCH_HOLD_MS; });
+    })();
+
+    function everyText(sec) {
+      if (sec < 10) return sec.toFixed(1) + ' s';
+      if (sec < 90) return Math.round(sec) + ' s';
+      if (sec < 5400) return Math.round(sec / 60) + ' min';
+      return (sec / 3600).toFixed(1) + ' h';
+    }
+    function renderCreatures() {
+      creatureEls.forEach((el, i) => {
+        const r = data.rates[axisOf[CREATURES[i][0]]] || 0;
+        el.classList.toggle('is-none', r <= 0);
+      });
+      if (shownIdx >= 0) creatureInfoEl.textContent = infoFor(shownIdx);
     }
 
     resize();
