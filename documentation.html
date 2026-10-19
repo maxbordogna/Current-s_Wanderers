@@ -568,6 +568,26 @@
     .cube-info { min-height: calc(var(--mono-lh) * 6); white-space: pre-line; color: var(--fg); }
     .cube-info.is-idle { color: var(--fg-dim); }
 
+    /* ---- hand tracking ---- */
+    .hand { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+    .hand-bar {
+      display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1.5em; margin-bottom: 2px;
+      font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh);
+    }
+    .hand-bar button { background: none; border: none; padding: 0; font: inherit; color: rgba(255, 255, 255, 0.7); cursor: pointer; transition: color 0.2s ease; }
+    .hand-bar button:hover { color: #fff; }
+    .hand-status { color: var(--fg-dim); }
+    /* the descriptions are one row over the squares, sitting 2 px above their top edge (as in the other chapters):
+       the controls over the picture, the caption over the joints */
+    .hand-view { display: contents; margin: 0; }
+    .hand-bar { grid-column: 1 / 4; grid-row: 1; align-self: end; }
+    .hand-cap { grid-column: 4 / 7; grid-row: 1; align-self: end; }
+    #handCam { grid-column: 1 / 4; grid-row: 2; }
+    #handOut { grid-column: 4 / 7; grid-row: 2; }
+    .hand-cap { margin-bottom: 2px; font-family: 'Paper Mono', monospace; font-weight: var(--mono-weight); font-size: var(--mono); line-height: var(--mono-lh); color: var(--fg); }
+    .hand-view canvas { display: block; width: 100%; aspect-ratio: 1 / 1; }
+    #handCam.is-ir { filter: grayscale(1) contrast(1.4) brightness(0.95); }
+
     @media (orientation: landscape) {
       html, body { height: auto; }
       html { overflow-y: auto; }
@@ -609,6 +629,13 @@
       .cube { display: block; }
       .cube-draw canvas { height: 62vh; }
       .cube-side { position: static; margin-top: 1rem; }
+      /* the two squares lie one over the other: the joints sit on a very dark picture */
+      .hand { grid-template-columns: minmax(0, 1fr); }
+      .hand-bar { grid-column: 1; grid-row: 1; }
+      .hand-cap { grid-column: 1; grid-row: 2; margin-top: 1rem; }
+      #handCam, #handOut { grid-column: 1; grid-row: 3; }
+      #handOut { position: relative; z-index: 1; }                               /* the filtered picture would otherwise be painted over it */
+      #handCam.is-ir { filter: grayscale(1) contrast(1.4) brightness(0.95) brightness(0.28); }
       .net-stage { height: 60vh; }
       .flow { display: flex; flex-direction: column-reverse; align-items: stretch; }
       .flow-states { margin-top: 1.5rem; }
@@ -715,7 +742,7 @@
         <div class="intro-text">
           <p>The creatures do not move on their own: they are carried by a flow field, a grid of 20 px cells, 96 by 96 over the 1920 px canvas, each holding a direction. The directions come from Perlin noise that slowly changes in time, so the current meanders and never repeats. A creature turns to follow the direction of the cell it is in.</p>
           <p>Hands change the current. The installation tracks both hands, a palm and five fingertips each, twelve points in all. What a point does to the current depends on whether it moves and for how long it has been still; the three behaviours are listed below.</p>
-          <p>Below, the same logic runs in the browser. Move the pointer over the square: it stands in for one fingertip, or for a pair of hands with the switch above. The faint lines show the direction of the current in each cell, and brighten where a point is steering it. The speed-up of creatures near a fast point is toned down here compared with the installation.</p>
+          <p>Below, the same logic runs in the browser. Move the pointer over the square: it stands in for one fingertip. The faint lines show the direction of the current in each cell, and brighten where a point is steering it. The speed-up of creatures near a fast point is toned down here compared with the installation.</p>
         </div>
         <div class="intro-sources is-formula">
           <p>Flow field<br><span class="dim">Cells of 20 px, 96 × 96. Perlin noise evolving slowly in time, a little faster when a point moves fast.</span></p>
@@ -733,7 +760,6 @@
         </div>
         <div class="flow-view">
           <div class="flow-toggles">
-            <button type="button" id="flowPoints"></button>
             <button type="button" id="flowCreaturesBtn"></button>
           </div>
           <div class="flow-stage" id="flowStage">
@@ -743,7 +769,33 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-next" data-step="Haptic Gloves"><h2><span class="chap-n">[04]</span> Haptic Gloves and Arduino / From Contact to Vibration</h2></div>
+      <div class="viz-head viz-head-next" data-step="Hand Tracking"><h2><span class="chap-n">[04]</span> Hand Tracking / The Leap Motion, Simulated</h2></div>
+
+      <div class="viz-intro">
+        <div class="intro-text">
+          <p>The hands are followed by a Leap Motion, an infrared sensor in the middle of the cube, under the hands. A small Python script, the bridge, reads it and sends every hand to TouchDesigner as OSC messages on port 7000: the palm, the fingers and other joints, their positions in millimetres, whether the hand is visible, and gestures such as grab and pinch.</p>
+          <p>TouchDesigner keeps twelve of those points, the palm and the five fingertips of each hand, and places them on the 1920 px canvas: the position from side to side, in millimetres, is multiplied by 3.2, the depth from +200 to −200 mm runs across the height of the canvas, and the height of the hands scales the whole area, from 1.5 times when they are low to 0.3 times when they are high.</p>
+          <p>Below, the sensor is replaced by the camera of your computer. On the left, the picture as an infrared sensor would give it: mirrored and in black and white. On the right, on a square of the same size, the joints that MediaPipe, a hand-tracking model by Google <a class="cite" data-ref="g" href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">[G]</a>, finds on each hand (on a narrow screen the two squares lie one over the other, the picture very dark). The camera is switched on only if you choose it, and its picture never leaves your computer.</p>
+        </div>
+        <div class="intro-sources is-formula">
+          <p>Messages<br><span class="dim">OSC, port 7000: /leap/{left|right}/… palm, fingers, arm, grab, pinch.</span></p>
+          <p>Points kept<br><span class="dim">The palm and the five fingertips of each hand: 12.</span></p>
+          <p>Canvas<br><span class="dim">x = 960 + 3.2 × x (mm). Depth +200 … −200 mm → 0 … 1920 px.</span></p>
+          <p>Scale<br><span class="dim">Height 50 mm → 1.5 · 500 mm → 0.3, around the middle of the canvas.</span></p>
+          <a class="src" id="src-g" data-ref="g" href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">[G] Zhang, Fan, Valentin Bazarevsky, Andrey Vakunov, et al. 2020. ‘MediaPipe Hands: On-Device Real-Time Hand Tracking’. arXiv:2006.10214. arxiv.org/abs/2006.10214</a>
+        </div>
+      </div>
+
+      <div class="hand">
+        <div class="hand-bar">
+          <button type="button" id="handSource"></button>
+          <span class="hand-status" id="handStatus"></span>
+        </div>
+        <figure class="hand-view"><canvas id="handCam"></canvas></figure>
+        <figure class="hand-view"><div class="hand-cap">The joints found on each hand</div><canvas id="handOut"></canvas></figure>
+      </div>
+
+      <div class="viz-head viz-head-next" data-step="Haptic Gloves"><h2><span class="chap-n">[05]</span> Haptic Gloves and Arduino / From Contact to Vibration</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -779,7 +831,7 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[05]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
+      <div class="viz-head viz-head-next" data-step="The Network"><h2><span class="chap-n">[06]</span> The Network / The Installation Patch in TouchDesigner</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -803,7 +855,7 @@
       <div class="net-stage"><canvas id="netCanvas" aria-label="The TouchDesigner network of the installation"></canvas></div>
       <div class="net-info is-idle" id="netInfo"></div>
 
-      <div class="viz-head viz-head-next" data-step="The Structure"><h2><span class="chap-n">[06]</span> The Structure / The Cube of the Installation</h2></div>
+      <div class="viz-head viz-head-next" data-step="The Structure"><h2><span class="chap-n">[07]</span> The Structure / The Cube of the Installation</h2></div>
 
       <div class="viz-intro">
         <div class="intro-text">
@@ -837,7 +889,7 @@
         </div>
       </div>
 
-      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[07]</span> More documentation is under construction</h2></div>
+      <div class="viz-head viz-head-more" data-step="Under construction"><h2><span class="chap-n">[08]</span> More documentation is under construction</h2></div>
     </div>
     </div>
 
@@ -1346,7 +1398,6 @@
       const g = cvs.getContext('2d');
       const layer = $('Creatures');
       const readout = $('Readout');
-      const btnPoints = $('Points');
       const btnCreatures = $('CreaturesBtn');
       const stateEls = {};
       if (cfg.states) document.querySelectorAll(cfg.states).forEach((el) => { stateEls[el.dataset.state] = el; });
@@ -1671,7 +1722,7 @@
         }
         // the points, and how far each one reaches
         for (const p of pts) {
-          // how far the point reaches (exactly as in the previous chapter): the steering radius of a moving point,
+          // how far the point reaches (exactly as in the chapter Flow and Touch): the steering radius of a moving point,
           // 40 px of swirl when it has just stopped, up to 200 px of pull when it is held
           g.beginPath(); g.arc(p.x * k, (WORLD - p.y) * k, (p.R || REP_R) * k, 0, TAU);
           g.strokeStyle = 'rgba(255,255,255,' + (p.moving ? 0.3 : 0.18 + 0.3 * p.conv) + ')'; g.stroke();
@@ -1701,10 +1752,8 @@
 
       // ---- controls ----
       const label = () => {
-        if (btnPoints) btnPoints.textContent = '[Pointer: ' + (opts.hands ? 'two hands, 12 points' : 'mouse, 1 point') + ']';
         btnCreatures.textContent = '[Creatures: ' + (opts.live ? 'live rates' : 'all classes') + ']';
       };
-      if (btnPoints) btnPoints.addEventListener('click', () => { opts.hands = !opts.hands; label(); });
       btnCreatures.addEventListener('click', () => {
         opts.live = !opts.live; label();
         if (!opts.live && cr.every((c) => !c.alive)) seed(7);
@@ -2394,6 +2443,119 @@
       set(0, true, false);                                   // the first chapter starts open, the others folded
       sync();
       return { open: (k) => set(k, true, false) };
+    })();
+
+    // ---- hand tracking: the camera of your computer in place of the Leap Motion, and MediaPipe in place of its software ----
+    // Left: the picture, mirrored and in black and white like an infrared image. Right: the joints MediaPipe finds on each hand,
+    // as white circles, on a square of the same size. Nothing is recorded: the picture stays in the browser.
+    (function () {
+      const camCv = document.getElementById('handCam'), outCv = document.getElementById('handOut');
+      if (!camCv) return;
+      const camG = camCv.getContext('2d'), outG = outCv.getContext('2d');
+      const btnCam = document.getElementById('handSource'), statusEl = document.getElementById('handStatus');
+      const TAU = Math.PI * 2;
+      const BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+      const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+
+      let stream = null, video = null, landmarker = null, loading = false, camOn = false;
+      let hands = [], frames = 0, seen = 0, started = 0, lastStatus = 0, lastDetect = 0, lastStamp = 0, S = 1, visible = false, hiddenSince = 0, lastError = '', delegate = 'CPU';
+      const grab = document.createElement('canvas');                     // the picture handed to MediaPipe: a copy of every frame, which every browser accepts
+      const say = (t) => { statusEl.textContent = t; };
+
+      function size() {
+        const dpr = window.devicePixelRatio || 1;
+        [camCv, outCv].forEach((c) => { const r = c.getBoundingClientRect(); if (r.width < 1) return; S = r.width; c.width = Math.round(r.width * dpr); c.height = Math.round(r.width * dpr); c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); });
+      }
+      const label = () => {
+        btnCam.textContent = '[Camera: ' + (camOn ? 'on' : 'off') + ']';
+        camCv.classList.add('is-ir');
+      };
+
+      // the square cut out of the middle of the picture, shared by both panels so that the circles sit on the hands
+      const crop = () => { const vw = video.videoWidth || 640, vh = video.videoHeight || 480, side = Math.min(vw, vh); return { vw, vh, side, sx: (vw - side) / 2, sy: (vh - side) / 2 }; };
+
+      function draw() {
+        camG.clearRect(0, 0, S, S); outG.clearRect(0, 0, S, S);
+        [camG, outG].forEach((g) => { g.strokeStyle = 'rgba(255,255,255,0.25)'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, S - 1, S - 1); });
+        if (camOn && video && video.readyState >= 2) {
+          const c = crop();
+          camG.save(); camG.translate(S, 0); camG.scale(-1, 1); camG.drawImage(video, c.sx, c.sy, c.side, c.side, 0, 0, S, S); camG.restore();
+        } else {
+          [camG, outG].forEach((g) => { g.fillStyle = 'rgba(255,255,255,0.4)'; g.font = "12px 'Paper Mono', monospace"; g.textAlign = 'center'; g.fillText(loading ? 'Loading…' : 'Camera off', S / 2, S / 2); });
+        }
+        hands.forEach((h) => {
+          outG.fillStyle = '#fff';
+          h.forEach((p) => { outG.beginPath(); outG.arc(p[0] * S, p[1] * S, 5, 0, TAU); outG.fill(); });
+        });
+      }
+
+      async function start() {
+        if (loading || camOn) return;
+        loading = true; lastError = ''; say('Asking for the camera…'); draw();
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('this browser gives no access to the camera here');
+          stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
+          say('Loading MediaPipe and its hand model, about 8 MB…');
+          const mod = await import(BASE + '/vision_bundle.mjs');
+          const files = await mod.FilesetResolver.forVisionTasks(BASE + '/wasm');
+          // Safari is often unhappy with the GPU: it gets the processor
+          const make = (d) => mod.HandLandmarker.createFromOptions(files, {
+            baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: 'VIDEO', numHands: 2,
+            minHandDetectionConfidence: 0.35, minHandPresenceConfidence: 0.35, minTrackingConfidence: 0.35
+          });
+          landmarker = await make('CPU');                                      // the graphics card often finds nothing without saying so; the processor is slow enough for one small model
+          video = document.createElement('video');
+          video.playsInline = true; video.muted = true; video.srcObject = stream;
+          video.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+          document.body.appendChild(video);                              // in the page, so that every browser keeps playing it
+          await video.play();
+          camOn = true; frames = 0; seen = 0; started = performance.now(); lastStamp = 0;
+        } catch (e) {
+          lastError = (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : e);
+          stop(); say('The camera could not be started (' + lastError.slice(0, 140) + ').');
+        }
+        loading = false; label();
+      }
+      function stop() {
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        if (video && video.parentNode) video.parentNode.removeChild(video);
+        stream = null; video = null; landmarker = null; camOn = false; hands = []; label();
+      }
+      btnCam.addEventListener('click', () => { if (camOn) { stop(); say('The camera is off.'); } else start(); });
+      window.addEventListener('pagehide', stop);
+
+      const seenNow = new Map();                                                // the two squares sit one above the other on a narrow screen: the chapter counts as in view while either is
+      const io = new IntersectionObserver((es) => {
+        es.forEach((e) => seenNow.set(e.target, e.isIntersecting));
+        const was = visible; visible = [...seenNow.values()].some(Boolean);
+        if (was && !visible) hiddenSince = performance.now();
+      });
+      io.observe(camCv); io.observe(outCv);
+      (function loop(now) {
+        requestAnimationFrame(loop);
+        if (!visible) { if (camOn && now - hiddenSince > 2500) { stop(); say('The camera was switched off when you left the chapter.'); } return; }
+        if (camOn && landmarker && video && video.readyState >= 2 && now - lastDetect > 30) {
+          lastDetect = now; frames++;
+          try {
+            const c = crop();
+            if (grab.width !== c.vw || grab.height !== c.vh) { grab.width = c.vw; grab.height = c.vh; }
+            grab.getContext('2d').drawImage(video, 0, 0, c.vw, c.vh);
+            const stamp = Math.max(lastStamp + 1, Math.round(now)); lastStamp = stamp;     // MediaPipe wants times that only grow
+            const res = landmarker.detectForVideo(grab, stamp);
+            hands = (res.landmarks || []).map((lm) => lm.map((p) => [1 - (p.x * c.vw - c.sx) / c.side, (p.y * c.vh - c.sy) / c.side]));   // as in a mirror
+            if (hands.length) seen++;
+          } catch (e) { lastError = String(e); hands = []; }
+        }
+        draw();
+        if (camOn && now - lastStatus > 400) {
+          lastStatus = now;
+          const waited = (now - started) / 1000;
+          say('Camera on (' + delegate + ', ' + frames + ' frames) · ' + (hands.length ? hands.length + (hands.length === 1 ? ' hand' : ' hands') + ' found' : 'no hand found') +
+            (!seen && waited > 6 ? '. Show an open hand to the camera, in good light, about 40 cm away.' : '') + (lastError ? ' (' + lastError.slice(0, 90) + ')' : ''));
+        }
+      })(0);
+      new ResizeObserver(size).observe(camCv);
+      size(); label(); say('The camera is off. It is asked for only when you switch it on.'); draw();
     })();
 
     // ---- the step line ----
