@@ -335,11 +335,21 @@
       position: fixed;
       left: var(--margin);
       right: var(--margin);
-      top: calc(var(--push, 0px) + var(--bar-h, 0px) - 1px);
+      top: calc(var(--push, 0px) + var(--bar-h, 0px) + 9px);       /* a clear gap under the menu bar, not on its edge */
       height: 1px;
       z-index: 41;                        /* over the bar (40), under nothing that matters */
       pointer-events: none;
       background: rgba(255, 255, 255, 0.2);
+    }
+    /* a strip of the page's own colour under the bar, so the text scrolling up never runs through the line or its nodes */
+    .rail::before {
+      content: '';
+      position: fixed;
+      left: 0; right: 0;
+      top: calc(var(--push, 0px) + var(--bar-h, 0px));
+      height: 19px;
+      background: var(--bg);
+      z-index: -1;
     }
     .rail-fill {
       position: absolute;
@@ -362,7 +372,7 @@
       cursor: pointer;
       transition: background 0.3s ease, border-color 0.3s ease;
     }
-    .rail-node::before { content: ''; position: absolute; inset: -9px; }          /* a bigger target */
+    .rail-node::before { content: ''; position: absolute; inset: -5px; }          /* a bigger target */
     .rail-node.is-reached { background: #fff; border-color: #fff; }
     .rail-node.is-upcoming { border-style: dashed; }
     /* the name of the chapter, under its node: on hover / focus, and for a moment when a chapter is
@@ -554,6 +564,7 @@
         padding-top: calc(var(--bar-h) + var(--push));
       }
       .content-row { padding: var(--margin) var(--margin) 0 var(--margin); }
+      .viz-page { padding-top: 16px; }      /* room for the step line under the bar */
     }
     @media (orientation: portrait) {
       .content-row { display: contents; }
